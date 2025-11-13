@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "aws-documentation": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@aws/mcp-server-aws-documentation"
+      ],
+      "description": "Access AWS documentation for up-to-date service information",
+      "env": {}
+    },
+    "aws-knowledge": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@aws/mcp-server-aws-knowledge"
+      ],
+      "description": "Access AWS knowledge base for best practices and architectural patterns",
+      "env": {}
+    }
+  }
+}
