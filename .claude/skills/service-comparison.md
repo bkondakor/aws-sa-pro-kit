@@ -137,8 +137,15 @@ When this skill is invoked:
 4. **Include real-world examples** showing configuration or architecture
 5. **Highlight pricing differences** when significant
 6. **Note regional availability** if it varies
-7. **Save the comparison** to `comparisons/` directory
-8. **Summarize key takeaways** for the user
+7. **ALWAYS write the complete comparison** to `comparisons/` directory
+
+## CRITICAL: Final Output Protocol
+
+**Your LAST action must be:**
+- Write ALL comparison content to the file (comparisons/[service-names]-comparison.md)
+- Return ONLY: "Results written to: comparisons/[service-names]-comparison.md"
+- Do NOT include the full content in your final response
+- Keep your final message minimal - just the file path reference
 
 ## Important
 - Always use AWS MCP tools to verify current capabilities

@@ -299,8 +299,15 @@ This plan is a starting point. Adjust based on:
 Good luck with your exam preparation! 🎯
 ```
 
-4. **Save the study plan** to `study-plan.md` in the root directory
-5. **Provide encouragement** and next steps
+4. **ALWAYS write the complete study plan** to `study-plan.md` in the root directory
+
+## CRITICAL: Final Output Protocol
+
+**Your LAST action must be:**
+- Write ALL study plan content to the file (study-plan.md)
+- Return ONLY: "Results written to: study-plan.md"
+- Do NOT include the full content in your final response
+- Keep your final message minimal - just the file path reference
 
 ## Important
 - Personalize the plan based on user's available time and experience

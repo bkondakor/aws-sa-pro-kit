@@ -30,7 +30,7 @@ You are an AWS Solutions Architect Professional expert. Create a personalized st
    - Weak areas (allocate more time)
    - Learning style preferences
 
-5. Save the plan to `study-plan.md`
+5. **ALWAYS write the complete study plan to:** `study-plan.md`
 
 6. Make the plan realistic, actionable, and encouraging
 
@@ -39,5 +39,13 @@ You are an AWS Solutions Architect Professional expert. Create a personalized st
 - Design for New Solutions (29%)
 - Continuous Improvement for Existing Solutions (25%)
 - Accelerate Workload Migration and Modernization (20%)
+
+## CRITICAL: Final Output
+
+**Your LAST action must be:**
+- Write ALL study plan content to the file
+- Return ONLY: "Results written to: study-plan.md"
+- Do NOT include the full content in your final response
+- Keep your final message minimal - just the file path reference
 
 Focus on scenario-based learning and hands-on practice, not just memorization.
