@@ -64,8 +64,15 @@ D) [Fourth option - wrong but might seem right]
    - Reflect actual exam difficulty
    - Include multi-service integration when relevant
 
-7. **Save questions** to `questions/` directory with descriptive filename
-8. **Provide a summary** of what concepts were covered
+7. **ALWAYS write all questions to a file** in `questions/` directory with descriptive filename
+
+## CRITICAL: Final Output Protocol
+
+**Your LAST action must be:**
+- Write ALL practice questions and explanations to the file (questions/[topic]-questions.md)
+- Return ONLY: "Results written to: questions/[topic]-questions.md"
+- Do NOT include the full content in your final response
+- Keep your final message minimal - just the file path reference
 
 ## Question Guidelines
 

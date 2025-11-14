@@ -63,8 +63,15 @@ When this skill is invoked:
 - Top 3-5 points to remember for the exam
 ```
 
-4. **Save the notes** to a file in the `notes/` directory with a descriptive name
-5. **Inform the user** where the notes were saved
+4. **ALWAYS write the complete notes to a file** in the `notes/` directory with a descriptive name
+
+## CRITICAL: Final Output Protocol
+
+**Your LAST action must be:**
+- Write ALL detailed study notes to the file (notes/[service-name].md)
+- Return ONLY: "Results written to: notes/[service-name].md"
+- Do NOT include the full content in your final response
+- Keep your final message minimal - just the file path reference
 
 ## Important
 - Always verify information using AWS MCP tools
