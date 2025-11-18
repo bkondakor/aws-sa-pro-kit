@@ -81,6 +81,10 @@ def create_domain_overview_page(domain_num, domain_info):
     <link rel="stylesheet" href="../styles/study.css">
 </head>
 <body>
+    <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+        <span class="icon">🌙</span>
+    </button>
+
     <nav class="top-nav">
         <div class="nav-container">
             <a href="../index.html" class="nav-brand">AWS SA Pro Kit</a>
@@ -156,6 +160,33 @@ def create_domain_overview_page(domain_num, domain_info):
         <p>AWS Solutions Architect Professional Exam Preparation Kit</p>
         <p>Last updated: 2025</p>
     </footer>
+
+    <script>
+        // Dark Mode Functionality
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const icon = darkModeToggle.querySelector('.icon');
+
+        // Check for saved theme preference or default to light mode
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {{
+            document.body.classList.add('dark-mode');
+            icon.textContent = '☀️';
+        }}
+
+        // Toggle dark mode
+        darkModeToggle.addEventListener('click', () => {{
+            document.body.classList.toggle('dark-mode');
+
+            // Update icon and save preference
+            if (document.body.classList.contains('dark-mode')) {{
+                icon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }} else {{
+                icon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            }}
+        }});
+    </script>
 </body>
 </html>'''
 

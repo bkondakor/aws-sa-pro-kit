@@ -3,350 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Comparisons - AWS SA Pro Kit</title>
+    <title>AWS Service Comparisons - AWS SA Pro Kit</title>
     <link rel="stylesheet" href="../../styles/study.css">
-    <style>
-        .comparisons-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .hero-section {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            padding: 3rem 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .hero-section h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .hero-section p {
-            font-size: 1.2rem;
-            opacity: 0.95;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .nav-buttons a {
-            padding: 0.75rem 1.5rem;
-            background: var(--primary-color);
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            transition: all 0.3s;
-        }
-
-        .nav-buttons a:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .intro-section {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .intro-section h2 {
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-
-        .intro-section p {
-            color: var(--text-color);
-            line-height: 1.6;
-            margin-bottom: 0.5rem;
-        }
-
-        .comparison-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .comparison-card {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 2rem;
-            transition: all 0.3s;
-        }
-
-        .comparison-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            border-color: var(--primary-color);
-        }
-
-        .comparison-card-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        .comparison-card h3 {
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-            text-align: center;
-            font-size: 1.5rem;
-        }
-
-        .comparison-card p {
-            color: var(--text-color);
-            line-height: 1.6;
-            margin-bottom: 1rem;
-        }
-
-        .comparison-card .services-list {
-            background: var(--code-bg);
-            border-left: 3px solid var(--primary-color);
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 4px;
-        }
-
-        .comparison-card .services-list h4 {
-            color: var(--primary-color);
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-        }
-
-        .comparison-card .services-list ul {
-            margin: 0;
-            padding-left: 1.5rem;
-            color: var(--text-color);
-        }
-
-        .comparison-card .services-list li {
-            margin-bottom: 0.25rem;
-            font-size: 0.95rem;
-        }
-
-        .comparison-card a {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            background: var(--primary-color);
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            transition: all 0.3s;
-            width: 100%;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .comparison-card a:hover {
-            background: var(--secondary-color);
-            transform: translateY(-2px);
-        }
-
-        .decision-framework {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .decision-framework h2 {
-            color: var(--primary-color);
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--primary-color);
-        }
-
-        .decision-tip {
-            background: var(--success-bg);
-            border-left: 4px solid var(--success-color);
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-        }
-
-        .decision-tip strong {
-            color: var(--success-color);
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-
-        .decision-tip p {
-            color: var(--text-color);
-            margin: 0;
-        }
-
-        @media (max-width: 768px) {
-            .comparison-cards {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
 </head>
 <body>
     <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
         <span class="icon">🌙</span>
     </button>
 
-    <div class="comparisons-container">
-        <div class="nav-buttons">
-            <a href="../../index.html">← Home</a>
-            <a href="../index.html">📚 Study Materials</a>
-            <a href="../cheatsheet.html">📋 Quick Cheatsheet</a>
-            <a href="../../exam/index.html">📝 Practice Exam</a>
+    <nav class="top-nav">
+        <div class="nav-container">
+            <a href="../../index.html" class="nav-brand">AWS SA Pro Kit</a>
+            <div class="nav-links">
+                <a href="../../index.html">Home</a>
+                <a href="../index.html" class="active">Study Materials</a>
+                <a href="../../exam/index.html">Practice Exam</a>
+                <a href="https://github.com/bkondakor/aws-sa-pro-kit" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="../index.html">Study Materials</a> › Service Comparisons
         </div>
 
-        <div class="hero-section">
-            <h1>🔀 Service Comparisons</h1>
-            <p>Side-by-side comparisons of AWS services with decision trees and real scenarios</p>
-        </div>
+        <main class="content">
+            <article>
+                <h1>🔀 AWS Service Comparisons</h1>
 
-        <div class="intro-section">
-            <h2>Why Service Comparisons Matter</h2>
-            <p>
-                One of the most challenging aspects of the AWS Solutions Architect Professional exam is knowing <strong>which service to use when</strong>.
-                AWS offers multiple services that appear similar but are optimized for different use cases.
-            </p>
-            <p>
-                These comparison guides help you understand the key differences, use cases, and decision criteria for choosing the right service.
-                Each guide includes decision trees, cost considerations, and real-world scenarios.
-            </p>
-        </div>
+                <p class="intro-text">
+                    Understanding when to use each AWS service is critical for the Solutions Architect Professional exam.
+                    These comparison guides help you make the right architectural decisions by highlighting key differences,
+                    use cases, and decision criteria.
+                </p>
 
-        <div class="comparison-cards">
-            <!-- Big Data Services -->
-            <div class="comparison-card">
-                <div class="comparison-card-icon">📊</div>
-                <h3>Big Data Services</h3>
-                <p>Compare data processing, analytics, and ETL services to choose the right tool for your data workload.</p>
-                <div class="services-list">
-                    <h4>Services Compared:</h4>
+                <div class="comparison-cards">
+                    <div class="comparison-card">
+                        <div class="card-header">
+                            <span class="card-icon">📊</span>
+                            <h2>Big Data Services</h2>
+                        </div>
+                        <div class="card-content">
+                            <p>Compare EMR, Athena, Glue, Kinesis, Redshift, and more. Learn when to use each service for data processing, analytics, and streaming workloads.</p>
+                            <ul class="feature-list">
+                                <li>Amazon EMR vs Glue vs Athena</li>
+                                <li>Kinesis Data Streams vs Firehose</li>
+                                <li>Redshift vs Athena vs EMR</li>
+                                <li>MSK vs Kinesis</li>
+                                <li>Real-world use case examples</li>
+                            </ul>
+                            <a href="big-data-services-comparison.html" class="btn-card">View Guide →</a>
+                        </div>
+                    </div>
+
+                    <div class="comparison-card">
+                        <div class="card-header">
+                            <span class="card-icon">🚀</span>
+                            <h2>Migration Services</h2>
+                        </div>
+                        <div class="card-content">
+                            <p>Comprehensive comparison of AWS migration services including MGN, DMS, DataSync, Snow Family, and Storage Gateway.</p>
+                            <ul class="feature-list">
+                                <li>Application Migration Service (MGN)</li>
+                                <li>Database Migration Service (DMS)</li>
+                                <li>DataSync vs Transfer Family</li>
+                                <li>Snow Family devices</li>
+                                <li>Migration decision trees</li>
+                            </ul>
+                            <a href="migration-services-comparison.html" class="btn-card">View Guide →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tips-section">
+                    <h3>💡 How to Use These Guides</h3>
                     <ul>
-                        <li>Amazon EMR (Elastic MapReduce)</li>
-                        <li>Amazon Athena</li>
-                        <li>AWS Glue</li>
-                        <li>Amazon Redshift</li>
-                        <li>Amazon Kinesis</li>
-                        <li>AWS Lake Formation</li>
+                        <li><strong>Decision Trees:</strong> Follow the flowcharts to quickly identify the right service for your scenario</li>
+                        <li><strong>Comparison Tables:</strong> Side-by-side feature comparisons help you understand key differences</li>
+                        <li><strong>Real Scenarios:</strong> Practice with exam-style scenarios and explanations</li>
+                        <li><strong>Quick Reference:</strong> Use the summary tables during your final review before the exam</li>
                     </ul>
                 </div>
-                <a href="../../comparisons/big-data-services-comparison.md" target="_blank">View Comparison →</a>
+            </article>
+        </main>
+
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3>Navigation</h3>
+                <ul>
+                    <li><a href="../index.html">Study Home</a></li>
+                    <li><a href="../domain-1.html">Domain 1 (26%)</a></li>
+                    <li><a href="../domain-2.html">Domain 2 (29%)</a></li>
+                    <li><a href="../domain-3.html">Domain 3 (25%)</a></li>
+                    <li><a href="../domain-4.html">Domain 4 (20%)</a></li>
+                </ul>
             </div>
-
-            <!-- Migration Services -->
-            <div class="comparison-card">
-                <div class="comparison-card-icon">🚚</div>
-                <h3>Migration Services</h3>
-                <p>Understand which migration service to use based on your migration strategy and workload type.</p>
-                <div class="services-list">
-                    <h4>Services Compared:</h4>
-                    <ul>
-                        <li>AWS Application Migration Service (MGN)</li>
-                        <li>AWS Database Migration Service (DMS)</li>
-                        <li>AWS DataSync</li>
-                        <li>AWS Transfer Family</li>
-                        <li>AWS Migration Hub</li>
-                        <li>AWS Snow Family</li>
-                    </ul>
-                </div>
-                <a href="../../comparisons/migration-services-comparison.md" target="_blank">View Comparison →</a>
+            <div class="sidebar-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="../cheatsheet.html" style="background: linear-gradient(135deg, #FFB84D 0%, #FF8C42 100%); padding: 8px 12px; border-radius: 6px; color: #0f0f1e; font-weight: 700; display: block; text-align: center; margin-bottom: 8px;">📋 Cheatsheet</a></li>
+                    <li><a href="../../exam/index.html">Practice Exam</a></li>
+                    <li><a href="https://aws.amazon.com/certification/certified-solutions-architect-professional/" target="_blank">Official Exam</a></li>
+                </ul>
             </div>
-
-            <!-- Domain-Specific Comparisons -->
-            <div class="comparison-card">
-                <div class="comparison-card-icon">🔄</div>
-                <h3>Continuous Improvement</h3>
-                <p>Service comparisons focused on optimizing existing workloads for performance, cost, and reliability.</p>
-                <div class="services-list">
-                    <h4>Topics Covered:</h4>
-                    <ul>
-                        <li>Monitoring & Observability</li>
-                        <li>Caching Strategies</li>
-                        <li>Database Optimization</li>
-                        <li>Cost Optimization Tools</li>
-                        <li>Performance Tuning</li>
-                    </ul>
-                </div>
-                <a href="../../domain-3-continuous-improvement/service-comparisons.md" target="_blank">View Comparison →</a>
-            </div>
-
-            <!-- Migration & Modernization -->
-            <div class="comparison-card">
-                <div class="comparison-card-icon">🚀</div>
-                <h3>Migration & Modernization</h3>
-                <p>Compare migration strategies, modernization patterns, and tools for cloud transformation.</p>
-                <div class="services-list">
-                    <h4>Topics Covered:</h4>
-                    <ul>
-                        <li>7 Rs of Migration</li>
-                        <li>Container Services (ECS vs EKS)</li>
-                        <li>Serverless vs Containers</li>
-                        <li>Application Modernization</li>
-                        <li>Database Migration Paths</li>
-                    </ul>
-                </div>
-                <a href="../../domain-4-migration-modernization/service-comparisons.md" target="_blank">View Comparison →</a>
-            </div>
-        </div>
-
-        <div class="decision-framework">
-            <h2>🎯 Decision Framework for Service Selection</h2>
-
-            <div class="decision-tip">
-                <strong>1. Identify the Workload Type</strong>
-                <p>Is it compute, storage, database, networking, analytics, ML, or integration? This narrows down the service category.</p>
-            </div>
-
-            <div class="decision-tip">
-                <strong>2. Consider Operational Requirements</strong>
-                <p>Do you need serverless (less management) or full control? This helps choose between managed and self-managed options.</p>
-            </div>
-
-            <div class="decision-tip">
-                <strong>3. Evaluate Performance Needs</strong>
-                <p>What are the latency, throughput, and consistency requirements? This guides instance types, database engines, and storage classes.</p>
-            </div>
-
-            <div class="decision-tip">
-                <strong>4. Analyze Cost Constraints</strong>
-                <p>What's the budget and pricing model preference (pay-per-use vs reserved capacity)? This affects service tier and commitment levels.</p>
-            </div>
-
-            <div class="decision-tip">
-                <strong>5. Review Scalability Requirements</strong>
-                <p>Is auto-scaling needed? What's the expected growth? This determines service capacity and scaling strategies.</p>
-            </div>
-
-            <div class="decision-tip">
-                <strong>6. Check Compliance and Security</strong>
-                <p>What are the data residency, encryption, and compliance requirements? This impacts service selection and configuration.</p>
-            </div>
-
-            <div class="decision-tip">
-                <strong>7. Consider Integration Needs</strong>
-                <p>What other AWS services or third-party systems need to integrate? This affects service compatibility and data transfer methods.</p>
-            </div>
-        </div>
-
-        <div class="nav-buttons">
-            <a href="../../index.html">← Back to Home</a>
-            <a href="../index.html">📚 All Study Materials</a>
-            <a href="../cheatsheet.html">📋 Quick Cheatsheet</a>
-        </div>
+        </aside>
     </div>
+
+    <footer class="footer">
+        <p>AWS Solutions Architect Professional Exam Preparation Kit</p>
+        <p>Last updated: 2025</p>
+    </footer>
 
     <script>
         // Dark Mode Functionality
@@ -374,5 +141,126 @@
             }
         });
     </script>
+
+    <style>
+        .intro-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .comparison-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .comparison-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .comparison-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-content p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .btn-card {
+            display: inline-block;
+            background: linear-gradient(135deg, #FFB84D 0%, #FF8C42 100%);
+            color: #0f0f1e;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(255, 184, 77, 0.3);
+        }
+
+        .tips-section {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .tips-section h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .tips-section ul {
+            margin-left: 1.5rem;
+        }
+
+        .tips-section li {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </body>
 </html>
