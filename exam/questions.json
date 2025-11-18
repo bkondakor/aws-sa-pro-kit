@@ -1,0 +1,163 @@
+{
+  "questions": [
+    {
+      "type": "multiple",
+      "question": "A company is migrating to AWS and needs to implement security best practices. Which of the following are recommended security measures for AWS accounts? (Select THREE)",
+      "options": [
+        "Enable MFA for the root account",
+        "Create IAM users for daily administrative tasks instead of using the root account",
+        "Use the root account for all API calls to ensure maximum permissions",
+        "Enable AWS CloudTrail in all regions",
+        "Store access keys in the application code for easy deployment",
+        "Use IAM roles for applications running on EC2 instances"
+      ],
+      "correctAnswer": [0, 1, 3, 5],
+      "explanation": "Security best practices for AWS accounts include: enabling MFA for the root account to add an extra layer of security, creating IAM users for daily tasks to avoid using the root account, enabling CloudTrail for audit logging, and using IAM roles for EC2 applications instead of embedding credentials. The root account should rarely be used and never for routine tasks. Access keys should never be stored in code as this poses a security risk."
+    },
+    {
+      "type": "multiple",
+      "question": "A solutions architect is designing a highly available application that must meet strict compliance requirements. Which AWS services provide automated backup capabilities? (Select ALL that apply)",
+      "options": [
+        "Amazon RDS",
+        "Amazon DynamoDB",
+        "Amazon S3",
+        "Amazon EFS",
+        "AWS Lambda"
+      ],
+      "correctAnswer": [0, 1, 3],
+      "explanation": "Amazon RDS provides automated backups with point-in-time recovery. Amazon DynamoDB offers point-in-time recovery (PITR) for continuous backups. Amazon EFS automatically replicates data across multiple AZs and supports AWS Backup. Amazon S3 provides durability but versioning/replication must be configured separately. AWS Lambda doesn't have built-in backup - you backup the code in your deployment package or source control."
+    },
+    {
+      "question": "A company is running a multi-tier web application on AWS with an Application Load Balancer (ALB), Amazon EC2 instances in an Auto Scaling group, and an Amazon RDS database. The company needs to implement a disaster recovery solution that provides an RTO of 1 hour and an RPO of 15 minutes with minimal cost. Which solution meets these requirements?",
+      "options": [
+        "Deploy a pilot light solution in a secondary region with RDS read replicas and minimal EC2 instances. Use AWS Backup for automated snapshots every 15 minutes.",
+        "Use AWS Backup to create RDS snapshots every 15 minutes and store them in S3. Deploy infrastructure using CloudFormation in a secondary region when needed.",
+        "Implement a warm standby solution with a scaled-down version of the environment running in a secondary region with cross-region RDS read replicas.",
+        "Configure RDS Multi-AZ deployment and use AWS Database Migration Service (DMS) for continuous replication to a secondary region."
+      ],
+      "correctAnswer": 2,
+      "explanation": "A warm standby solution is the most appropriate choice for meeting an RTO of 1 hour and RPO of 15 minutes. This approach keeps a scaled-down but fully functional version of the environment running in a secondary region. Cross-region RDS read replicas provide near real-time replication (meeting the 15-minute RPO), and the environment can be quickly scaled up within the 1-hour RTO requirement. Option A (pilot light) might not meet the 1-hour RTO consistently. Option B doesn't meet the 15-minute RPO as snapshots take longer. Option D uses Multi-AZ which is for high availability within a region, not DR across regions."
+    },
+    {
+      "question": "A company has a hybrid architecture with an on-premises data center connected to AWS via AWS Direct Connect. The company needs to ensure that all traffic between on-premises resources and AWS services like S3 and DynamoDB does not traverse the public internet. What is the most secure and efficient solution?",
+      "options": [
+        "Configure VPC endpoints for S3 and DynamoDB, and use AWS PrivateLink to access these services privately.",
+        "Use a VPN connection over the Direct Connect link and configure private IP addressing for all AWS services.",
+        "Deploy NAT Gateways in each VPC and route all traffic through the Direct Connect connection.",
+        "Implement AWS Transit Gateway with Direct Connect Gateway and configure VPC endpoints for S3 and DynamoDB in each VPC."
+      ],
+      "correctAnswer": 3,
+      "explanation": "AWS Transit Gateway with Direct Connect Gateway provides the most scalable and efficient solution for hybrid connectivity. VPC endpoints (Gateway endpoints for S3 and DynamoDB) ensure that traffic to these services stays within the AWS network and doesn't traverse the public internet. This combination allows on-premises resources to access these services privately through Direct Connect, while also simplifying the network architecture by centralizing connectivity through Transit Gateway. Option A doesn't address the on-premises connectivity aspect. Option B is less efficient and VPN isn't necessary with Direct Connect. Option C uses NAT Gateways which are designed for outbound internet access, not for this use case."
+    },
+    {
+      "question": "A financial services company requires that all data stored in Amazon S3 be encrypted at rest and in transit. The company also needs to maintain complete control over the encryption keys and have the ability to immediately revoke access to the data. The solution must meet compliance requirements for key rotation. Which solution meets these requirements?",
+      "options": [
+        "Use S3 default encryption with Amazon S3-Managed Keys (SSE-S3) and enforce HTTPS through bucket policies.",
+        "Implement AWS KMS with Customer Managed Keys (CMK), enable automatic key rotation, and use bucket policies to enforce encryption in transit.",
+        "Use AWS CloudHSM to generate and manage encryption keys, implement client-side encryption, and enforce HTTPS.",
+        "Configure S3 bucket encryption with AWS KMS using AWS-managed keys and enable MFA Delete."
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS KMS with Customer Managed Keys (CMK) provides complete control over encryption keys, including the ability to immediately disable keys to revoke access to encrypted data. KMS supports automatic annual key rotation to meet compliance requirements. Bucket policies can enforce encryption in transit by requiring HTTPS. Option A doesn't provide control over keys. Option C with CloudHSM provides more control but is more complex and expensive than necessary. Option D uses AWS-managed keys which don't provide the level of control required (you can't disable AWS-managed keys)."
+    },
+    {
+      "question": "A company is migrating a legacy application to AWS that requires consistent single-digit millisecond latency for database operations. The database workload is read-heavy with occasional write operations. The application requires strong consistency for reads. Which database solution would be most appropriate?",
+      "options": [
+        "Amazon RDS with read replicas and Multi-AZ deployment for high availability.",
+        "Amazon DynamoDB with DynamoDB Accelerator (DAX) and strongly consistent reads enabled.",
+        "Amazon ElastiCache for Redis with cluster mode enabled and read replicas.",
+        "Amazon Aurora with read replicas and Aurora Global Database for low latency."
+      ],
+      "correctAnswer": 1,
+      "explanation": "DynamoDB with DAX is the best solution for single-digit millisecond latency requirements. DAX provides in-memory acceleration for read-heavy workloads, reducing response times from milliseconds to microseconds. DynamoDB natively supports strongly consistent reads, which meets the consistency requirement. Option A (RDS) typically has higher latency than single-digit milliseconds. Option C (ElastiCache) is a cache, not a primary database, and doesn't inherently provide strong consistency. Option D (Aurora) is excellent but typically has latencies in the low milliseconds range, not consistently single-digit microseconds like DAX-accelerated DynamoDB."
+    },
+    {
+      "question": "A media company processes video files uploaded by users. The processing workflow involves transcoding videos into multiple formats, generating thumbnails, and updating metadata in a database. The workflow must be fault-tolerant, scalable, and cost-effective. Failed processing jobs must be retried automatically. Which architecture should be implemented?",
+      "options": [
+        "Use Amazon S3 for storage, S3 Event Notifications to trigger Lambda functions for each processing step, and Step Functions to orchestrate the workflow.",
+        "Implement Amazon SQS queues for each processing step, use EC2 Auto Scaling groups to process messages, and store intermediate results in S3.",
+        "Deploy AWS Batch for video processing, use S3 Event Notifications to trigger Batch jobs, and store results in S3 with metadata in DynamoDB.",
+        "Use S3 for storage, EventBridge to trigger Step Functions, which orchestrates Lambda for lightweight tasks and ECS Fargate for video transcoding."
+      ],
+      "correctAnswer": 3,
+      "explanation": "This solution provides the best combination of serverless scalability, fault tolerance, and cost-effectiveness. EventBridge provides reliable event routing from S3. Step Functions orchestrates the workflow with built-in error handling and retry logic. Lambda handles lightweight tasks like thumbnail generation and metadata updates efficiently. ECS Fargate is ideal for the CPU-intensive video transcoding work, providing better performance and cost-efficiency than Lambda for long-running tasks. Option A uses only Lambda which has execution time limits unsuitable for video transcoding. Option B requires managing EC2 instances, reducing cost-effectiveness. Option C with AWS Batch is good but Step Functions provides better workflow orchestration and visibility."
+    },
+    {
+      "question": "A SaaS company operates a multi-tenant application where each customer's data must be logically isolated. The company needs to implement a solution that allows customers to access their data through a custom domain (e.g., customer1.saas.com) while maintaining security and scalability. Which solution best meets these requirements?",
+      "options": [
+        "Deploy separate ALBs for each customer with custom SSL certificates, routing to dedicated EC2 instances per tenant.",
+        "Use Amazon CloudFront with multiple origins, Route 53 for DNS routing, and ALB with host-based routing rules to different target groups.",
+        "Implement API Gateway with custom domain names for each tenant, using Lambda authorizers to enforce tenant isolation.",
+        "Configure Route 53 with alias records pointing to a single ALB, use host-based routing rules, and implement application-level tenant isolation."
+      ],
+      "correctAnswer": 3,
+      "explanation": "This solution provides the most scalable and cost-effective approach. Route 53 alias records allow custom domains to point to the ALB. Host-based routing rules in the ALB can route requests based on the hostname (customer1.saas.com, customer2.saas.com) to appropriate target groups if needed, or to the same target group with application-level logic handling tenant isolation. This is a common multi-tenant pattern that scales well and is cost-effective. Option A is not scalable or cost-effective (separate infrastructure per tenant). Option B with CloudFront adds unnecessary complexity for this use case. Option C with API Gateway could work but is typically more expensive and complex than needed for this scenario."
+    },
+    {
+      "question": "A company runs a real-time bidding platform that processes millions of bid requests per second. The system must respond to each request within 100 milliseconds. The architecture must be highly available across multiple AWS regions and automatically fail over if a region becomes unavailable. Which solution meets these requirements?",
+      "options": [
+        "Use Route 53 with geolocation routing to direct traffic to the nearest region, deploy the application on EC2 with Auto Scaling, and use DynamoDB Global Tables for data replication.",
+        "Implement AWS Global Accelerator for traffic routing, deploy containers on ECS Fargate in multiple regions, use DynamoDB with DynamoDB Streams for replication.",
+        "Deploy the application using AWS Global Accelerator with health checks, use Lambda@Edge for processing, and ElastiCache Global Datastore for session data.",
+        "Configure Route 53 health checks with latency-based routing, deploy on EKS clusters in multiple regions, and use Aurora Global Database for data storage."
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS Global Accelerator provides static IP addresses and automatic failover with health checks, ensuring high availability and fast regional failover (typically within 30 seconds). ECS Fargate provides a scalable container platform without managing servers. DynamoDB Global Tables provide active-active replication across regions with single-digit millisecond latency, perfect for the 100ms requirement. Option A with geolocation routing doesn't provide automatic failover like Global Accelerator. Option C with Lambda@Edge has limitations for this use case (execution time, request/response size). Option D with Aurora is good but DynamoDB Global Tables provide better latency for this high-throughput, low-latency requirement."
+    },
+    {
+      "question": "A healthcare organization needs to implement a HIPAA-compliant solution for storing and processing sensitive patient data. The solution must provide encryption at rest and in transit, detailed audit logging, and the ability to restrict access based on patient consent. Which combination of services should be used?",
+      "options": [
+        "Amazon S3 with SSE-S3 encryption, S3 Access Logs, and IAM policies for access control.",
+        "Amazon S3 with SSE-KMS encryption, AWS CloudTrail for audit logs, S3 Object Lock, and attribute-based access control (ABAC) with IAM.",
+        "Amazon EFS with encryption enabled, AWS Config for compliance monitoring, and security groups for access control.",
+        "Amazon RDS with encryption enabled, VPC Flow Logs for auditing, and database-level access controls."
+      ],
+      "correctAnswer": 1,
+      "explanation": "This solution provides comprehensive HIPAA compliance capabilities. S3 with SSE-KMS provides encryption at rest with customer-controlled keys. CloudTrail provides detailed audit logs of all API calls. S3 Object Lock can prevent deletion or modification of records. ABAC (Attribute-Based Access Control) with IAM allows fine-grained access control based on attributes like patient consent tags. S3 also supports encryption in transit via HTTPS. Option A lacks sufficient audit capabilities and key control. Option C (EFS) is less suitable for this use case than S3, and security groups don't provide the needed fine-grained access control. Option D is database-focused and doesn't address the broader requirements of object storage and flexible access control."
+    },
+    {
+      "question": "A company wants to implement a CI/CD pipeline that automatically deploys application updates to production with zero downtime. The deployment must support automatic rollback if errors are detected, and the company wants to test new versions with a small percentage of users before full deployment. Which deployment strategy should be implemented?",
+      "options": [
+        "Use AWS CodeDeploy with blue/green deployment to EC2 instances behind an Application Load Balancer, with CloudWatch alarms triggering automatic rollback.",
+        "Implement AWS CodeDeploy with canary deployment to Lambda functions, using Lambda aliases and weighted traffic shifting with automatic rollback based on CloudWatch alarms.",
+        "Deploy using ECS with rolling updates, configure health checks, and use CloudWatch alarms to trigger rollback via CodeDeploy.",
+        "Use CodePipeline with CodeDeploy for blue/green deployment to ECS Fargate, implementing traffic shifting and automatic rollback with CloudWatch and X-Ray."
+      ],
+      "correctAnswer": 1,
+      "explanation": "For serverless applications with Lambda, canary deployments provide the safest approach for gradual rollout. Lambda aliases support weighted traffic shifting, allowing you to route a small percentage of traffic to the new version while monitoring metrics. CodeDeploy can automatically shift traffic gradually and roll back if CloudWatch alarms are triggered by errors or performance issues. This provides zero downtime and built-in testing with production traffic. Option A could work for EC2-based applications but the question implies a preference for the most efficient solution. Option C with rolling updates doesn't provide the same level of safety as canary deployments. Option D is comprehensive but more complex than needed if the application is suitable for Lambda."
+    },
+    {
+      "question": "A gaming company needs to handle sudden traffic spikes of up to 100x normal load during special events. The application architecture includes a web tier, application tier, and database tier. The solution must be cost-effective during normal operations while handling peak loads. What architecture should be recommended?",
+      "options": [
+        "Use CloudFront for content delivery, API Gateway with Lambda for application logic, and DynamoDB with on-demand capacity mode for the database.",
+        "Deploy EC2 instances with Predictive Scaling, use ElastiCache for session management, and RDS with read replicas for the database.",
+        "Implement ECS Fargate for containers with Service Auto Scaling, use Aurora Serverless v2 for the database, and CloudFront for static content.",
+        "Use EC2 Spot Instances with Auto Scaling groups, ElastiCache for caching, and DynamoDB with provisioned capacity with auto-scaling."
+      ],
+      "correctAnswer": 0,
+      "explanation": "This serverless architecture provides the best cost-effectiveness and scalability. CloudFront reduces load on origin servers. API Gateway and Lambda automatically scale to handle any load without pre-provisioning resources and you only pay for actual usage. DynamoDB with on-demand capacity mode automatically scales to handle traffic and is cost-effective for spiky workloads (no charge when idle, automatic scaling). This architecture scales from 0 to 100x instantly and costs very little during normal operations. Option B requires pre-provisioned capacity. Option C with Fargate is good but less cost-effective than Lambda for spiky workloads. Option D with Spot Instances requires careful management and may have interruptions."
+    },
+    {
+      "question": "A financial institution must ensure that all data transfers between AWS regions comply with regulatory requirements that prohibit data from traversing the public internet. The company uses multiple VPCs across different regions and needs to implement a scalable solution. Which approach should be used?",
+      "options": [
+        "Establish VPC peering connections between all VPCs in different regions and configure route tables accordingly.",
+        "Implement AWS Transit Gateway with inter-region peering and enable VPC attachments in each region.",
+        "Use AWS PrivateLink to create endpoint services in each region and establish connections between regions.",
+        "Deploy VPN connections between regions using AWS Site-to-Site VPN with customer gateways in each VPC."
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS Transit Gateway with inter-region peering provides the most scalable solution for multi-VPC, multi-region connectivity. Transit Gateway peering connections use the AWS global network and don't traverse the public internet, meeting the regulatory requirement. This solution simplifies network topology, reduces management overhead, and easily scales as new VPCs are added. Option A (VPC peering) becomes complex and unmanageable as the number of VPCs grows (N*(N-1)/2 connections needed). Option C (PrivateLink) is designed for service endpoints, not general VPC-to-VPC communication. Option D (VPN) adds unnecessary complexity and potential performance overhead when Transit Gateway peering is available."
+    },
+    {
+      "question": "A company is designing a data lake solution that ingests data from multiple sources including real-time streams, batch files, and database change data capture (CDC). The solution must support both real-time analytics and batch processing, with data catalog capabilities for discovery. Which architecture should be implemented?",
+      "options": [
+        "Use Amazon Kinesis Data Streams for real-time data, AWS Glue for ETL and cataloging, Amazon S3 for storage, and Amazon Athena for analytics.",
+        "Implement Amazon MSK for streaming data, AWS Lambda for processing, Amazon Redshift for storage and analytics, and AWS Glue Data Catalog.",
+        "Deploy Amazon Kinesis Data Firehose for all data ingestion, S3 for storage, AWS Glue for ETL, and Amazon EMR for analytics.",
+        "Use AWS Database Migration Service for CDC, Amazon Kinesis for streams, AWS Lake Formation for governance, S3 for storage, and Athena/EMR for analytics."
+      ],
+      "correctAnswer": 3,
+      "explanation": "This comprehensive solution addresses all requirements: DMS handles CDC from databases, Kinesis handles real-time streams, Lake Formation provides centralized governance and cataloging (built on Glue Data Catalog), S3 serves as the scalable data lake storage, and Athena/EMR provide both interactive and batch analytics capabilities. Lake Formation also adds security and access control features crucial for data lakes. Option A lacks CDC capabilities and governance features. Option B uses Redshift which is a data warehouse, not ideal for a data lake architecture. Option C doesn't specifically address CDC and Lake Formation provides better governance than Glue alone."
+    }
+  ]
+}

@@ -6,10 +6,13 @@ A comprehensive, Obsidian-compatible study guide for the AWS Certified Solutions
 
 **[📖 INDEX.md](./INDEX.md)** - Your complete study guide with all materials organized by domain
 
+**[🎯 Practice Exam](https://bkondakor.github.io/aws-sa-pro-kit/exam/)** - Interactive online practice exam (once deployed)
+
 ## Overview
 
 This repository provides a complete exam preparation system with:
 
+- **Interactive Practice Exam**: Modern web-based exam simulator with detailed explanations
 - **Obsidian-Compatible Format**: YAML frontmatter, wiki-style links, and organized structure
 - **40+ Study Documents**: 29,000+ lines of comprehensive study materials
 - **4 Exam Domains**: Complete coverage of SAP-C02 blueprint
@@ -66,6 +69,33 @@ Quick commands for common tasks:
 - `/compare` - Compare similar AWS services
 - `/lookup` - Quick lookup of service information
 - `/plan` - Create a personalized study plan
+
+### 🎯 Practice Exam Website
+
+An interactive, modern web application for taking practice exams:
+
+**Features:**
+- Modern, responsive design that works on all devices
+- Question randomization for each exam session
+- Progress tracking and timer
+- Flag questions for review
+- Question palette for easy navigation
+- Animated results screen with pass/fail status
+- Detailed review mode with explanations
+- Easily customizable question pool via JSON
+
+**Access Options:**
+1. **Online**: Visit [https://bkondakor.github.io/aws-sa-pro-kit/exam/](https://bkondakor.github.io/aws-sa-pro-kit/exam/) (once deployed)
+2. **Local**: Run from the `exam/` directory using a local web server:
+   ```bash
+   cd exam
+   python3 -m http.server 8000
+   # Visit http://localhost:8000
+   ```
+
+**Adding Questions**: Simply edit `exam/questions.json` to add your own practice questions with explanations.
+
+See [exam/README.md](./exam/README.md) for detailed documentation.
 
 ## Getting Started
 
@@ -149,6 +179,9 @@ Answer a few questions about your timeline and experience level, and a personali
 
 ```
 aws-sa-pro-kit/
+├── .github/
+│   └── workflows/
+│       └── deploy-pages.yml        # GitHub Pages deployment pipeline
 ├── .claude/
 │   ├── mcp.json                    # MCP server configuration
 │   ├── agents/
@@ -164,10 +197,22 @@ aws-sa-pro-kit/
 │       ├── compare.md              # /compare command
 │       ├── lookup.md               # /lookup command
 │       └── plan.md                 # /plan command
+├── exam/                           # Practice exam web application
+│   ├── index.html                  # Exam application
+│   ├── styles.css                  # Modern styling
+│   ├── app.js                      # Exam functionality
+│   ├── questions.json              # Question pool (customizable)
+│   └── README.md                   # Exam documentation
+├── domain-1-organizational-complexity/  # Domain 1 study materials
+├── domain-2-new-solutions/             # Domain 2 study materials
+├── domain-3-continuous-improvement/    # Domain 3 study materials
+├── domain-4-migration-modernization/   # Domain 4 study materials
 ├── notes/                          # Generated study notes (created on use)
 ├── questions/                      # Generated practice questions (created on use)
 ├── comparisons/                    # Service comparisons (created on use)
-├── study-plan.md                   # Your personalized study plan (created on use)
+├── index.html                      # Landing page (redirects to exam)
+├── INDEX.md                        # Complete study guide index
+├── MASTER_STUDY_PLAN.md           # Comprehensive study plan
 └── README.md                       # This file
 ```
 

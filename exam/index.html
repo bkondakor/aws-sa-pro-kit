@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Solutions Architect Professional - Practice Exam</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="screen active">
+            <div class="welcome-content">
+                <h1>AWS Solutions Architect Professional</h1>
+                <h2>Practice Exam</h2>
+                <p class="subtitle">Test your knowledge and prepare for the exam</p>
+                <div class="exam-info">
+                    <div class="info-card">
+                        <div class="info-icon">📝</div>
+                        <div class="info-text">
+                            <strong>Questions</strong>
+                            <span id="totalQuestions">--</span>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon">⏱️</div>
+                        <div class="info-text">
+                            <strong>Time Limit</strong>
+                            <span>No limit</span>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon">✅</div>
+                        <div class="info-text">
+                            <strong>Passing Score</strong>
+                            <span>70%</span>
+                        </div>
+                    </div>
+                </div>
+                <button id="startBtn" class="btn btn-primary">Start Exam</button>
+            </div>
+        </div>
+
+        <!-- Exam Screen -->
+        <div id="examScreen" class="screen">
+            <div class="exam-header">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div class="exam-stats">
+                    <span id="questionCounter">Question 1 of 10</span>
+                    <span id="timer" class="timer">00:00</span>
+                </div>
+            </div>
+
+            <div class="question-container">
+                <div class="question-header">
+                    <span class="question-label">Question <span id="currentQuestionNum">1</span></span>
+                </div>
+                <div id="questionText" class="question-text"></div>
+                <div id="optionsContainer" class="options-container"></div>
+            </div>
+
+            <div class="exam-navigation">
+                <button id="prevBtn" class="btn btn-secondary" disabled>Previous</button>
+                <button id="flagBtn" class="btn btn-flag">🚩 Flag for Review</button>
+                <button id="nextBtn" class="btn btn-primary">Next</button>
+                <button id="submitBtn" class="btn btn-success" style="display: none;">Submit Exam</button>
+            </div>
+
+            <div class="question-palette">
+                <h3>Question Palette</h3>
+                <div id="questionPalette" class="palette-grid"></div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="screen">
+            <div class="results-content">
+                <div class="results-header">
+                    <h2>Exam Results</h2>
+                    <div class="score-circle">
+                        <svg width="200" height="200">
+                            <circle cx="100" cy="100" r="90" class="score-bg"></circle>
+                            <circle id="scoreCircle" cx="100" cy="100" r="90" class="score-fill"></circle>
+                        </svg>
+                        <div class="score-text">
+                            <span id="scorePercentage">0%</span>
+                            <span class="score-label">Score</span>
+                        </div>
+                    </div>
+                    <div id="passStatus" class="pass-status"></div>
+                </div>
+
+                <div class="results-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="correctCount">0</div>
+                        <div class="stat-label">Correct</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="incorrectCount">0</div>
+                        <div class="stat-label">Incorrect</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalTime">00:00</div>
+                        <div class="stat-label">Time Taken</div>
+                    </div>
+                </div>
+
+                <div class="results-actions">
+                    <button id="reviewBtn" class="btn btn-primary">Review Answers</button>
+                    <button id="retakeBtn" class="btn btn-secondary">Retake Exam</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Screen -->
+        <div id="reviewScreen" class="screen">
+            <div class="review-header">
+                <h2>Answer Review</h2>
+                <button id="backToResultsBtn" class="btn btn-secondary">Back to Results</button>
+            </div>
+
+            <div class="review-container">
+                <div id="reviewContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
