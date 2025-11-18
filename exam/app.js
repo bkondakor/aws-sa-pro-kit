@@ -515,4 +515,32 @@ class ExamApp {
 // Initialize the app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     new ExamApp();
+    initDarkMode();
 });
+
+// Dark Mode Functionality
+function initDarkMode() {
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const icon = darkModeToggle.querySelector('.icon');
+
+    // Check for saved theme preference or default to light mode
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        icon.textContent = '☀️';
+    }
+
+    // Toggle dark mode
+    darkModeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+
+        // Update icon and save preference
+        if (document.body.classList.contains('dark-mode')) {
+            icon.textContent = '☀️';
+            localStorage.setItem('theme', 'dark');
+        } else {
+            icon.textContent = '🌙';
+            localStorage.setItem('theme', 'light');
+        }
+    });
+}
