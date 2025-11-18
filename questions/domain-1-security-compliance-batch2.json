@@ -1,0 +1,184 @@
+{
+  "domain": "Domain 1: Organizational Complexity",
+  "task": "Task 1.2: Advanced Security and Compliance Scenarios",
+  "question_count": 15,
+  "questions": [
+    {
+      "question": "A financial institution has implemented AWS KMS with customer managed keys (CMKs) for encrypting sensitive data across multiple accounts in an AWS Organization. They have a requirement that the security team in the central security account must be able to decrypt any encrypted data from any member account for audit purposes. After creating a CMK in the security account and sharing it via key policy to member accounts, the security team still cannot decrypt data encrypted by member accounts. What is the issue?",
+      "options": [
+        "KMS key policies allow cross-account access, but member accounts must also be granted permissions via resource-based policies on their encrypted S3 buckets or other resources",
+        "The security account's IAM users/roles need explicit permissions to use the CMK in their identity-based policies, in addition to the key policy allowing their account access",
+        "Member accounts encrypted data with their own account's CMKs, not the shared CMK from the security account; applications must be configured to use the specific shared CMK ARN",
+        "Cross-account KMS decryption requires VPC endpoints for KMS in both the security account and member accounts to enable the API calls to traverse securely"
+      ],
+      "correctAnswer": 2,
+      "explanation": "The issue is that encryption operations default to using account-specific keys unless explicitly specified. When member accounts encrypt data, they likely use the default AWS managed key for the service (like aws/s3) or their own CMKs, not the shared CMK from the security account. For the security account to decrypt this data, member accounts must explicitly specify the shared CMK ARN when encrypting data. Simply sharing a CMK via key policy doesn't automatically make it the default key used by applications and services. Option A is incorrect because S3 bucket policies are not required for KMS decryption if the key policy permits access. Option B is partially correct (identity-based policies are needed) but misses the root cause that the wrong key is being used for encryption. Option D is incorrect because VPC endpoints are not required for cross-account KMS operations; the KMS API is accessible via public endpoints with proper IAM and key policy permissions."
+    },
+    {
+      "type": "multiple",
+      "question": "A healthcare organization needs to implement fine-grained access control for their multi-account AWS environment. They want to ensure that developers can launch EC2 instances only in specific regions, only with approved AMIs, and only with specific instance types. Additionally, they want to enforce that all EC2 instances must be tagged with a 'CostCenter' tag at creation time. Which approaches should they implement? (Select THREE)",
+      "options": [
+        "Create an IAM permission boundary that restricts ec2:RunInstances based on aws:RequestedRegion, ec2:InstanceType, and ec2:ImageId conditions",
+        "Implement Service Control Policies (SCPs) at the Organization level to restrict regions and require specific tags using aws:RequestTag condition",
+        "Use AWS Config rules to detect non-compliant EC2 instances and automatically terminate them",
+        "Create IAM policies with explicit Deny statements for unauthorized regions, instance types, and AMIs, using condition keys",
+        "Enable AWS CloudTrail and use EventBridge to capture RunInstances API calls and validate parameters, blocking non-compliant requests",
+        "Use tag policies in AWS Organizations to define allowed values for CostCenter tag and enforce compliance"
+      ],
+      "correctAnswer": [0, 1, 3],
+      "explanation": "The most effective approach combines: (1) IAM permission boundaries that can be attached to developer roles to restrict ec2:RunInstances actions based on conditions like aws:RequestedRegion, ec2:InstanceType, and ec2:Ami (referenced via ec2:ImageId). Permission boundaries set the maximum permissions. (2) Service Control Policies (SCPs) enforce organization-wide guardrails. SCPs can use conditions like aws:RequestedRegion to limit regions and aws:RequestTag to require specific tags be present during resource creation. (3) IAM policies with explicit Deny statements provide defense in depth. Deny statements in IAM policies can use the same condition keys to prevent actions that don't meet criteria. These three work together: SCPs for organization-wide enforcement, permission boundaries for role-level maximum permissions, and IAM policies for specific permissions. Option C is incorrect because Config rules are detective controls that identify non-compliance after the fact, not preventive controls. Option E is incorrect because EventBridge cannot block API calls in real-time; it only triggers after the call is made. Option F is partially useful for defining allowed tag values but doesn't enforce their presence at instance creation time; that requires SCPs or IAM conditions."
+    },
+    {
+      "question": "A company uses AWS Secrets Manager to store database credentials that are automatically rotated every 30 days using Lambda functions. After a recent rotation, applications report authentication failures when trying to connect to the RDS database. The Lambda function logs show successful rotation completion. The RDS database is configured to accept the new password. What is the MOST likely cause?",
+      "options": [
+        "Secrets Manager has two versions of the secret during rotation (AWSPENDING and AWSCURRENT), and applications are retrieving the AWSPENDING version instead of AWSCURRENT",
+        "The rotation Lambda function successfully updated the database password but failed to update the AWSCURRENT staging label in Secrets Manager, so applications are still using the old password",
+        "Applications are caching the secret value locally and haven't refreshed their cache since the rotation occurred",
+        "The RDS database's parameter group has max_connections limit reached, preventing new connections with the new credentials"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The most likely cause is that the rotation Lambda function's logic has an issue where it successfully changes the database password but fails to properly move the AWSCURRENT staging label to the new secret version. Secrets Manager rotation involves: creating a new version with AWSPENDING label, changing the database password, testing the new credentials, and then moving AWSCURRENT label to the new version. If the Lambda function completes the rotation without errors but doesn't properly execute the 'finishSecret' step (which moves AWSCURRENT label), applications retrieving the secret will get the old version while the database has the new password, causing authentication failures. Option A is incorrect because applications by default retrieve the AWSCURRENT version when calling GetSecretValue without specifying a version; they would need to explicitly request AWSPENDING to get it. Option C is possible but less likely if the rotation just happened; most applications query Secrets Manager on each connection or have short cache TTLs. Option D is incorrect because max_connections issues would cause connection refused errors, not authentication failures."
+    },
+    {
+      "question": "An enterprise has implemented AWS Organizations with multiple OUs (Organizational Units) including Production, Development, and Sandbox. They have attached a Service Control Policy (SCP) at the root level that denies deleting CloudTrail trails. However, an administrator in the Production OU was still able to delete a CloudTrail trail. What explains this behavior?",
+      "options": [
+        "The administrator has AdministratorAccess managed policy, which includes an explicit Allow for cloudtrail:DeleteTrail that overrides the SCP Deny",
+        "The SCP Deny statement is missing the NotPrincipal element to exclude emergency administrator roles from the restriction",
+        "The administrator is using the management account (formerly master account) of the Organization, and SCPs do not affect the management account",
+        "The CloudTrail trail is an organization trail created in the management account, and SCPs cannot restrict modifications to organization-wide resources"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Service Control Policies (SCPs) do not affect the management account (formerly called master account) of an AWS Organization. The management account has full permissions regardless of any SCPs attached at the root or OU level. SCPs only affect member accounts within the organization. This is a critical security consideration: the management account should be highly restricted and used only for organization management tasks, not for running workloads. If the administrator deleted the trail from the management account, the SCP would not prevent it. To protect organization trails, you would need to use IAM policies and careful access control on the management account itself. Option A is incorrect because SCPs always take precedence over IAM policies; an IAM Allow cannot override an SCP Deny. Option B is incorrect because NotPrincipal is used in IAM policies, not SCPs, and wouldn't create an exception. Option D is incorrect because while organization trails are created from the management account, the restriction is actually about SCPs not applying to the management account at all."
+    },
+    {
+      "question": "A security team needs to detect and prevent AWS IAM credentials from being exposed in public GitHub repositories. They have enabled Amazon GuardDuty in their AWS account. GuardDuty detected an UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.OutsideAWS finding, indicating that IAM credentials from an EC2 instance are being used from an external IP address. What is the MOST comprehensive immediate response?",
+      "options": [
+        "Immediately rotate all IAM access keys in the account and enable MFA on the root account",
+        "Terminate the compromised EC2 instance, revoke the instance's IAM role temporary credentials by attaching an inline deny-all policy to the role, and investigate the external IP in threat intelligence databases",
+        "Use AWS Systems Manager Session Manager to connect to the instance and scan for malware, then remove any malicious code",
+        "Create a CloudWatch alarm on the GuardDuty finding and configure SNS to alert the security team for manual investigation"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The most comprehensive immediate response is to contain the threat and prevent further unauthorized access. This involves: (1) Terminating the compromised EC2 instance to stop any ongoing malicious activity. (2) Revoking the instance role's temporary credentials by attaching an inline deny-all policy to the IAM role. Note that terminating the instance doesn't immediately invalidate the temporary credentials that were already issued; they remain valid until expiration (up to 12 hours for EC2 instance profile credentials). Attaching a deny policy immediately revokes access. (3) Investigating the external IP address to understand the threat actor and potential scope of compromise. Option A is incorrect because the finding specifically mentions instance credentials (temporary credentials from IAM role), not IAM access keys; rotating access keys wouldn't address the issue. Option C is incorrect as the immediate priority is containment, not remediation; connecting to a compromised instance could alert the attacker and isn't safe. Option D is incorrect because it only creates monitoring; immediate action is needed to stop credential misuse."
+    },
+    {
+      "type": "multiple",
+      "question": "A global financial services company must implement encryption at rest for all data stored in AWS across multiple accounts. They need to meet compliance requirements that include: customer managed keys, automatic key rotation, audit logging of all key usage, and the ability to immediately revoke access to encrypted data in case of a security incident. Which AWS KMS configurations should be implemented? (Select THREE)",
+      "options": [
+        "Create customer managed CMKs (not AWS managed keys) in each account with automatic rotation enabled",
+        "Enable CloudTrail logging in all accounts and ensure KMS API calls are logged to a centralized S3 bucket in the security account",
+        "Configure key policies with Deny statements that can be activated via condition keys during security incidents to immediately prevent key usage",
+        "Use AWS KMS multi-Region keys to ensure encryption keys are available across all regions for business continuity",
+        "Enable AWS Config to monitor KMS key rotation status and send alerts if rotation is disabled",
+        "Implement AWS KMS grants for temporary access delegation instead of key policies for easier revocation"
+      ],
+      "correctAnswer": [0, 1, 2],
+      "explanation": "To meet these requirements: (1) Customer managed CMKs must be used (not AWS managed keys) because only customer managed keys support automatic rotation and custom key policies. Automatic rotation should be enabled to rotate the key material annually while keeping the same key ID. (2) CloudTrail must be enabled to capture all KMS API calls (Encrypt, Decrypt, GenerateDataKey, etc.) and logs should be centralized for audit purposes. KMS integrates with CloudTrail to provide complete audit trails. (3) Key policies can include Deny statements with condition keys (like aws:PrincipalTag or custom conditions) that can be activated during incidents to immediately revoke access. Alternatively, you can use the DisableKey API to immediately prevent all usage of a key. Option D is incorrect because while multi-Region keys provide key availability across regions, they're not required for the stated compliance needs and add complexity. Option E is useful for monitoring but not a core requirement for meeting the compliance needs. Option F is incorrect because KMS grants are actually harder to manage at scale and don't provide immediate organization-wide revocation; key policies and DisableKey are more effective for emergency revocation."
+    },
+    {
+      "question": "A company implements AWS IAM Access Analyzer in their organization to identify resources shared with external entities. Access Analyzer generates a finding indicating that an S3 bucket policy allows access from a third-party AWS account that is NOT in their organization. The security team investigates and confirms this is intentional sharing with a trusted partner. How should they handle this finding?",
+      "options": [
+        "Delete the Access Analyzer finding; it will not reappear as long as the bucket policy remains unchanged",
+        "Create an archive rule in Access Analyzer with criteria matching this specific bucket and external account, which will automatically archive this and similar findings",
+        "Manually archive the finding; Access Analyzer will continue to monitor but won't alert on this specific instance again",
+        "Add the external account to their AWS Organization as a member account to prevent future findings"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The correct approach is to create an archive rule in Access Analyzer. Archive rules are filters that automatically archive findings matching specified criteria. You can create a rule that matches the specific bucket name and/or the external account ID, and all current and future findings matching these criteria will be automatically archived. This is better than manually archiving each finding because: (1) it handles future similar findings automatically, (2) it documents the intentional exception, and (3) it can be reviewed and audited. Access Analyzer will continue to detect and monitor the external access but will automatically archive findings matching the rule. Option A is incorrect because you cannot delete Access Analyzer findings; they can only be archived. Option C is partially correct (manual archiving works for the current finding) but is not the best practice because it would require manually archiving each recurrence of the finding if the bucket policy changes or is recreated. Option D is incorrect and impractical; adding external partner accounts to your organization would give them organizational membership, which is not appropriate for external partners."
+    },
+    {
+      "question": "An organization uses Amazon Macie to discover and protect sensitive data stored in S3. Macie has identified several S3 buckets containing PII (Personally Identifiable Information) and generated findings. The security team wants to automatically quarantine objects containing sensitive data by moving them to a secure bucket with restricted access. What is the MOST appropriate solution?",
+      "options": [
+        "Configure Macie to automatically move sensitive objects to a quarantine bucket; this is a built-in Macie feature enabled in the Macie console settings",
+        "Create an EventBridge rule that triggers on Macie findings, invoke a Lambda function to parse the finding, identify the S3 object location, and move the object to a quarantine bucket",
+        "Use S3 Object Lock to prevent any access to objects that Macie identifies as containing sensitive data, then manually review and move them",
+        "Enable S3 Intelligent-Tiering with Macie integration to automatically move sensitive objects to Archive Access tier with restricted permissions"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Amazon Macie is a discovery and classification service; it doesn't have built-in capabilities to automatically remediate or move objects. The appropriate solution is to create an automated workflow using EventBridge and Lambda. Macie publishes findings to EventBridge, which can trigger a Lambda function. The Lambda function can parse the Macie finding (which includes the bucket name and object key of the sensitive data), then perform S3 operations to copy the object to a secure quarantine bucket and optionally delete or tag the original. This approach is flexible and allows for custom remediation logic. Option A is incorrect because Macie doesn't have built-in object movement or remediation capabilities. Option C is incorrect because S3 Object Lock is designed to prevent deletion or modification for compliance/retention purposes, not for access control based on content sensitivity. Option D is incorrect because S3 Intelligent-Tiering doesn't integrate with Macie and is designed for cost optimization based on access patterns, not content sensitivity."
+    },
+    {
+      "question": "A company has implemented AWS Security Hub to aggregate security findings from multiple AWS services and third-party tools across their multi-account organization. They notice that Security Hub is showing findings from GuardDuty and IAM Access Analyzer, but findings from AWS Config are not appearing. All three services are enabled in all accounts. What is the likely cause?",
+      "options": [
+        "AWS Config findings must be manually imported to Security Hub using the AWS Config console's export feature",
+        "Security Hub requires AWS Config rules to use the security-hub-* naming prefix to automatically import findings",
+        "AWS Config must be configured to send findings to Security Hub by enabling the AWS Security Hub integration in the AWS Config settings page",
+        "Security Hub automatically imports findings from AWS managed Config rules, but custom Config rules require explicit integration configuration using the ASFF (AWS Security Finding Format)"
+      ],
+      "correctAnswer": 3,
+      "explanation": "AWS Security Hub automatically imports findings from certain AWS managed Config rules that align with security standards (like CIS AWS Foundations Benchmark). However, custom Config rules do not automatically send findings to Security Hub. To send custom Config rule findings to Security Hub, you need to configure the Config rule to publish findings in the AWS Security Finding Format (ASFF) and send them to Security Hub using the BatchImportFindings API. Alternatively, you can use EventBridge to capture Config compliance change events and route them to a Lambda function that formats and sends findings to Security Hub. Option A is incorrect because there's no manual export feature for Config to Security Hub. Option B is incorrect because Security Hub doesn't filter Config rules by naming prefix. Option C is incorrect because there isn't a simple toggle in Config settings to send all findings to Security Hub; the integration is more specific to certain managed rules."
+    },
+    {
+      "type": "multiple",
+      "question": "A healthcare organization needs to implement a least-privilege access model for their development teams across 50 AWS accounts. They want to enable developers to create resources in their assigned accounts but prevent them from escalating their privileges or modifying security controls. Which strategies should they implement? (Select THREE)",
+      "options": [
+        "Use AWS IAM permission boundaries on all developer roles to limit the maximum permissions they can grant to new roles or users they create",
+        "Implement Service Control Policies (SCPs) that deny modification of IAM policies, security groups, and network ACLs for developer roles",
+        "Enable AWS CloudTrail and configure EventBridge rules to detect and automatically revert any privilege escalation attempts",
+        "Use IAM policy conditions requiring MFA (aws:MultiFactorAuthPresent) for sensitive actions like IAM role creation or policy modification",
+        "Configure AWS Organizations tag policies to require specific tags on all IAM roles, then use SCP conditions to restrict actions based on tags",
+        "Implement AWS Systems Manager Session Manager for all EC2 access and disable SSH/RDP to prevent credential theft"
+      ],
+      "correctAnswer": [0, 1, 3],
+      "explanation": "To implement least-privilege and prevent privilege escalation: (1) IAM permission boundaries are essential for preventing privilege escalation. When attached to a developer role, the boundary limits the maximum permissions that role can grant when creating new IAM users or roles. For example, developers can't create a role with more permissions than their permission boundary allows. (2) SCPs provide organization-wide guardrails. You can create SCPs that deny specific actions like iam:PutUserPolicy, iam:CreatePolicy, ec2:ModifySecurityGroup for developer roles while allowing infrastructure roles. (3) MFA conditions in IAM policies add an additional layer of security for sensitive actions. Requiring MFA for IAM modifications (iam:CreateRole, iam:PutRolePolicy) prevents accidental or unauthorized privilege escalation. Option C is incorrect because automatic reversion is complex and risky; prevention is better than detection. Option E is partially useful but tag policies are more for organizational governance than security controls. Option F is a good security practice but doesn't directly address privilege escalation in IAM."
+    },
+    {
+      "question": "A financial institution has regulatory requirements to encrypt all data at rest using FIPS 140-2 validated cryptographic modules. They are using AWS KMS for key management. During a compliance audit, the auditor questions whether AWS KMS meets FIPS 140-2 requirements. What should the solutions architect explain?",
+      "options": [
+        "AWS KMS uses FIPS 140-2 Security Level 2 validated hardware security modules (HSMs) in all AWS regions, automatically meeting the compliance requirement",
+        "AWS KMS uses FIPS 140-2 validated HSMs, but this only applies when using AWS CloudHSM; customer managed CMKs in KMS use software encryption",
+        "To meet FIPS 140-2 requirements, the organization must use AWS CloudHSM instead of AWS KMS, as KMS does not have FIPS validation",
+        "AWS KMS uses FIPS 140-2 Security Level 3 validated HSMs, but the organization must enable FIPS mode in the KMS configuration settings for each CMK"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS KMS uses FIPS 140-2 Security Level 2 validated hardware security modules (HSMs) to protect customer managed keys. This validation applies to all AWS regions where KMS is available. The cryptographic operations (key generation, encryption, decryption) are performed within these FIPS-validated HSMs. This is automatic and doesn't require any special configuration. Additionally, AWS KMS uses FIPS 140-2 validated cryptographic algorithms (like AES-256). For most compliance requirements, AWS KMS's FIPS 140-2 Level 2 validation is sufficient. Option B is incorrect because KMS itself uses FIPS-validated HSMs; CloudHSM is a separate service offering FIPS 140-2 Level 3 validation and direct HSM access. Option C is incorrect because KMS does have FIPS validation; CloudHSM is only needed for Level 3 validation or specific HSM control requirements. Option D is incorrect because KMS uses Level 2 (not Level 3), and there's no FIPS mode setting to enable; it's always FIPS-validated."
+    },
+    {
+      "question": "A company uses AWS Secrets Manager to store API keys for third-party services. They have enabled automatic rotation with a Lambda function that calls the third-party API to generate new keys. After enabling rotation, they notice the rotation succeeds initially but fails on subsequent attempts with 'Resource not found' errors in the Lambda logs. The Lambda function hasn't been modified. What is the MOST likely cause?",
+      "options": [
+        "The Lambda function's execution role doesn't have permission to access the secret after the first rotation because the secret ARN changes with each version",
+        "The rotation Lambda function is using the AWSPENDING staging label to retrieve the secret during rotation, but it should use the secret ARN or name without a staging label",
+        "Secrets Manager automatic rotation creates a new secret resource with each rotation, and the Lambda function is referencing the old secret's static ARN",
+        "The Lambda function is configured with a VPC, and the VPC's security groups are blocking access to the Secrets Manager VPC endpoint after the first rotation"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The issue is likely in how the rotation Lambda function retrieves the secret. During rotation, Secrets Manager creates a new version of the secret with the AWSPENDING staging label. If the Lambda function is coded to retrieve the secret using a specific version ID or is retrieving AWSPENDING when it should be retrieving AWSCURRENT, it might fail. More likely, the function is trying to retrieve the secret in a way that references the old version which no longer exists after rotation completion. The correct approach is for the rotation Lambda function to use the secret ARN or name without specifying a version or staging label in most of its steps, or to properly handle version IDs passed by Secrets Manager. Option A is incorrect because the secret ARN doesn't change; only the version IDs change. Option C is incorrect because Secrets Manager doesn't create new secret resources with rotation; it creates new versions of the same secret. Option D is unlikely because if it worked once, the VPC/security group configuration should continue to work unless something changed."
+    },
+    {
+      "type": "multiple",
+      "question": "An organization wants to implement a defense-in-depth strategy for their AWS accounts to prevent data exfiltration. They are concerned about malicious insiders or compromised credentials being used to copy sensitive S3 data to external accounts. Which preventive controls should they implement? (Select THREE)",
+      "options": [
+        "Enable S3 Block Public Access settings at the account and bucket levels to prevent accidental or malicious public exposure",
+        "Implement VPC endpoints for S3 with endpoint policies that restrict access to only the organization's buckets",
+        "Use S3 bucket policies with aws:PrincipalOrgID condition to deny access from principals outside the organization",
+        "Enable S3 Object Lock in Governance mode on all buckets containing sensitive data to prevent deletion",
+        "Configure AWS Config rules to detect and alert on S3 bucket policy changes that could enable external access",
+        "Use Service Control Policies (SCPs) to deny s3:PutBucketPolicy and s3:PutBucketAcl actions that could enable external access"
+      ],
+      "correctAnswer": [1, 2, 5],
+      "explanation": "To prevent data exfiltration to external accounts: (1) VPC endpoints for S3 with restrictive endpoint policies can ensure that EC2 instances and other VPC resources can only access S3 buckets within the organization. The endpoint policy can use conditions like aws:PrincipalOrgID or explicitly list allowed bucket ARNs. (2) S3 bucket policies with aws:PrincipalOrgID condition ensure that only principals from within the AWS Organization can access the bucket. This prevents buckets from being accessed by external AWS accounts even if bucket policies are modified. (3) SCPs that deny s3:PutBucketPolicy and s3:PutBucketAcl prevent malicious insiders from modifying bucket policies or ACLs to grant external access. This is a preventive control at the organization level. Option A is important but primarily prevents public access via the internet, not access from other AWS accounts. Option D prevents deletion but doesn't prevent copying data to external accounts. Option E is a detective control (alerts after the fact) rather than preventive."
+    },
+    {
+      "question": "A company has enabled AWS Config in all accounts across their organization to track resource configurations and compliance. They notice that Config is generating a large number of configuration changes for certain resources like EC2 instances, even though no actual changes are being made. This is causing increased costs and noise in compliance reports. What is the likely cause and solution?",
+      "options": [
+        "AWS Config records metadata changes (like lastModifiedDate) as configuration changes; adjust the Config recorder to only track significant configuration changes using selective resource recording",
+        "EC2 instances with dynamic attributes like public IP addresses or instance state changes trigger Config recordings; use AWS Config's recording frequency settings to reduce the frequency to hourly or daily",
+        "AWS Config is configured to record all resource types; modify the Config recorder to only track specific resource types relevant to compliance requirements using resource type filters",
+        "The EC2 instances are using Auto Scaling, which creates and terminates instances frequently; Config records each instance creation/termination as a configuration change, which is expected behavior"
+      ],
+      "correctAnswer": 2,
+      "explanation": "The most likely cause is that AWS Config is configured to record all supported resource types (the default setting), including resources that change frequently but aren't relevant to compliance tracking. The solution is to modify the Config recorder to only track specific resource types that are relevant to the organization's compliance requirements. For example, if you only need to track VPC configurations, security groups, and IAM policies, you can configure Config to only record those resource types. This reduces costs (Config charges per configuration item recorded) and reduces noise. Option A is incorrect because while Config does track all configuration changes, there isn't a setting to filter 'significant' vs. 'insignificant' changes at the recorder level; you filter by resource type. Option B is incorrect because Config doesn't have 'recording frequency' settings; it records changes when they occur. Option D is possible but the question states 'no actual changes are being made', suggesting it's not an Auto Scaling scenario."
+    },
+    {
+      "question": "A security team is implementing AWS Control Tower to establish a well-architected multi-account environment. They have enabled all mandatory and strongly recommended guardrails. A development team reports they cannot launch EC2 instances in the eu-west-2 region, which is required for their application. The error message indicates a permissions issue. What is the cause?",
+      "options": [
+        "AWS Control Tower's mandatory guardrails include an SCP that denies EC2 operations in all regions except us-east-1 by default; the security team must modify the guardrail to allow additional regions",
+        "AWS Control Tower's strongly recommended guardrails include region deny controls; the security team must configure the allowed regions in the Control Tower settings to include eu-west-2",
+        "The development team's IAM role is missing permissions for ec2:RunInstances in eu-west-2; they need to update their IAM policy with region-specific permissions",
+        "Control Tower automatically enables only the home region and one additional region; additional regions must be explicitly enabled in the Control Tower console's region selection"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS Control Tower's strongly recommended guardrails include region restriction controls that deny access to regions not explicitly allowed. By default, Control Tower may only enable certain regions, and any operations in non-allowed regions will be denied by SCPs. To enable EC2 operations in eu-west-2, the security team must configure Control Tower's governance settings to add eu-west-2 to the list of allowed regions. This modifies the underlying SCPs. Alternatively, they could disable the region restriction guardrail, but that's not recommended from a security perspective. Option A is incorrect because mandatory guardrails don't typically restrict specific regions; that's a strongly recommended optional guardrail. Option C is incorrect because the error would be due to SCPs (which override IAM policies), not missing IAM permissions. Option D is partially correct but oversimplified; the actual mechanism is through guardrails and SCPs."
+    }
+  ]
+}
