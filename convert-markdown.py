@@ -136,6 +136,7 @@ def create_html_page(title, content, frontmatter=None, base_path='..'):
                     <li><a href="{base_path}/study/domain-2.html">Domain 2 (29%)</a></li>
                     <li><a href="{base_path}/study/domain-3.html">Domain 3 (25%)</a></li>
                     <li><a href="{base_path}/study/domain-4.html">Domain 4 (20%)</a></li>
+                    <li><a href="{base_path}/study/comparisons/index.html">🔀 Service Comparisons</a></li>
                 </ul>
             </div>
             <div class="sidebar-section">
@@ -272,6 +273,21 @@ def main():
             study_output / 'cheatsheet.html',
             base_path='..'
         )
+
+    # Process comparison files
+    comparisons_dir = project_root / 'comparisons'
+    if comparisons_dir.exists():
+        comparisons_output = study_output / 'comparisons'
+        comparisons_output.mkdir(exist_ok=True)
+
+        for md_file in sorted(comparisons_dir.glob('*.md')):
+            if md_file.name != '.gitkeep':
+                output_file = comparisons_output / md_file.with_suffix('.html').name
+                process_markdown_file(
+                    md_file,
+                    output_file,
+                    base_path='../..'
+                )
 
     # Process each domain
     domain_names = {
