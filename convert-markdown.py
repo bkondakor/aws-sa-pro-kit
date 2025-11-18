@@ -44,9 +44,19 @@ def convert_wiki_links(content):
 
         # Convert file path to HTML path
         html_path = path.strip()
+
+        # Map source directory names to output directory names
+        html_path = html_path.replace('domain-1-organizational-complexity/', 'domain-1/')
+        html_path = html_path.replace('domain-2-new-solutions/', 'domain-2/')
+        html_path = html_path.replace('domain-3-continuous-improvement/', 'domain-3/')
+        html_path = html_path.replace('domain-4-migration-modernization/', 'domain-4/')
+
         if not html_path.endswith('.html'):
             html_path = html_path.replace('.md', '.html')
             if '/' not in html_path:
+                html_path += '.html'
+            else:
+                # Add .html if path doesn't have it
                 html_path += '.html'
 
         return f'<a href="{html_path}">{display.strip()}</a>'

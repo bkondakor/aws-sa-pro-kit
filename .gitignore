@@ -24,7 +24,13 @@ wheels/
 *.egg
 
 # Generated study materials (built during deployment)
-# study/ - Now committed with dark mode support
+# All HTML files are generated from markdown during build
+study/*.html
+study/domain-1/
+study/domain-2/
+study/domain-3/
+study/domain-4/
+study/comparisons/*.html
 
 # IDE
 .vscode/
