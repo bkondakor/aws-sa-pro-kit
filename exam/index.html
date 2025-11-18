@@ -58,6 +58,21 @@
                 </div>
 
                 <div id="examModeSelection">
+                    <!-- Study Mode Toggle -->
+                    <div class="study-mode-toggle-container">
+                        <label class="study-mode-toggle">
+                            <input type="checkbox" id="studyModeToggle">
+                            <span class="toggle-slider"></span>
+                            <div class="toggle-label">
+                                <span class="toggle-icon">📚</span>
+                                <div class="toggle-text">
+                                    <strong>Study Mode</strong>
+                                    <span class="toggle-description">See correct answers and explanations immediately</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
                     <h3 style="margin: 30px 0 20px; color: var(--secondary-color);">Select Exam Mode</h3>
                     <div class="exam-modes">
                         <div class="exam-mode-card" data-mode="full">
@@ -110,6 +125,7 @@
                 </div>
                 <div id="questionText" class="question-text"></div>
                 <div id="optionsContainer" class="options-container"></div>
+                <div id="studyModeExplanation" class="study-mode-explanation" style="display: none;"></div>
             </div>
 
             <div class="exam-navigation">

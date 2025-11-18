@@ -10,6 +10,7 @@ class ExamApp {
         this.timerInterval = null;
         this.examMode = null;
         this.examConfig = null;
+        this.studyMode = false; // Answer reveal mode
 
         this.screens = {
             welcome: document.getElementById('welcomeScreen'),
@@ -41,6 +42,19 @@ class ExamApp {
     }
 
     setupEventListeners() {
+        // Study mode toggle
+        document.getElementById('studyModeToggle')?.addEventListener('change', (e) => {
+            this.studyMode = e.target.checked;
+            // Update current question display if in exam screen
+            if (this.screens.exam.classList.contains('active')) {
+                if (this.studyMode && this.userAnswers[this.currentQuestionIndex] !== null) {
+                    this.showStudyModeFeedback();
+                } else {
+                    this.hideStudyModeFeedback();
+                }
+            }
+        });
+
         // Exam mode selection
         document.querySelectorAll('.exam-mode-card').forEach(card => {
             card.addEventListener('click', () => this.selectExamMode(card.dataset.mode));
@@ -217,6 +231,7 @@ class ExamApp {
             this.userAnswers = examState.userAnswers;
             this.flaggedQuestions = new Set(examState.flaggedQuestions);
             this.startTime = examState.startTime;
+            this.studyMode = examState.studyMode || false;
 
             this.showScreen('exam');
             this.startTimer();
@@ -244,7 +259,8 @@ class ExamApp {
             userAnswers: this.userAnswers,
             flaggedQuestions: Array.from(this.flaggedQuestions),
             startTime: this.startTime,
-            examMode: this.examMode
+            examMode: this.examMode,
+            studyMode: this.studyMode
         };
         localStorage.setItem('examState', JSON.stringify(examState));
     }
@@ -381,6 +397,13 @@ class ExamApp {
 
         // Update question palette
         this.renderQuestionPalette();
+
+        // Handle study mode feedback for already answered questions
+        if (this.studyMode && this.userAnswers[this.currentQuestionIndex] !== null) {
+            this.showStudyModeFeedback();
+        } else {
+            this.hideStudyModeFeedback();
+        }
     }
 
     selectAnswer(optionIndex) {
@@ -397,6 +420,11 @@ class ExamApp {
 
         this.renderQuestionPalette();
         this.saveExamState();
+
+        // Show immediate feedback in study mode
+        if (this.studyMode) {
+            this.showStudyModeFeedback();
+        }
     }
 
     toggleMultipleAnswer(optionIndex) {
@@ -427,8 +455,72 @@ class ExamApp {
             }
         });
 
+        // Show immediate feedback in study mode
+        if (this.studyMode && currentAnswer.length > 0) {
+            this.showStudyModeFeedback();
+        } else if (this.studyMode && currentAnswer.length === 0) {
+            // Hide feedback if all selections are cleared
+            this.hideStudyModeFeedback();
+        }
+
         this.renderQuestionPalette();
         this.saveExamState();
+    }
+
+    showStudyModeFeedback() {
+        const question = this.questions[this.currentQuestionIndex];
+        const userAnswer = this.userAnswers[this.currentQuestionIndex];
+        const correctAnswer = question.correctAnswer;
+        const isMultipleChoice = question.type === 'multiple';
+
+        // Mark correct and incorrect options
+        document.querySelectorAll('.option').forEach((optionDiv, index) => {
+            const isUserAnswer = isMultipleChoice
+                ? (Array.isArray(userAnswer) && userAnswer.includes(index))
+                : (userAnswer === index);
+
+            const isCorrectAnswer = isMultipleChoice
+                ? (Array.isArray(correctAnswer) && correctAnswer.includes(index))
+                : (correctAnswer === index);
+
+            // Remove previous feedback classes
+            optionDiv.classList.remove('study-correct', 'study-incorrect', 'study-correct-answer');
+
+            // Apply feedback classes
+            if (isCorrectAnswer) {
+                optionDiv.classList.add('study-correct-answer');
+            }
+
+            if (isUserAnswer && isCorrectAnswer) {
+                optionDiv.classList.add('study-correct');
+            } else if (isUserAnswer && !isCorrectAnswer) {
+                optionDiv.classList.add('study-incorrect');
+            }
+        });
+
+        // Show explanation
+        const explanationDiv = document.getElementById('studyModeExplanation');
+        if (question.explanation) {
+            explanationDiv.innerHTML = `
+                <div class="explanation-header">
+                    <span class="explanation-icon">💡</span>
+                    <strong>Explanation</strong>
+                </div>
+                <div class="explanation-content">${question.explanation}</div>
+            `;
+            explanationDiv.style.display = 'block';
+        }
+    }
+
+    hideStudyModeFeedback() {
+        // Remove all feedback classes from options
+        document.querySelectorAll('.option').forEach((optionDiv) => {
+            optionDiv.classList.remove('study-correct', 'study-incorrect', 'study-correct-answer');
+        });
+
+        // Hide explanation
+        const explanationDiv = document.getElementById('studyModeExplanation');
+        explanationDiv.style.display = 'none';
     }
 
     toggleFlag() {
