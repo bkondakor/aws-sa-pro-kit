@@ -10,11 +10,11 @@ Based on SAP-C02 exam weights:
 
 | Domain | Weight | Questions | Status |
 |--------|--------|-----------|--------|
-| Domain 1: Organizational Complexity | 26% | 52 | ⏳ 12/52 |
+| Domain 1: Organizational Complexity | 26% | 52 | ⏳ 24/52 |
 | Domain 2: Design for New Solutions | 29% | 58 | ⏳ Pending |
 | Domain 3: Continuous Improvement | 25% | 50 | ⏳ Pending |
 | Domain 4: Migration & Modernization | 20% | 40 | ⏳ Pending |
-| **Total** | **100%** | **200** | **12/200** |
+| **Total** | **100%** | **200** | **24/200** |
 
 ## Domain 1: Organizational Complexity (52 Questions)
 
@@ -32,19 +32,19 @@ Based on SAP-C02 exam weights:
 - [x] Network segmentation strategies
 - [x] Hybrid DNS resolution (Route 53 Resolver)
 
-### Task 1.2: Security Controls (12 questions)
-- [ ] SCPs vs IAM policies vs resource policies
-- [ ] Cross-account access patterns (roles, resource policies)
-- [ ] AWS SSO vs SAML federation trade-offs
-- [ ] Attribute-based access control (ABAC)
-- [ ] Permission boundaries complex scenarios
-- [ ] AWS Control Tower guardrails
-- [ ] Security Hub multi-account aggregation
-- [ ] GuardDuty threat detection scenarios
-- [ ] AWS Config aggregators and conformance packs
-- [ ] Secrets Manager cross-account access
-- [ ] Certificate management with ACM Private CA
-- [ ] IAM Access Analyzer findings
+### Task 1.2: Security Controls (12 questions) ✅ COMPLETE
+- [x] SCPs vs IAM policies vs resource policies
+- [x] Cross-account access patterns (roles, resource policies)
+- [x] AWS SSO vs SAML federation trade-offs
+- [x] Attribute-based access control (ABAC)
+- [x] Permission boundaries complex scenarios
+- [x] AWS Control Tower guardrails
+- [x] Security Hub multi-account aggregation
+- [x] GuardDuty threat detection scenarios
+- [x] AWS Config aggregators and conformance packs
+- [x] Secrets Manager cross-account access
+- [x] Certificate management with ACM Private CA
+- [x] IAM Access Analyzer findings
 
 ### Task 1.3: Reliable & Resilient Architectures (10 questions)
 - [ ] Multi-region active-active architectures
@@ -274,9 +274,9 @@ Each question must:
 
 ## Progress Tracking
 
-- **Total Questions Generated**: 12/200
+- **Total Questions Generated**: 24/200
 - **Last Updated**: 2025-11-18
-- **Latest Batch**: Domain 1, Task 1.1 - Network Connectivity (12 questions)
+- **Latest Batch**: Domain 1, Task 1.2 - Security Controls (12 questions)
 - **Questions per commit**: ~10-20 (to track progress incrementally)
 
 ## File Organization
