@@ -34,21 +34,40 @@ files.forEach(file => {
     allData.metadata.totalQuestions += content.questions.length;
   } else {
     // Complex format with nested tasks
-    // Find all keys that contain question arrays
-    Object.keys(content).forEach(key => {
-      if (typeof content[key] === 'object' && content[key].questions && Array.isArray(content[key].questions)) {
-        allData.questionSets.push({
-          filename: file,
-          domain: content.domain,
-          task: content.tasks || key,
-          taskKey: key,
-          question_count: content[key].question_count || content[key].questions.length,
-          questions: content[key].questions
-        });
+    // Check if there's a 'tasks' object containing multiple task objects
+    if (content.tasks && typeof content.tasks === 'object') {
+      Object.keys(content.tasks).forEach(taskKey => {
+        const task = content.tasks[taskKey];
+        if (task.questions && Array.isArray(task.questions)) {
+          allData.questionSets.push({
+            filename: file,
+            domain: content.domain,
+            task: taskKey,
+            taskKey: taskKey,
+            question_count: task.question_count || task.questions.length,
+            questions: task.questions
+          });
 
-        allData.metadata.totalQuestions += content[key].questions.length;
-      }
-    });
+          allData.metadata.totalQuestions += task.questions.length;
+        }
+      });
+    } else {
+      // Find all keys that contain question arrays (legacy support)
+      Object.keys(content).forEach(key => {
+        if (typeof content[key] === 'object' && content[key].questions && Array.isArray(content[key].questions)) {
+          allData.questionSets.push({
+            filename: file,
+            domain: content.domain,
+            task: key,
+            taskKey: key,
+            question_count: content[key].question_count || content[key].questions.length,
+            questions: content[key].questions
+          });
+
+          allData.metadata.totalQuestions += content[key].questions.length;
+        }
+      });
+    }
   }
 
   // Track unique domains
