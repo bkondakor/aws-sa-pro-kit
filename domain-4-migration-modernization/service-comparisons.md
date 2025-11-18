@@ -105,7 +105,7 @@ This document provides **detailed comparison tables** for migration and moderniz
 
 | Feature | Snowcone | Snowball Edge Storage | Snowball Edge Compute | Snowmobile |
 |---------|----------|----------------------|----------------------|------------|
-| **Storage Capacity** | 8 TB HDD or 14 TB SSD | 80 TB usable (100 TB total) | 28 TB usable (42 TB SSD) | Up to 100 PB |
+| **Storage Capacity** | 8 TB HDD or 14 TB SSD | 80 TB usable (100 TB total) | 28 TB NVMe SSD | Up to 100 PB |
 | **Compute** | 2 vCPUs, 4 GB RAM | 40 vCPUs, 80 GB RAM (optional) | 104 vCPUs, 416 GB RAM, GPU | N/A |
 | **Size/Weight** | 9" × 6" × 3", 4.5 lbs | Suitcase size, 65 lbs | Suitcase size, 65 lbs | 45-ft shipping container |
 | **Network** | 10 Gbps wired, Wi-Fi | 10/25/40/100 Gbps | 10/25/40/100 Gbps | Multiple 100 Gbps+ |

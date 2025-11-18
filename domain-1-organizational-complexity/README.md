@@ -88,18 +88,18 @@ Domain 1 focuses on designing architectures for complex organizational structure
 
 | Document | Topics Covered | Estimated Study Time |
 |----------|---------------|---------------------|
-| [Task 1.1: Network Connectivity](./domain1-task1.1-network-connectivity.md) | Transit Gateway, Direct Connect, VPN, PrivateLink, Multi-VPC patterns, Global networking | 3-4 hours |
-| [Task 1.2: Security Controls](./domain1-task1.2-security-controls.md) | Organizations, SCPs, IAM Identity Center, KMS, CloudHSM, GuardDuty, Security Hub | 4-5 hours |
-| [Task 1.3: Reliable Architectures](./domain1-task1.3-reliable-resilient-architectures.md) | DR patterns, Multi-region, Service quotas, Circuit breakers, AWS Backup | 3-4 hours |
-| [Task 1.4: Multi-Account Environment](./domain1-task1.4-multi-account-environment.md) | Control Tower, Account Factory, RAM, Shared VPC, Centralized logging | 3-4 hours |
-| [Task 1.5: Cost Optimization](./domain1-task1.5-cost-optimization.md) | Cost Explorer, Budgets, Savings Plans, Cost allocation, Right-sizing | 3-4 hours |
+| [Task 1.1: Network Connectivity](./task-1.1-network-connectivity.md) | Transit Gateway, Direct Connect, VPN, PrivateLink, Multi-VPC patterns, Global networking | 3-4 hours |
+| [Task 1.2: Security Controls](./task-1.2-security-controls.md) | Organizations, SCPs, IAM Identity Center, KMS, CloudHSM, GuardDuty, Security Hub | 4-5 hours |
+| [Task 1.3: Reliable Architectures](./task-1.3-reliable-resilient-architectures.md) | DR patterns, Multi-region, Service quotas, Circuit breakers, AWS Backup | 3-4 hours |
+| [Task 1.4: Multi-Account Environment](./task-1.4-multi-account-environment.md) | Control Tower, Account Factory, RAM, Shared VPC, Centralized logging | 3-4 hours |
+| [Task 1.5: Cost Optimization](./task-1.5-cost-optimization.md) | Cost Explorer, Budgets, Savings Plans, Cost allocation, Right-sizing | 3-4 hours |
 
 ### Supplementary Materials
 
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
-| [Tricky Scenarios](./domain1-tricky-scenarios.md) | Complex multi-service scenarios | After completing all task statements |
-| [Practice Questions](./domain1-practice-questions.md) | Exam-style questions with explanations | Final preparation, self-assessment |
+| [Tricky Scenarios](./tricky-scenarios.md) | Complex multi-service scenarios | After completing all task statements |
+| [Practice Questions](./practice-questions.md) | Exam-style questions with explanations | Final preparation, self-assessment |
 
 **Total Core Study Time:** 16-21 hours
 **Total with Practice:** 20-25 hours
