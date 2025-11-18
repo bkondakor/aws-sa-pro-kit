@@ -1,0 +1,181 @@
+{
+  "domain": "Domain 1: Organizational Complexity",
+  "task": "Task 1.1: Advanced Network Connectivity Scenarios",
+  "question_count": 15,
+  "questions": [
+    {
+      "question": "A multinational corporation has deployed AWS Transit Gateway in the us-east-1 region with 50 VPCs attached. They need to connect their on-premises data center using a 10 Gbps AWS Direct Connect connection. The network team reports that while the Direct Connect connection shows as 'Available', traffic from on-premises to VPCs is experiencing severe packet loss and throughput is limited to 1.25 Gbps. What is the MOST likely cause?",
+      "options": [
+        "The Transit Gateway has a default bandwidth limit of 1.25 Gbps per VPC attachment that cannot be increased",
+        "The Transit Gateway VPN attachment is being used instead of a Direct Connect Gateway attachment, limiting bandwidth to VPN tunnel maximums",
+        "The VIF (Virtual Interface) type is Private VIF connected directly to a VPC instead of a Transit VIF connected to a Direct Connect Gateway associated with the Transit Gateway",
+        "The Transit Gateway route table is not properly configured with routes to the on-premises CIDR blocks"
+      ],
+      "correctAnswer": 2,
+      "explanation": "When connecting Direct Connect to Transit Gateway, you must use a Transit Virtual Interface (Transit VIF) connected to a Direct Connect Gateway, which is then associated with the Transit Gateway. If a Private VIF is used and connected directly to a VPC's Virtual Private Gateway, the traffic would not flow through Transit Gateway at all, and you would see connectivity issues. More importantly, Transit Gateway supports up to 50 Gbps per VPC attachment and up to 50 Gbps burst per VIF when using Equal Cost Multi-Path (ECMP) routing. Option A is incorrect as there is no such hard limit. Option B is incorrect as Transit Gateway VPN attachments support up to 1.25 Gbps per tunnel, but the symptoms describe a Direct Connect issue. Option D is incorrect because routing issues would cause complete connectivity failure, not packet loss with limited throughput."
+    },
+    {
+      "question": "An organization is implementing IPv6 for their AWS infrastructure. They have created a dual-stack VPC with both IPv4 (10.0.0.0/16) and IPv6 (2600:1f14:abc:d100::/56) CIDR blocks. After launching EC2 instances with dual-stack configuration, the IPv6 traffic works within the VPC but fails when trying to reach the internet. The instances have both IPv4 and IPv6 addresses assigned. What is the MINIMUM set of changes required to enable IPv6 internet connectivity?",
+      "options": [
+        "Add an Egress-Only Internet Gateway to the VPC and add a route for ::/0 to the EIGW in the route table",
+        "Modify the existing Internet Gateway to support IPv6 and add a route for ::/0 to the IGW in the route table",
+        "Create a new IPv6-enabled NAT Gateway and add a route for ::/0 to the NAT Gateway in the route table",
+        "Enable IPv6 on the VPC's DHCP options set and associate it with the VPC, then add a route for ::/0 to the IGW"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Internet Gateways (IGW) in AWS automatically support both IPv4 and IPv6 traffic. No modification to the IGW itself is needed. However, you must add a route for ::/0 (all IPv6 addresses) pointing to the IGW in your route table. This is the minimum required change. Option A describes an Egress-Only Internet Gateway, which is used for outbound-only IPv6 traffic (similar to NAT for IPv4), but the question asks for general internet connectivity (bidirectional). Option C is incorrect because NAT Gateway only supports IPv4, not IPv6. AWS explicitly does not support NAT for IPv6 because all IPv6 addresses are public. Option D is incorrect because DHCP options sets in AWS don't control IPv6 configuration; IPv6 addresses are assigned via VPC IPAM or auto-assignment."
+    },
+    {
+      "type": "multiple",
+      "question": "A SaaS company provides services to hundreds of customer accounts through AWS PrivateLink. They want to implement a connection approval workflow where new customer requests are manually reviewed before granting access. Additionally, they need to track which customer accounts are connected and automatically send notifications when connections are established or terminated. Which configurations are required? (Select THREE)",
+      "options": [
+        "Enable 'Acceptance required' on the VPC endpoint service configuration",
+        "Create an EventBridge rule to capture VPC endpoint service notifications for Accept and Reject events",
+        "Configure the VPC endpoint service to use a Network Load Balancer with connection draining enabled",
+        "Set up CloudWatch Logs to capture VPC Flow Logs from the endpoint service",
+        "Create EventBridge rules for 'AWS API Call via CloudTrail' events matching AcceptVpcEndpointConnections and RejectVpcEndpointConnections",
+        "Enable AWS PrivateLink service discovery through Route 53 Resolver"
+      ],
+      "correctAnswer": [0, 1, 4],
+      "explanation": "To implement approval workflow and notifications: (1) Enable 'Acceptance required' on the VPC endpoint service - this ensures all new endpoint connection requests must be manually approved before being established. (2) EventBridge can capture VPC endpoint service state change notifications, including when connections are accepted or rejected. (3) CloudTrail integration with EventBridge can track API calls like AcceptVpcEndpointConnections and RejectVpcEndpointConnections, providing detailed audit logs of who approved/rejected connections. Option C is incorrect because while NLB is required for PrivateLink, connection draining doesn't relate to approval workflows. Option D is incorrect because VPC Flow Logs show network traffic patterns but don't capture service state changes or API actions. Option F is incorrect because Route 53 Resolver is not related to PrivateLink service discovery or approval workflows."
+    },
+    {
+      "question": "A financial institution has a hub-and-spoke network topology with AWS Transit Gateway. They have 20 VPCs in the us-east-1 region and 15 VPCs in eu-west-1 region, each with Transit Gateways. Compliance requires that traffic between development VPCs in us-east-1 and production VPCs in eu-west-1 must be completely blocked, while allowing all other inter-region communication. What is the MOST operationally efficient solution?",
+      "options": [
+        "Create a Transit Gateway peering connection between regions, use separate route tables for dev and prod VPCs, and use blackhole routes to block specific CIDR ranges",
+        "Establish VPC peering connections between individual VPCs in different regions, allowing granular control over which VPCs can communicate",
+        "Create a Transit Gateway peering connection, implement separate Transit Gateway route tables for dev and prod, and use route table associations and propagations to control traffic flow without blackhole routes",
+        "Deploy AWS Network Firewall in each region's Transit Gateway VPC attachment and configure firewall policies to drop traffic between dev and prod VPCs"
+      ],
+      "correctAnswer": 2,
+      "explanation": "The most efficient solution is to use Transit Gateway's built-in routing capabilities with separate route tables. Create a Transit Gateway peering connection between the two regional Transit Gateways. In each region, create separate route tables: one for development VPCs and one for production VPCs. Associate dev VPCs with the dev route table and prod VPCs with the prod route table. On the dev route table, only propagate or add routes for non-prod VPCs from the other region. Similarly, on the prod route table, only include routes for non-dev VPCs. This approach uses native Transit Gateway features without requiring blackhole routes or additional services. Option A works but is less efficient because blackhole routes require manual management of CIDR ranges. Option B creates management overhead with many point-to-point VPC peering connections (20×15 = 300 potential connections) and doesn't scale well. Option D adds unnecessary cost and complexity with Network Firewall when routing controls can achieve the same result."
+    },
+    {
+      "question": "A global media company uses Amazon CloudFront with multiple origins including S3 buckets, Application Load Balancers, and custom origins. They need to implement client IP-based access control where certain IP ranges can only access specific origins. After implementing AWS WAF Web ACL attached to the CloudFront distribution with IP set rules, they discover that the rules are not working as expected for ALB origins. What is the issue?",
+      "options": [
+        "AWS WAF on CloudFront only inspects the CloudFront edge IP addresses, not the original client IP. Use Lambda@Edge to inspect X-Forwarded-For header and implement custom authorization",
+        "IP-based rules in WAF attached to CloudFront work correctly for all origin types. The issue is likely that the ALB security group is blocking CloudFront IP ranges",
+        "AWS WAF on CloudFront uses the client IP from the X-Forwarded-For header automatically for IP-based rules, but the ALB is likely behind an additional proxy that's modifying headers",
+        "CloudFront does not pass client IP addresses to ALB origins; it only preserves client IPs for S3 origins. Implement WAF directly on the ALB for IP-based access control"
+      ],
+      "correctAnswer": 1,
+      "explanation": "When AWS WAF is attached to CloudFront, it automatically inspects the original client IP address from the X-Forwarded-For header for IP-based rules, and this works correctly for all origin types including ALB. The most likely issue is that the ALB's security group is not properly configured to allow traffic from CloudFront IP ranges. CloudFront uses a specific set of IP addresses to connect to origins, and if these aren't allowed in the ALB security group, traffic will be blocked before WAF rules are even evaluated. AWS publishes CloudFront IP ranges that should be allowed. Option A is incorrect because WAF on CloudFront does automatically use the original client IP. Option C is incorrect because there's typically no additional proxy between CloudFront and ALB that would modify headers. Option D is incorrect because CloudFront does pass client IP information through headers (X-Forwarded-For, CloudFront-Viewer-Address) to all origin types."
+    },
+    {
+      "question": "An enterprise has three AWS accounts: Production, Staging, and Development. They use AWS Resource Access Manager (RAM) to share a Transit Gateway from the Network account to all three accounts. After sharing, the Production account team reports they cannot attach their VPC to the shared Transit Gateway. The RAM share shows as 'Active' and 'Associated' for all accounts. What is the MOST likely cause?",
+      "options": [
+        "Transit Gateway sharing through RAM requires the accepting accounts to be in the same AWS Organization, and the sharing must be enabled at the Organization level in RAM settings",
+        "The Production account has reached the limit of 5 Transit Gateway attachments per account and must request a service limit increase",
+        "RAM sharing of Transit Gateway only provides read permissions; each account must still request attachment approval from the Network account's Transit Gateway owner",
+        "The Production account's IAM policies do not include permissions for ec2:CreateTransitGatewayVpcAttachment action on the shared Transit Gateway resource"
+      ],
+      "correctAnswer": 0,
+      "explanation": "For Transit Gateway sharing via AWS Resource Access Manager to work, sharing with AWS Organizations must be enabled in RAM settings. By default, sharing is limited to individual AWS accounts, but sharing with Organizations needs to be explicitly enabled by an administrator in the management account. Once enabled, accounts within the Organization can use shared Transit Gateways. The question states the share shows as 'Active' and 'Associated', which means the sharing is configured, but Organization-level sharing must be enabled. Option B is incorrect as the default limit for Transit Gateway attachments is 5,000 per account, not 5. Option C is incorrect because while attachment acceptance can be required at the Transit Gateway level, this is a separate configuration from RAM sharing and wouldn't be the most likely cause if RAM shows active. Option D is incorrect because IAM permissions would typically result in an access denied error during the attachment attempt, but the question implies they cannot even attempt the attachment."
+    },
+    {
+      "question": "A video streaming company uses Route 53 with latency-based routing to direct users to the nearest regional endpoint. They have three regions: us-east-1, eu-west-1, and ap-southeast-1. Users in Australia report they are being routed to us-east-1 instead of ap-southeast-1, which has lower latency. All health checks pass. What should the solutions architect investigate FIRST?",
+      "options": [
+        "Verify that latency-based routing records exist for ap-southeast-1 with the correct region identifier, and check if the evaluate target health option is causing unexpected failover behavior",
+        "Check if there are multiple latency-based records for ap-southeast-1 with different weights, causing Route 53 to randomly distribute traffic",
+        "Confirm that the TTL on the Route 53 records is set high enough (300+ seconds) to allow Route 53 to cache latency measurements accurately",
+        "Verify that the ap-southeast-1 endpoint is returning 2xx HTTP status codes, as Route 53 uses HTTP response codes in addition to health checks for latency-based routing decisions"
+      ],
+      "correctAnswer": 0,
+      "explanation": "The first thing to investigate is whether latency-based routing records are correctly configured for ap-southeast-1. Each latency-based record must have the correct AWS region identifier specified. If the ap-southeast-1 record is missing or has an incorrect region identifier, Route 53 won't consider it for latency-based routing decisions. Additionally, if 'evaluate target health' is enabled, Route 53 might route traffic away from ap-southeast-1 if it considers the endpoint unhealthy based on health check status or the health of associated resources (like ALB targets), even if the basic health check passes. Option B is incorrect because multiple weighted records are a separate routing policy; you can't combine weighted and latency-based routing on the same record set in that way. Option C is incorrect because TTL affects DNS caching at the client side, not Route 53's latency measurements or routing decisions. Option D is incorrect because Route 53's routing decisions are based on health checks and latency data from AWS's internal measurements, not on HTTP response codes from the endpoints themselves."
+    },
+    {
+      "type": "multiple",
+      "question": "An organization is designing a multi-region disaster recovery architecture using Route 53 failover routing. They have primary resources in us-east-1 and failover resources in us-west-2. The RTO requirement is 2 minutes. Which configurations should be implemented to meet the RTO requirement? (Select THREE)",
+      "options": [
+        "Set Route 53 record TTL to 60 seconds or less to ensure DNS changes propagate quickly",
+        "Configure Route 53 health checks with a failure threshold of 1 and request interval of 10 seconds for fastest failover detection",
+        "Enable 'Evaluate Target Health' on Route 53 alias records to automatically failover when associated AWS resources become unhealthy",
+        "Use Route 53 Application Recovery Controller to create readiness checks and routing controls for sub-minute failover",
+        "Configure health check latency measurement to report within 30 seconds for faster health determination",
+        "Set up Route 53 traffic flow policies with automatic failback disabled to prevent flapping"
+      ],
+      "correctAnswer": [0, 1, 3],
+      "explanation": "To meet a 2-minute RTO with Route 53 failover: (1) Low TTL (60 seconds or less) ensures that when DNS records change during failover, clients will refresh their DNS cache quickly. (2) Health check configuration with failure threshold of 1 and 10-second intervals means Route 53 can detect failures in approximately 10 seconds (though fast interval health checks cost more). (3) Route 53 Application Recovery Controller (ARC) provides sub-minute failover capabilities with routing controls and readiness checks, significantly faster than standard Route 53 health checks alone. Together these meet the 2-minute RTO. Option B alone wouldn't be sufficient as default health checks take 30 seconds × 3 failures = 90 seconds, but with threshold of 1 it's faster. Option E is incorrect because health check latency measurement is not a configurable parameter that affects failover speed. Option F is incorrect because traffic flow policies are for complex routing scenarios, and automatic failback is actually desirable for DR scenarios to return to primary when it's healthy."
+    },
+    {
+      "question": "A healthcare company has deployed AWS Client VPN for remote access to their VPCs. They use Active Directory for authentication and need to implement authorization rules that restrict specific AD security groups to only access certain VPCs. They have 5 VPCs attached to the Client VPN endpoint. After configuring authorization rules for AD group 'Developers' to access Dev-VPC (10.1.0.0/16), developers still cannot access resources. CloudWatch Logs show successful authentication. What is missing?",
+      "options": [
+        "Client VPN authorization rules must specify the exact resource IP addresses, not CIDR ranges; network-based authorization using CIDR ranges only works with certificate-based authentication",
+        "The Client VPN endpoint's security group must allow inbound traffic from the developers' public IP addresses",
+        "A route table entry must be added to the Client VPN endpoint specifying the Dev-VPC CIDR (10.1.0.0/16) with the target as the VPC attachment for Dev-VPC",
+        "Authorization rules only control authentication; actual access control must be implemented using security groups on the target resources"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Client VPN requires both authorization rules AND route table entries to work. Authorization rules determine which groups/users are allowed to access which network ranges, but routes determine which traffic goes to which VPC attachments. Even if authorization permits access to 10.1.0.0/16 for the Developers group, without a route in the Client VPN endpoint's route table directing 10.1.0.0/16 traffic to the Dev-VPC attachment, the traffic won't be routed correctly. Each VPC CIDR must have a corresponding route entry pointing to the appropriate VPC attachment. Option A is incorrect because authorization rules do work with CIDR ranges for all authentication methods. Option B is incorrect because Client VPN endpoints don't have security groups in the traditional sense; they use authorization rules and network ACLs. Option D is incorrect because authorization rules are specifically designed for access control, though security groups on targets are also necessary for defense in depth."
+    },
+    {
+      "question": "A financial services firm is implementing AWS Network Firewall to inspect traffic between their VPCs and the internet. They have configured a stateful rule with domain list filtering to block access to known malicious domains. After deployment, they notice that while HTTP traffic is blocked correctly, HTTPS traffic to the same blocked domains still passes through. What is the MOST likely cause?",
+      "options": [
+        "Domain list filtering in Network Firewall only works for HTTP traffic; HTTPS traffic requires SSL/TLS inspection, which must be enabled separately with imported certificates",
+        "The stateful rule order is set to 'Action Order' instead of 'Strict Order', causing HTTPS allow rules to take precedence over domain blocking rules",
+        "Network Firewall cannot decrypt HTTPS traffic without AWS Certificate Manager Private CA integration, so domain filtering only works for HTTP",
+        "The firewall policy's TLS inspection configuration is not enabled, which is required for domain-based filtering of HTTPS traffic"
+      ],
+      "correctAnswer": 3,
+      "explanation": "AWS Network Firewall requires TLS inspection to be configured and enabled to perform domain-based filtering on HTTPS traffic. Without TLS inspection, Network Firewall cannot see the SNI (Server Name Indication) field in the TLS handshake where the domain name is specified. TLS inspection requires importing SSL/TLS certificates or using AWS Certificate Manager to generate certificates that will be used to decrypt and inspect HTTPS traffic. Once configured, domain filtering works for HTTPS. Option A is partially correct about requiring TLS inspection but incorrect in suggesting it 'only works for HTTP'. Option B is incorrect because rule ordering affects which rule takes precedence when multiple rules match, but wouldn't cause HTTP and HTTPS to behave differently for the same domain rule. Option C is incorrect because while ACM Private CA can be used, it's not the only way to enable TLS inspection; you can also import your own certificates."
+    },
+    {
+      "question": "An enterprise has a Transit Gateway with 30 VPC attachments. They want to implement centralized egress to the internet through a single VPC that contains NAT Gateways and an internet gateway (inspection VPC). After configuring route tables to direct 0.0.0.0/0 traffic to the inspection VPC attachment, instances in spoke VPCs can reach the internet, but return traffic fails. What is the issue?",
+      "options": [
+        "NAT Gateways in the inspection VPC need to be configured with Elastic IPs that have been shared with spoke VPCs through AWS Resource Access Manager",
+        "The inspection VPC's route table needs a route back to spoke VPC CIDRs via the Transit Gateway attachment, and NAT Gateway return traffic must be routed correctly",
+        "Transit Gateway does not support asymmetric routing; return traffic from NAT Gateway must exit through the same Transit Gateway attachment it entered",
+        "The Transit Gateway attachment for the inspection VPC must have 'Appliance Mode' enabled to handle stateful NAT translation properly"
+      ],
+      "correctAnswer": 1,
+      "explanation": "For centralized egress through an inspection VPC, you need bidirectional routing. The spoke VPCs route 0.0.0.0/0 to the inspection VPC via Transit Gateway, which works for outbound traffic. However, the inspection VPC must have routes back to all spoke VPC CIDRs pointing to the Transit Gateway attachment so that return traffic from the internet (through NAT Gateway) can be routed back through the Transit Gateway to the originating spoke VPC. The route table associated with the NAT Gateway's subnet needs these routes. Without these return routes, the inspection VPC won't know how to route traffic back to 10.1.0.0/16 (for example) and will drop it. Option A is incorrect; Elastic IPs don't need to be shared for NAT to work. Option C is incorrect; Transit Gateway supports asymmetric routing, and this scenario involves symmetric routing anyway. Option D is incorrect; Appliance Mode is used for stateful network appliances like firewalls to ensure symmetric flow routing, but NAT Gateway doesn't require it because NAT Gateway itself handles statefulness."
+    },
+    {
+      "question": "A company has multiple AWS accounts in an AWS Organization. They want to centrally manage VPC IP address allocation to prevent CIDR overlap and enable easy VPC peering. They plan to use Amazon VPC IP Address Manager (IPAM). After creating an IPAM with a top-level pool of 10.0.0.0/8, they create regional pools and share them with member accounts via RAM. Member accounts report they cannot create VPCs from the shared pools. What is the likely issue?",
+      "options": [
+        "IPAM pools must be created in each account individually; RAM sharing only allows viewing pool information, not VPC creation from shared pools",
+        "The IPAM is created in the management account, but IPAM functionality requires delegation to a dedicated networking account using Organizations delegated administrator",
+        "Member accounts need explicit IAM permissions for ec2:CreateVpc with conditions that reference the shared IPAM pool ARN",
+        "IPAM pool sharing requires that RAM sharing with AWS Organizations is enabled, and member accounts must accept the RAM share invitation"
+      ],
+      "correctAnswer": 1,
+      "explanation": "While AWS IPAM can be created in any account, for Organization-wide use, it's a best practice and often required to delegate IPAM administrator permissions to a dedicated account (usually a network account) using AWS Organizations delegated administrator. The management account has limitations on some operations, and RAM sharing of IPAM pools works more reliably from a delegated administrator account. Once delegated, that account creates the IPAM and pools, and shares them via RAM to member accounts. Option A is incorrect because RAM sharing of IPAM pools does allow member accounts to create VPCs from shared pools. Option C is incorrect because standard VPC creation permissions (ec2:CreateVpc) are usually sufficient; the pool reference is included in the CreateVpc API call parameters. Option D is partially correct that RAM Organization sharing must be enabled, but if the share shows as active (as implied by successful sharing), the acceptance would already be done for Organization-based sharing."
+    },
+    {
+      "type": "multiple",
+      "question": "A media company wants to deploy AWS Global Accelerator to improve application availability and performance for their global user base. They have Application Load Balancers in us-east-1 and eu-west-1. What are the key benefits they will achieve by using Global Accelerator over Route 53 latency-based routing alone? (Select THREE)",
+      "options": [
+        "Global Accelerator provides static anycast IP addresses that don't change, eliminating DNS caching issues that can occur with Route 53",
+        "Global Accelerator automatically performs health checks and can remove unhealthy endpoints within seconds, faster than Route 53 DNS failover",
+        "Traffic travels over the AWS global network backbone instead of the public internet, providing more consistent performance and lower latency",
+        "Global Accelerator provides DDoS protection through AWS Shield Standard at no additional cost",
+        "Global Accelerator can route traffic based on geographic location of users more accurately than Route 53 geolocation routing",
+        "Global Accelerator provides automatic SSL/TLS certificate management for endpoints"
+      ],
+      "correctAnswer": [0, 1, 2],
+      "explanation": "Global Accelerator provides several advantages over Route 53 alone: (1) It provides two static anycast IP addresses that remain constant even if you add/remove endpoints or change configurations. This eliminates DNS propagation delays and client caching issues inherent to DNS-based routing. (2) Global Accelerator performs continuous health checks and can detect failures and remove endpoints within seconds (approximately 30 seconds), faster than typical Route 53 health check intervals plus DNS TTL propagation. (3) Once traffic reaches the Global Accelerator edge location, it travels over AWS's private global network to the endpoint region, avoiding congested internet paths and providing better performance. Option D is incorrect because while Global Accelerator works with AWS Shield Standard (which is free for all AWS customers), this isn't a unique benefit over Route 53, which also has Shield Standard protection. Option E is incorrect because Global Accelerator doesn't route based on geography; it routes to the closest healthy endpoint. Option F is incorrect because Global Accelerator doesn't manage SSL/TLS certificates; that's handled by the endpoint (ALB, etc.) or AWS Certificate Manager."
+    },
+    {
+      "question": "An organization has deployed AWS PrivateLink to expose their application running on EC2 instances behind a Network Load Balancer to customer VPCs. They notice that while customers in the same region can connect successfully, customers attempting to access via VPC peering from another region cannot connect to the endpoint service. Customers have created interface endpoints in their VPCs. What is the explanation?",
+      "options": [
+        "PrivateLink endpoint services are regional and cannot be accessed across regions, even with VPC peering; customers in other regions must create their own endpoint services or use inter-region VPC PrivateLink",
+        "VPC peering does not support routing to VPC endpoints; customers must use Transit Gateway inter-region peering to access PrivateLink services across regions",
+        "The Network Load Balancer must have cross-zone load balancing disabled for PrivateLink to work across VPC peering connections",
+        "Interface endpoints can only be accessed from the VPC they are created in; VPC peering requires Gateway endpoints which are not supported for PrivateLink services"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS PrivateLink (VPC endpoint services) are regional resources. VPC interface endpoints can only connect to endpoint services in the same AWS region. Even if VPCs are peered across regions, the interface endpoint traffic cannot be routed over the VPC peering connection to reach a PrivateLink service in another region. This is by design, as PrivateLink uses DNS resolution to private IP addresses within the region. For cross-region PrivateLink access, customers would need to either: create the endpoint service in multiple regions, or potentially use AWS PrivateLink inter-region endpoint services if available for the specific service. Option B is incorrect because Transit Gateway doesn't change this limitation; PrivateLink endpoints are still regional. Option C is incorrect because cross-zone load balancing is an NLB setting that affects availability, not cross-region routing. Option D is incorrect because interface endpoints are specifically designed for PrivateLink services, and the limitation is about regional boundaries, not VPC peering vs. gateway endpoints."
+    },
+    {
+      "question": "A software company provides a SaaS application accessed via AWS PrivateLink by hundreds of customers. They recently enabled PrivateLink IPv6 support and allocated IPv6 CIDR blocks to their VPC. Customers report that while IPv4 connectivity works fine, IPv6 connections to the endpoint service are failing. The Network Load Balancer has both IPv4 and IPv6 target IP addresses registered. What is the MOST likely cause?",
+      "options": [
+        "PrivateLink endpoint services do not support IPv6; only IPv4 is supported for VPC endpoint services backed by Network Load Balancers",
+        "The VPC endpoint service must be configured with 'Enable IPv6' option explicitly, which is separate from having IPv6 enabled on the NLB",
+        "Customer VPCs must have both IPv4 and IPv6 CIDR blocks assigned before they can create dual-stack interface endpoints",
+        "The NLB target group must use 'IP' target type with IPv6 addresses; 'Instance' target type only supports IPv4 for PrivateLink"
+      ],
+      "correctAnswer": 2,
+      "explanation": "For customers to connect to a PrivateLink endpoint service via IPv6, their VPCs must be dual-stack (have both IPv4 and IPv6 CIDR blocks assigned). The VPC interface endpoint created in the customer VPC will get both IPv4 and IPv6 addresses only if the VPC has both IP versions configured. If customer VPCs only have IPv4, the interface endpoints will only get IPv4 addresses, and IPv6 connectivity won't work even if the service provider's side is dual-stack. The service provider enabling IPv6 on their NLB and endpoint service is necessary but not sufficient. Option A is incorrect because PrivateLink does support IPv6 for VPC endpoint services with NLB. Option B is incorrect because there isn't a separate 'Enable IPv6' option on the endpoint service itself; IPv6 support comes from the underlying NLB configuration and customer VPC configuration. Option D is incorrect because both IP and Instance target types can support IPv6 when properly configured."
+    }
+  ]
+}
