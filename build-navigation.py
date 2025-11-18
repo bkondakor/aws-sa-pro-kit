@@ -144,6 +144,7 @@ def create_domain_overview_page(domain_num, domain_info):
             <div class="sidebar-section">
                 <h3>Quick Links</h3>
                 <ul>
+                    <li><a href="cheatsheet.html" style="background: linear-gradient(135deg, #FFB84D 0%, #FF8C42 100%); padding: 8px 12px; border-radius: 6px; color: #0f0f1e; font-weight: 700; display: block; text-align: center; margin-bottom: 8px;">📋 Cheatsheet</a></li>
                     <li><a href="study-plan.html">Study Plan</a></li>
                     <li><a href="../exam/index.html">Practice Exam</a></li>
                 </ul>

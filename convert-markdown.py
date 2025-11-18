@@ -137,6 +137,7 @@ def create_html_page(title, content, frontmatter=None, base_path='..'):
             <div class="sidebar-section">
                 <h3>Quick Links</h3>
                 <ul>
+                    <li><a href="{base_path}/study/cheatsheet.html" style="background: linear-gradient(135deg, #FFB84D 0%, #FF8C42 100%); padding: 8px 12px; border-radius: 6px; color: #0f0f1e; font-weight: 700; display: block; text-align: center; margin-bottom: 8px;">📋 Cheatsheet</a></li>
                     <li><a href="{base_path}/exam/index.html">Practice Exam</a></li>
                     <li><a href="https://aws.amazon.com/certification/certified-solutions-architect-professional/" target="_blank">Official Exam</a></li>
                 </ul>
@@ -230,6 +231,15 @@ def main():
         process_markdown_file(
             plan_md,
             study_output / 'study-plan.html',
+            base_path='..'
+        )
+
+    # Convert AWS-SA-PRO-CHEATSHEET.md
+    cheatsheet_md = project_root / 'AWS-SA-PRO-CHEATSHEET.md'
+    if cheatsheet_md.exists():
+        process_markdown_file(
+            cheatsheet_md,
+            study_output / 'cheatsheet.html',
             base_path='..'
         )
 
