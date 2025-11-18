@@ -5,6 +5,7 @@ A modern, interactive web application for practicing AWS Solutions Architect Pro
 ## Features
 
 - **Modern UI**: Clean, responsive design that works on desktop and mobile devices
+- **Multiple Question Types**: Supports both single-choice and multiple-choice questions
 - **Question Pool**: Questions are randomly shuffled for each exam session
 - **Progress Tracking**: Visual progress bar and question palette
 - **Flag System**: Mark questions for review during the exam
@@ -43,7 +44,9 @@ Then visit `http://localhost:8000` in your browser.
 ### Taking the Exam
 
 1. **Start**: Click the "Start Exam" button on the welcome screen
-2. **Answer Questions**: Select your answer by clicking on an option
+2. **Answer Questions**:
+   - **Single-choice**: Click to select one answer (radio button)
+   - **Multiple-choice**: Check all that apply (checkbox - look for "Select ALL that apply" badge)
 3. **Navigate**: Use "Next" and "Previous" buttons or click questions in the palette
 4. **Flag Questions**: Click "Flag for Review" to mark questions you want to revisit
 5. **Submit**: Click "Submit Exam" when you're ready (you'll be warned about unanswered questions)
@@ -61,7 +64,9 @@ The question palette shows the status of all questions:
 
 ### Question Format
 
-Edit `questions.json` to add or modify questions. Each question follows this format:
+Edit `questions.json` to add or modify questions. The exam supports two question types:
+
+#### Single-Choice Questions (Select One Answer)
 
 ```json
 {
@@ -77,9 +82,31 @@ Edit `questions.json` to add or modify questions. Each question follows this for
 }
 ```
 
+#### Multiple-Choice Questions (Select Multiple Answers)
+
+```json
+{
+  "type": "multiple",
+  "question": "Which of the following are AWS storage services? (Select ALL that apply)",
+  "options": [
+    "Amazon S3",
+    "Amazon EC2",
+    "Amazon EFS",
+    "Amazon CloudFront",
+    "Amazon EBS"
+  ],
+  "correctAnswer": [0, 2, 4],
+  "explanation": "Amazon S3, EFS, and EBS are storage services. EC2 is a compute service and CloudFront is a CDN."
+}
+```
+
+**Field Definitions:**
+- `type`: (Optional) Set to `"multiple"` for multiple-choice questions. Omit for single-choice (default)
 - `question`: The question text
-- `options`: Array of answer choices (typically 4 options)
-- `correctAnswer`: Zero-based index of the correct option (0 = first option, 1 = second, etc.)
+- `options`: Array of answer choices
+- `correctAnswer`:
+  - For single-choice: Zero-based index of the correct option (e.g., `0` = first option)
+  - For multiple-choice: Array of zero-based indices (e.g., `[0, 2, 4]`)
 - `explanation`: Detailed explanation shown during review
 
 ### Adding Questions

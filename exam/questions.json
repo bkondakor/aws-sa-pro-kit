@@ -1,6 +1,33 @@
 {
   "questions": [
     {
+      "type": "multiple",
+      "question": "A company is migrating to AWS and needs to implement security best practices. Which of the following are recommended security measures for AWS accounts? (Select THREE)",
+      "options": [
+        "Enable MFA for the root account",
+        "Create IAM users for daily administrative tasks instead of using the root account",
+        "Use the root account for all API calls to ensure maximum permissions",
+        "Enable AWS CloudTrail in all regions",
+        "Store access keys in the application code for easy deployment",
+        "Use IAM roles for applications running on EC2 instances"
+      ],
+      "correctAnswer": [0, 1, 3, 5],
+      "explanation": "Security best practices for AWS accounts include: enabling MFA for the root account to add an extra layer of security, creating IAM users for daily tasks to avoid using the root account, enabling CloudTrail for audit logging, and using IAM roles for EC2 applications instead of embedding credentials. The root account should rarely be used and never for routine tasks. Access keys should never be stored in code as this poses a security risk."
+    },
+    {
+      "type": "multiple",
+      "question": "A solutions architect is designing a highly available application that must meet strict compliance requirements. Which AWS services provide automated backup capabilities? (Select ALL that apply)",
+      "options": [
+        "Amazon RDS",
+        "Amazon DynamoDB",
+        "Amazon S3",
+        "Amazon EFS",
+        "AWS Lambda"
+      ],
+      "correctAnswer": [0, 1, 3],
+      "explanation": "Amazon RDS provides automated backups with point-in-time recovery. Amazon DynamoDB offers point-in-time recovery (PITR) for continuous backups. Amazon EFS automatically replicates data across multiple AZs and supports AWS Backup. Amazon S3 provides durability but versioning/replication must be configured separately. AWS Lambda doesn't have built-in backup - you backup the code in your deployment package or source control."
+    },
+    {
       "question": "A company is running a multi-tier web application on AWS with an Application Load Balancer (ALB), Amazon EC2 instances in an Auto Scaling group, and an Amazon RDS database. The company needs to implement a disaster recovery solution that provides an RTO of 1 hour and an RPO of 15 minutes with minimal cost. Which solution meets these requirements?",
       "options": [
         "Deploy a pilot light solution in a secondary region with RDS read replicas and minimal EC2 instances. Use AWS Backup for automated snapshots every 15 minutes.",

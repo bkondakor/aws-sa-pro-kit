@@ -95,6 +95,7 @@ class ExamApp {
 
     renderQuestion() {
         const question = this.questions[this.currentQuestionIndex];
+        const isMultipleChoice = question.type === 'multiple';
 
         // Update question counter and progress
         const questionNum = this.currentQuestionIndex + 1;
@@ -106,8 +107,19 @@ class ExamApp {
         const progress = (questionNum / this.questions.length) * 100;
         document.getElementById('progressFill').style.width = `${progress}%`;
 
-        // Render question text
-        document.getElementById('questionText').textContent = question.question;
+        // Render question text with type indicator
+        const questionTextEl = document.getElementById('questionText');
+        questionTextEl.innerHTML = '';
+
+        if (isMultipleChoice) {
+            const badge = document.createElement('span');
+            badge.style.cssText = 'background: #146EB4; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-right: 10px;';
+            badge.textContent = 'Select ALL that apply';
+            questionTextEl.appendChild(badge);
+        }
+
+        const questionText = document.createTextNode(question.question);
+        questionTextEl.appendChild(questionText);
 
         // Render options
         const optionsContainer = document.getElementById('optionsContainer');
@@ -117,20 +129,30 @@ class ExamApp {
             const optionDiv = document.createElement('div');
             optionDiv.className = 'option';
 
-            const radio = document.createElement('input');
-            radio.type = 'radio';
-            radio.name = 'answer';
-            radio.value = index;
-            radio.id = `option${index}`;
+            const input = document.createElement('input');
+            input.type = isMultipleChoice ? 'checkbox' : 'radio';
+            input.name = 'answer';
+            input.value = index;
+            input.id = `option${index}`;
 
             // Check if this option was previously selected
-            if (this.userAnswers[this.currentQuestionIndex] === index) {
-                radio.checked = true;
+            const currentAnswer = this.userAnswers[this.currentQuestionIndex];
+            if (isMultipleChoice && Array.isArray(currentAnswer)) {
+                if (currentAnswer.includes(index)) {
+                    input.checked = true;
+                    optionDiv.classList.add('selected');
+                }
+            } else if (!isMultipleChoice && currentAnswer === index) {
+                input.checked = true;
                 optionDiv.classList.add('selected');
             }
 
-            radio.addEventListener('change', (e) => {
-                this.selectAnswer(parseInt(e.target.value));
+            input.addEventListener('change', (e) => {
+                if (isMultipleChoice) {
+                    this.toggleMultipleAnswer(parseInt(e.target.value));
+                } else {
+                    this.selectAnswer(parseInt(e.target.value));
+                }
             });
 
             const label = document.createElement('label');
@@ -139,12 +161,17 @@ class ExamApp {
             label.textContent = option;
             label.style.cursor = 'pointer';
 
-            optionDiv.appendChild(radio);
+            optionDiv.appendChild(input);
             optionDiv.appendChild(label);
             optionDiv.addEventListener('click', (e) => {
-                if (e.target !== radio) {
-                    radio.checked = true;
-                    this.selectAnswer(index);
+                if (e.target !== input) {
+                    if (isMultipleChoice) {
+                        input.checked = !input.checked;
+                        this.toggleMultipleAnswer(index);
+                    } else {
+                        input.checked = true;
+                        this.selectAnswer(index);
+                    }
                 }
             });
 
@@ -178,6 +205,37 @@ class ExamApp {
         // Update visual selection
         document.querySelectorAll('.option').forEach((opt, idx) => {
             if (idx === optionIndex) {
+                opt.classList.add('selected');
+            } else {
+                opt.classList.remove('selected');
+            }
+        });
+
+        this.renderQuestionPalette();
+    }
+
+    toggleMultipleAnswer(optionIndex) {
+        let currentAnswer = this.userAnswers[this.currentQuestionIndex];
+
+        // Initialize as empty array if not set
+        if (!Array.isArray(currentAnswer)) {
+            currentAnswer = [];
+        }
+
+        // Toggle the option
+        const index = currentAnswer.indexOf(optionIndex);
+        if (index > -1) {
+            currentAnswer.splice(index, 1);
+        } else {
+            currentAnswer.push(optionIndex);
+        }
+
+        // Store back (or null if empty)
+        this.userAnswers[this.currentQuestionIndex] = currentAnswer.length > 0 ? currentAnswer : null;
+
+        // Update visual selection
+        document.querySelectorAll('.option').forEach((opt, idx) => {
+            if (currentAnswer.includes(idx)) {
                 opt.classList.add('selected');
             } else {
                 opt.classList.remove('selected');
@@ -258,8 +316,23 @@ class ExamApp {
         let correct = 0;
 
         this.questions.forEach((question, index) => {
-            if (this.userAnswers[index] === question.correctAnswer) {
-                correct++;
+            const userAnswer = this.userAnswers[index];
+            const correctAnswer = question.correctAnswer;
+
+            if (question.type === 'multiple') {
+                // For multiple choice, check if arrays match (same elements, order doesn't matter)
+                if (Array.isArray(userAnswer) && Array.isArray(correctAnswer)) {
+                    const userSorted = [...userAnswer].sort();
+                    const correctSorted = [...correctAnswer].sort();
+                    if (JSON.stringify(userSorted) === JSON.stringify(correctSorted)) {
+                        correct++;
+                    }
+                }
+            } else {
+                // For single choice, direct comparison
+                if (userAnswer === correctAnswer) {
+                    correct++;
+                }
             }
         });
 
@@ -319,7 +392,21 @@ class ExamApp {
 
         this.questions.forEach((question, index) => {
             const userAnswer = this.userAnswers[index];
-            const isCorrect = userAnswer === question.correctAnswer;
+            const correctAnswer = question.correctAnswer;
+            const isMultipleChoice = question.type === 'multiple';
+
+            let isCorrect = false;
+            if (isMultipleChoice) {
+                // Check if arrays match for multiple choice
+                if (Array.isArray(userAnswer) && Array.isArray(correctAnswer)) {
+                    const userSorted = [...userAnswer].sort();
+                    const correctSorted = [...correctAnswer].sort();
+                    isCorrect = JSON.stringify(userSorted) === JSON.stringify(correctSorted);
+                }
+            } else {
+                // Direct comparison for single choice
+                isCorrect = userAnswer === correctAnswer;
+            }
 
             const reviewItem = document.createElement('div');
             reviewItem.className = `review-item ${isCorrect ? 'correct' : 'incorrect'}`;
@@ -331,6 +418,12 @@ class ExamApp {
             const questionNum = document.createElement('div');
             questionNum.className = 'review-question-number';
             questionNum.textContent = `Question ${index + 1}`;
+            if (isMultipleChoice) {
+                const badge = document.createElement('span');
+                badge.style.cssText = 'background: #146EB4; color: white; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; margin-left: 8px;';
+                badge.textContent = 'MULTIPLE';
+                questionNum.appendChild(badge);
+            }
 
             const status = document.createElement('div');
             status.className = `review-status ${isCorrect ? 'correct' : 'incorrect'}`;
@@ -353,8 +446,16 @@ class ExamApp {
                 optionDiv.className = 'review-option';
                 optionDiv.textContent = option;
 
+                const isUserAnswer = isMultipleChoice
+                    ? (Array.isArray(userAnswer) && userAnswer.includes(optIndex))
+                    : (userAnswer === optIndex);
+
+                const isCorrectAnswer = isMultipleChoice
+                    ? (Array.isArray(correctAnswer) && correctAnswer.includes(optIndex))
+                    : (correctAnswer === optIndex);
+
                 // Mark user's answer
-                if (userAnswer === optIndex) {
+                if (isUserAnswer) {
                     optionDiv.classList.add('user-answer');
                     const label = document.createElement('span');
                     label.className = 'answer-label user';
@@ -363,16 +464,16 @@ class ExamApp {
                 }
 
                 // Mark correct answer
-                if (optIndex === question.correctAnswer) {
+                if (isCorrectAnswer) {
                     optionDiv.classList.add('correct-answer');
                     const label = document.createElement('span');
                     label.className = 'answer-label correct';
-                    label.textContent = 'Correct Answer';
+                    label.textContent = 'Correct';
                     optionDiv.appendChild(label);
                 }
 
-                // Mark wrong answer
-                if (userAnswer === optIndex && !isCorrect) {
+                // Mark wrong answer (user selected but incorrect)
+                if (isUserAnswer && !isCorrectAnswer) {
                     optionDiv.classList.add('wrong-answer');
                 }
 
