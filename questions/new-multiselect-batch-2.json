@@ -1,0 +1,232 @@
+{
+  "domain": "Mixed Domains - Advanced Multi-Select Scenarios",
+  "task": "Batch 2: Performance, Migration & Modernization Multi-Select",
+  "question_count": 15,
+  "questions": [
+    {
+      "id": "MULTI-Q16",
+      "type": "multiple",
+      "question": "A company is optimizing their Aurora PostgreSQL database for a read-heavy application with 10,000 queries per second. Which features and configurations should they implement to maximize read performance? (Select THREE)",
+      "options": [
+        "Enable Aurora Read Replicas with up to 15 replicas for horizontal read scaling",
+        "Implement Aurora Global Database for low-latency global reads",
+        "Use Aurora Serverless v2 for automatic scaling based on workload",
+        "Enable Aurora Fast Cloning for rapid database copies without impacting performance",
+        "Configure custom endpoints to distribute read traffic across specific replica groups",
+        "Implement RDS Proxy to pool connections and reduce database load"
+      ],
+      "correctAnswer": [0, 4, 5],
+      "explanation": "Aurora Read Replicas (up to 15 per cluster) provide horizontal read scaling by distributing read queries across multiple instances, handling 10,000+ queries per second. Custom endpoints allow creating logical groups of replicas (e.g., by workload type or instance size) and distributing specific query types to appropriate replica groups, optimizing performance. RDS Proxy maintains a connection pool, reducing overhead on the database from frequent connection establishment/teardown and allowing more client connections. Global Database (option B) is for multi-region deployments, not for increasing single-region read performance. Serverless v2 (option C) scales capacity but doesn't increase read throughput like replicas do. Fast Cloning (option D) is for creating clones, not improving read performance."
+    },
+    {
+      "id": "MULTI-Q17",
+      "type": "multiple",
+      "question": "A video processing application experiences unpredictable Lambda invocations ranging from 10 to 10,000 concurrent executions. Which Lambda configurations and services optimize performance and cost? (Select FOUR)",
+      "options": [
+        "Configure Lambda Provisioned Concurrency for baseline traffic to eliminate cold starts",
+        "Use Lambda with Graviton2 (arm64) for up to 34% better price-performance",
+        "Implement Lambda layers to reduce deployment package size and improve cold start time",
+        "Enable Lambda SnapStart for Java applications to reduce cold start latency by up to 10x",
+        "Increase Lambda memory allocation to maximum (10 GB) for all functions",
+        "Use Lambda reserved concurrency to guarantee capacity during spikes"
+      ],
+      "correctAnswer": [1, 2, 3, 5],
+      "explanation": "Graviton2 processors provide better price-performance (up to 34% better) for the same workload, reducing costs without sacrificing performance. Lambda layers reduce deployment package size by externalizing common dependencies, improving deployment speed and reducing cold start time. Lambda SnapStart (for Java 11+) pre-initializes functions and caches the snapshot, reducing cold start latency from seconds to milliseconds. Reserved concurrency guarantees that a specific amount of concurrency is available for critical functions during traffic spikes. Provisioned Concurrency (option A) is expensive for unpredictable traffic - better to use for predictable baseline with reserved concurrency for bursts. Option E (max memory for all) is wasteful - memory should be right-sized based on actual function needs."
+    },
+    {
+      "id": "MULTI-Q18",
+      "type": "multiple",
+      "question": "A company is migrating a 50 TB Oracle database to AWS with minimal downtime (RTO <2 hours). Which AWS services and migration strategies should they use? (Select THREE)",
+      "options": [
+        "AWS Database Migration Service (DMS) with change data capture (CDC) for continuous replication",
+        "AWS Snowball Edge to transfer the initial database backup offline",
+        "AWS DataSync to replicate database files over Direct Connect",
+        "AWS Schema Conversion Tool (SCT) to convert Oracle schemas to PostgreSQL",
+        "Native Oracle Data Pump export/import with parallel processing",
+        "AWS Application Migration Service (MGN) for server replication"
+      ],
+      "correctAnswer": [0, 1, 3],
+      "explanation": "DMS with CDC enables continuous replication of ongoing database changes after the initial load, minimizing downtime during cutover (achieving <2 hour RTO). Snowball Edge allows offline transfer of the 50 TB initial database backup, avoiding the time required for network transfer (could take weeks over internet). AWS SCT converts Oracle database schemas, stored procedures, and application code to be compatible with the target database (Aurora PostgreSQL or RDS PostgreSQL), enabling database modernization. DataSync (option C) is for file transfers, not database migration. Data Pump (option E) can work but is slower than DMS+Snowball approach and doesn't provide the automated CDC that DMS offers. MGN (option F) is for server replication, not database migration."
+    },
+    {
+      "id": "MULTI-Q19",
+      "type": "multiple",
+      "question": "A company needs to migrate 500 Windows servers from VMware on-premises to AWS with minimal downtime and maintain operational consistency during transition. Which AWS services and approaches should they use? (Select THREE)",
+      "options": [
+        "VMware Cloud on AWS to run VMware workloads natively and use vMotion for live migration",
+        "AWS Application Migration Service (MGN) for continuous block-level replication and cutover",
+        "AWS Server Migration Service (SMS) for incremental VM replication",
+        "AWS Application Discovery Service to map application dependencies before migration",
+        "AWS Import/Export to ship server disk images on physical devices",
+        "AWS Systems Manager to automate post-migration configuration"
+      ],
+      "correctAnswer": [1, 3, 5],
+      "explanation": "AWS Application Migration Service (MGN, formerly CloudEndure) provides continuous block-level replication from source servers with minimal downtime (minutes) during cutover and automated server conversion to AWS. Application Discovery Service helps understand dependencies between servers, allowing you to group related servers and migrate them together, reducing migration risks. Systems Manager automates post-migration tasks like configuration management, patching, and compliance enforcement. VMware Cloud on AWS (option A) is valid but more expensive and is typically used when you want to maintain VMware long-term, not for pure migration. SMS (option C) is deprecated in favor of MGN. Import/Export (option E) requires server downtime and manual process, not suitable for 500 servers with minimal downtime requirement."
+    },
+    {
+      "id": "MULTI-Q20",
+      "type": "multiple",
+      "question": "A company is modernizing a monolithic .NET Framework application to microservices on AWS. Which architectural patterns and AWS services support this modernization? (Select FOUR)",
+      "options": [
+        "Strangler Fig pattern to gradually replace monolith components with microservices",
+        "Amazon ECS with AWS Fargate for running containerized microservices",
+        "Amazon API Gateway for creating a unified API layer and routing to microservices",
+        "AWS Lambda for all microservices to maximize cost savings",
+        "Amazon EventBridge for event-driven communication between microservices",
+        "Amazon RDS for each microservice to ensure complete data isolation"
+      ],
+      "correctAnswer": [0, 1, 2, 4],
+      "explanation": "Strangler Fig pattern is a proven modernization approach where you gradually replace parts of the monolith with microservices, routing traffic to new services while keeping the monolith for remaining functionality. ECS with Fargate provides a serverless container platform ideal for microservices, eliminating server management. API Gateway creates a unified entry point, handles routing, authentication, and rate limiting for microservices. EventBridge enables event-driven architecture with pub/sub messaging between microservices, promoting loose coupling. Lambda (option D) isn't suitable for ALL microservices - .NET Framework requires Windows containers (ECS/EKS), though you could use .NET Core on Lambda for some services. Option F (RDS per microservice) is often anti-pattern - creates operational overhead and tight coupling; prefer shared databases or DynamoDB for microservices."
+    },
+    {
+      "id": "MULTI-Q21",
+      "type": "multiple",
+      "question": "A company migrating Hadoop workloads to AWS needs to optimize costs while maintaining big data processing capabilities. Which AWS services and strategies should they implement? (Select THREE)",
+      "options": [
+        "Amazon EMR with transient clusters that terminate after job completion",
+        "AWS Glue for serverless ETL processing without cluster management",
+        "Amazon EMR with EC2 Spot Instances for up to 90% cost savings on compute",
+        "Amazon Redshift for all big data processing and analytics",
+        "Self-managed Hadoop on EC2 with Reserved Instances",
+        "Amazon S3 as the persistent data layer instead of HDFS"
+      ],
+      "correctAnswer": [0, 2, 5],
+      "explanation": "EMR transient clusters eliminate idle cluster costs by spinning up for jobs and terminating after completion - for batch processing, you only pay for actual job runtime. EMR with Spot Instances provides massive cost savings (up to 90%) for fault-tolerant big data workloads like Spark and Hadoop, with Spot instance allocation strategies and graceful node decommissioning. S3 as persistent storage (instead of HDFS on EBS) separates compute and storage, reducing costs significantly (S3 is much cheaper than EBS) and enabling transient clusters. Glue (option B) is good but EMR provides better compatibility with existing Hadoop/Spark code. Redshift (option D) is a data warehouse, not a Hadoop replacement. Self-managed (option E) defeats the modernization purpose and doesn't optimize costs as well as managed EMR with Spot."
+    },
+    {
+      "id": "MULTI-Q22",
+      "type": "multiple",
+      "question": "A global e-commerce platform needs to implement a caching strategy to reduce database load and improve response times. Which caching strategies and AWS services should they implement? (Select FOUR)",
+      "options": [
+        "CloudFront for caching static content at edge locations globally",
+        "ElastiCache for Redis with cluster mode for distributed caching and high availability",
+        "DynamoDB Accelerator (DAX) for microsecond read latency on DynamoDB tables",
+        "API Gateway caching for frequently accessed API responses",
+        "RDS read replicas as a caching layer for write-heavy workloads",
+        "Lambda@Edge for caching personalized content close to users"
+      ],
+      "correctAnswer": [0, 1, 2, 3],
+      "explanation": "CloudFront provides edge caching for static assets (images, CSS, JS) reducing origin load and improving global performance. ElastiCache Redis with cluster mode provides a scalable, distributed cache for session data, frequently accessed database queries, and application data. DAX provides in-memory caching specifically for DynamoDB with microsecond latency and requires no application code changes. API Gateway caching stores API responses for configurable TTL, reducing backend invocations. RDS read replicas (option E) are not a cache - they're for read scaling, not caching. Lambda@Edge (option F) can transform content but isn't primarily a caching solution - CloudFront handles caching."
+    },
+    {
+      "id": "MULTI-Q23",
+      "type": "multiple",
+      "question": "A company needs to optimize Amazon Redshift for better query performance and lower costs. Which features and configurations should they implement? (Select THREE)",
+      "options": [
+        "Redshift Spectrum to query data directly in S3 without loading into Redshift",
+        "Materialized views for frequently accessed aggregations and joins",
+        "Concurrency Scaling to handle query bursts without cluster resize",
+        "Distribution keys and sort keys optimized for query patterns",
+        "Resize cluster to largest node type for maximum performance",
+        "Redshift Data Sharing to share live data across clusters without copying"
+      ],
+      "correctAnswer": [1, 2, 3],
+      "explanation": "Materialized views pre-compute and store complex queries (aggregations, joins), dramatically improving performance for repeated queries and reducing compute costs. Concurrency Scaling automatically adds cluster capacity for burst query loads and you get one hour of free credits per day, making it cost-effective. Distribution and sort keys are fundamental to Redshift performance - proper key selection based on query patterns can reduce query time by 10-100x by minimizing data movement and enabling efficient data scanning. Spectrum (option A) is useful but adds cost and latency vs. data in Redshift. Largest node type (option E) is expensive and often unnecessary with proper optimization. Data Sharing (option F) is for multi-cluster scenarios, not for optimizing a single cluster."
+    },
+    {
+      "id": "MULTI-Q24",
+      "type": "multiple",
+      "question": "A company needs to implement CI/CD pipelines for microservices deployed to Amazon EKS. Which AWS services and tools should they use for a complete pipeline? (Select FOUR)",
+      "options": [
+        "AWS CodePipeline for orchestrating the entire CI/CD workflow",
+        "AWS CodeBuild for building container images and running tests",
+        "Amazon ECR for storing Docker container images with vulnerability scanning",
+        "AWS CodeDeploy with blue/green deployments for EKS",
+        "AWS Lambda for deploying Kubernetes manifests to EKS clusters",
+        "AWS CodeCommit for Git repository hosting with IAM integration"
+      ],
+      "correctAnswer": [0, 1, 2, 3],
+      "explanation": "CodePipeline provides end-to-end workflow orchestration, integrating source control, build, test, and deployment stages with visual pipeline monitoring. CodeBuild compiles code, builds Docker images, runs unit tests, and can push images to ECR - all in a managed, scalable build service. Amazon ECR provides secure Docker registry with image scanning (ECR Enhanced Scanning detects OS and programming language package vulnerabilities), lifecycle policies, and cross-region replication. CodeDeploy supports native EKS deployments with blue/green and canary deployment strategies, automatic rollback, and integration with ALB. Lambda (option E) could invoke kubectl but CodeDeploy provides better native EKS integration. CodeCommit (option F) is useful but not essential - teams often use GitHub/GitLab."
+    },
+    {
+      "id": "MULTI-Q25",
+      "type": "multiple",
+      "question": "A media company processes real-time video streams from millions of devices. Which AWS services should they use for stream ingestion, processing, and storage? (Select THREE)",
+      "options": [
+        "Amazon Kinesis Video Streams for ingesting and storing video streams from devices",
+        "AWS Elemental MediaLive for live video encoding and streaming",
+        "Amazon Kinesis Data Streams for ingesting device telemetry and metadata",
+        "Amazon Rekognition Video for real-time video analysis and object detection",
+        "AWS Lambda for processing every video frame in real-time",
+        "Amazon S3 with S3 Glacier for long-term video archive storage"
+      ],
+      "correctAnswer": [0, 2, 3],
+      "explanation": "Kinesis Video Streams is specifically designed for streaming video from millions of devices (cameras, smartphones, drones) with automatic scaling, time-indexed storage, and integration with ML services. Kinesis Data Streams handles high-throughput ingestion of device telemetry, metadata, and events accompanying the video streams. Rekognition Video integrates with Kinesis Video Streams for real-time analysis, detecting objects, faces, activities, and inappropriate content in streaming video. MediaLive (option B) is for broadcast-quality video encoding, not for ingesting raw streams from devices. Lambda (option E) has execution time limits (15 min) unsuitable for continuous stream processing - use Kinesis Data Analytics or consumer applications instead. S3/Glacier (option F) is for storage after processing, not part of the ingestion/processing pipeline."
+    },
+    {
+      "id": "MULTI-Q26",
+      "type": "multiple",
+      "question": "A company wants to modernize their Oracle database to reduce licensing costs while maintaining compatibility. Which AWS database services and migration approaches should they consider? (Select THREE)",
+      "options": [
+        "Amazon Aurora PostgreSQL with Babelfish for Oracle SQL compatibility",
+        "Amazon RDS for Oracle with bring-your-own-license (BYOL)",
+        "AWS Database Migration Service (DMS) for automated schema conversion and data migration",
+        "Amazon DynamoDB with DynamoDB Streams for change data capture",
+        "AWS Schema Conversion Tool (SCT) to assess and convert database schema",
+        "Amazon Aurora MySQL as a drop-in Oracle replacement"
+      ],
+      "correctAnswer": [0, 2, 4],
+      "explanation": "Aurora PostgreSQL with Babelfish provides Oracle compatibility layer, allowing applications to connect using Oracle SQL syntax and protocols, reducing application refactoring while eliminating Oracle licensing costs. DMS provides automated, continuous data migration with change data capture (CDC), minimizing downtime during migration from Oracle to Aurora/RDS PostgreSQL. Schema Conversion Tool (SCT) analyzes the source Oracle database, generates a migration assessment report showing conversion complexity, and automatically converts schemas, stored procedures, and application code to PostgreSQL. RDS for Oracle (option B) doesn't reduce licensing costs. DynamoDB (option D) is NoSQL, not a relational database replacement for Oracle. Aurora MySQL (option F) isn't compatible with Oracle - MySQL and Oracle have different SQL dialects."
+    },
+    {
+      "id": "MULTI-Q27",
+      "type": "multiple",
+      "question": "A SaaS company needs to implement multi-tenancy with database isolation for enterprise customers while optimizing costs for smaller customers. Which architectural patterns should they implement? (Select THREE)",
+      "options": [
+        "Database-per-tenant for enterprise customers using Aurora clones",
+        "Shared database with tenant_id column and Row-Level Security (RLS) for small customers",
+        "Amazon RDS Proxy to pool connections across all tenant databases",
+        "Separate AWS accounts for each enterprise tenant",
+        "DynamoDB with composite partition keys including tenant_id for data isolation",
+        "Single Aurora cluster for all tenants with no isolation"
+      ],
+      "correctAnswer": [0, 1, 4],
+      "explanation": "Database-per-tenant for enterprise customers provides complete isolation, customizable performance, and independent scaling while Aurora clones make this cost-effective (clones share underlying storage). Shared database with tenant_id and Row-Level Security for small customers balances isolation with cost efficiency - RLS enforces data access policies at the database level. DynamoDB with tenant_id in partition keys provides data isolation, infinite scalability, and pay-per-request pricing ideal for multi-tenant SaaS. RDS Proxy (option C) helps with connection pooling but doesn't provide tenant isolation. Separate accounts (option D) is overly complex and expensive for database isolation. Single cluster with no isolation (option F) violates security and compliance requirements."
+    },
+    {
+      "id": "MULTI-Q28",
+      "type": "multiple",
+      "question": "A company is migrating file servers to AWS and needs to maintain SMB protocol access, Active Directory integration, and support Windows workloads. Which AWS services meet these requirements? (Select THREE)",
+      "options": [
+        "Amazon FSx for Windows File Server with Active Directory integration",
+        "AWS Storage Gateway File Gateway for hybrid cloud file access",
+        "Amazon EFS with Windows instance mounting via NFS",
+        "AWS DataSync for continuous file synchronization",
+        "Amazon FSx for Lustre for high-performance Windows workloads",
+        "AWS Transfer Family for SFTP access to S3"
+      ],
+      "correctAnswer": [0, 1, 3],
+      "explanation": "FSx for Windows File Server provides native SMB protocol support, seamless Active Directory integration, and Windows-compatible features (ACLs, DFS, VSS snapshots), ideal for lift-and-shift Windows file server migrations. Storage Gateway File Gateway provides SMB/NFS access to S3 with local caching, useful for hybrid scenarios where on-premises systems need access to AWS-stored files. DataSync automates file transfer and synchronization between on-premises file servers and FSx/S3, ideal for initial migration and ongoing sync during hybrid operation. EFS (option C) supports NFS, not SMB - it's Linux-oriented. FSx for Lustre (option E) is for high-performance computing with POSIX, not Windows SMB. Transfer Family (option F) provides SFTP/FTPS, not SMB."
+    },
+    {
+      "id": "MULTI-Q29",
+      "type": "multiple",
+      "question": "A financial services company needs to implement automated compliance monitoring and remediation across 500 AWS accounts. Which AWS services provide comprehensive compliance automation? (Select FOUR)",
+      "options": [
+        "AWS Config with conformance packs for multi-account compliance policies",
+        "AWS Security Hub for centralized compliance findings aggregation",
+        "AWS Systems Manager Automation for automated remediation actions",
+        "AWS Control Tower with guardrails for preventive and detective controls",
+        "Amazon Inspector for continuous compliance scanning",
+        "AWS CloudFormation StackSets for deploying compliance resources"
+      ],
+      "correctAnswer": [0, 1, 2, 3],
+      "explanation": "AWS Config conformance packs deploy pre-packaged compliance rules (PCI-DSS, HIPAA, CIS) across all accounts via AWS Organizations, continuously monitoring compliance. Security Hub aggregates findings from Config, GuardDuty, Inspector, and other services, providing centralized compliance dashboard and compliance standards checking. Systems Manager Automation executes automated remediation (e.g., encrypt EBS volume, enable VPC Flow Logs) triggered by Config rule violations or Security Hub findings. Control Tower provides governance with guardrails (SCPs for prevention, Config rules for detection) across accounts, ideal for multi-account compliance. Inspector (option E) is for vulnerability scanning, not broad compliance monitoring. CloudFormation StackSets (option F) deploy resources but aren't a compliance monitoring tool."
+    },
+    {
+      "id": "MULTI-Q30",
+      "type": "multiple",
+      "question": "A company running a global application needs to implement observability for troubleshooting performance issues, tracking user requests, and analyzing application behavior. Which AWS observability services should they implement? (Select FOUR)",
+      "options": [
+        "AWS X-Ray for distributed tracing across microservices and identifying bottlenecks",
+        "Amazon CloudWatch Logs Insights for querying and analyzing log data",
+        "Amazon CloudWatch ServiceLens for end-to-end service maps and traces",
+        "AWS CloudTrail for API activity logging and auditing",
+        "Amazon CloudWatch RUM (Real User Monitoring) for client-side performance metrics",
+        "VPC Flow Logs for analyzing network traffic patterns"
+      ],
+      "correctAnswer": [0, 1, 2, 4],
+      "explanation": "X-Ray provides distributed tracing, capturing request paths through microservices, Lambda, API Gateway, and identifying latency bottlenecks and errors with visual service maps. CloudWatch Logs Insights enables powerful querying and analysis of application logs with a SQL-like query language, essential for troubleshooting. CloudWatch ServiceLens combines X-Ray traces with CloudWatch metrics and logs in a unified view, showing service health and dependencies. CloudWatch RUM collects real user monitoring data (page load times, JavaScript errors, user sessions) from actual client browsers, providing visibility into end-user experience. CloudTrail (option D) is for security auditing of API calls, not application performance. VPC Flow Logs (option F) are for network traffic analysis, not application observability."
+    }
+  ]
+}

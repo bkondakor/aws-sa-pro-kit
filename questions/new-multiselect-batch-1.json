@@ -1,0 +1,232 @@
+{
+  "domain": "Mixed Domains - Advanced Multi-Select Scenarios",
+  "task": "Batch 1: Advanced Networking & Security Multi-Select",
+  "question_count": 15,
+  "questions": [
+    {
+      "id": "MULTI-Q1",
+      "type": "multiple",
+      "question": "A company is implementing a multi-region AWS architecture for their mission-critical application. They need to ensure low-latency access, automatic failover, and compliance with data residency requirements. Which AWS services should they use? (Select THREE)",
+      "options": [
+        "AWS Global Accelerator for intelligent traffic routing and automatic failover",
+        "Amazon CloudFront with geo-restriction to enforce data residency",
+        "Route 53 health checks with failover routing policy",
+        "AWS PrivateLink for cross-region private connectivity",
+        "DynamoDB Global Tables for multi-region active-active database replication",
+        "VPC peering between all regions for low-latency connectivity"
+      ],
+      "correctAnswer": [0, 2, 4],
+      "explanation": "AWS Global Accelerator provides anycast static IPs and intelligent traffic routing through AWS's global network with automatic health-check-based failover, improving performance and availability. Route 53 health checks with failover routing provide DNS-level failover capabilities. DynamoDB Global Tables offer multi-region, active-active database replication with automatic conflict resolution, ensuring low-latency access from any region. CloudFront with geo-restriction (option B) blocks access from certain countries but doesn't ensure data residency for writes or processing. PrivateLink (option D) is for private service endpoints, not general cross-region connectivity. VPC peering (option F) creates mesh complexity and doesn't provide the same global routing intelligence as Global Accelerator."
+    },
+    {
+      "id": "MULTI-Q2",
+      "type": "multiple",
+      "question": "A financial services company needs to implement network security controls for their VPCs. Traffic between production and development VPCs must be inspected, and all internet egress must go through centralized security appliances. Which AWS services and features should they implement? (Select THREE)",
+      "options": [
+        "AWS Network Firewall deployed in an inspection VPC for stateful traffic inspection",
+        "VPC Flow Logs to capture and analyze network traffic patterns",
+        "AWS Transit Gateway with separate route tables for production and development isolation",
+        "Security groups with stateless filtering rules",
+        "Gateway Load Balancer to distribute traffic to third-party security appliances",
+        "Network ACLs for subnet-level stateful packet filtering"
+      ],
+      "correctAnswer": [0, 2, 4],
+      "explanation": "AWS Network Firewall provides stateful inspection, IDS/IPS capabilities, and domain-based filtering in a centralized inspection VPC. AWS Transit Gateway with separate route tables enables network segmentation and can route traffic between production/development through the inspection VPC. Gateway Load Balancer allows integration of third-party security appliances (firewalls, IDS/IPS) for centralized inspection while maintaining high availability and auto-scaling. VPC Flow Logs (option B) are useful for monitoring but don't provide active security controls or inspection. Security groups (option D) are stateful, not stateless - this option is factually incorrect. Network ACLs (option F) are stateless, not stateful - another factually incorrect option."
+    },
+    {
+      "id": "MULTI-Q3",
+      "type": "multiple",
+      "question": "A company has a hybrid architecture with on-premises data center connected to AWS via Direct Connect. They need to ensure encrypted connectivity, redundancy, and the ability to access AWS services privately. Which implementation approaches should they use? (Select THREE)",
+      "options": [
+        "MACsec encryption on Direct Connect connections for Layer 2 encryption",
+        "Site-to-Site VPN as a backup connection over the Direct Connect public VIF",
+        "Direct Connect Gateway to connect to VPCs in multiple regions",
+        "AWS PrivateLink to access AWS services without traversing the internet",
+        "VPC Interface Endpoints for private access to AWS services from on-premises",
+        "Transit Gateway with Direct Connect attachment and VPN backup attachment"
+      ],
+      "correctAnswer": [0, 2, 5],
+      "explanation": "MACsec provides Layer 2 encryption on Direct Connect (10 Gbps, 100 Gbps, 400 Gbps connections), ensuring data is encrypted in transit between on-premises and AWS. Direct Connect Gateway allows a single Direct Connect connection to access VPCs in multiple AWS regions, improving efficiency. Transit Gateway with both Direct Connect attachment (primary) and VPN attachment (backup) provides redundancy - if Direct Connect fails, traffic automatically fails over to VPN. Option B (VPN over DX public VIF) is possible but option E's Transit Gateway approach is more robust and manageable. Option D (PrivateLink) is for accessing AWS services or customer-hosted services via private endpoints, but from on-premises you'd use option E (Interface Endpoints via Direct Connect). Option E on its own doesn't provide the multi-region capability or redundancy that options A, C, and F provide together."
+    },
+    {
+      "id": "MULTI-Q4",
+      "type": "multiple",
+      "question": "A SaaS company needs to implement comprehensive security monitoring and threat detection across 200 AWS accounts. Which AWS services should they enable to detect threats, analyze security posture, and maintain compliance? (Select FOUR)",
+      "options": [
+        "Amazon GuardDuty for intelligent threat detection using ML",
+        "AWS Security Hub for centralized security findings aggregation",
+        "AWS Config for continuous compliance monitoring and resource configuration tracking",
+        "Amazon Macie for discovering and protecting sensitive data in S3",
+        "AWS CloudTrail for comprehensive API activity logging",
+        "AWS X-Ray for distributed application tracing"
+      ],
+      "correctAnswer": [0, 1, 2, 4],
+      "explanation": "GuardDuty provides intelligent threat detection by analyzing VPC Flow Logs, DNS logs, and CloudTrail events using ML to identify malicious activity, compromised instances, and reconnaissance attacks. Security Hub aggregates and prioritizes security findings from GuardDuty, Config, Macie, Inspector, and third-party tools, providing a centralized security view across all accounts. AWS Config continuously monitors resource configurations against compliance rules and tracks configuration changes. CloudTrail provides comprehensive API activity logging, which is essential for security auditing, forensics, and is a data source for GuardDuty. While Macie (option D) is valuable for data security, the question asks for general threat detection and compliance - Macie is more specialized. X-Ray (option F) is for application performance monitoring, not security."
+    },
+    {
+      "id": "MULTI-Q5",
+      "type": "multiple",
+      "question": "A healthcare organization must ensure all data at rest and in transit is encrypted, with customer-managed keys, automatic key rotation, and the ability to revoke access immediately. Which AWS services and features should they implement? (Select THREE)",
+      "options": [
+        "AWS KMS with customer managed keys (CMKs) for encryption key management",
+        "S3 bucket policies requiring aws:SecureTransport condition for encryption in transit",
+        "AWS CloudHSM for FIPS 140-2 Level 3 validated hardware security modules",
+        "AWS Certificate Manager for managing SSL/TLS certificates",
+        "KMS automatic key rotation enabled with 90-day rotation policy",
+        "AWS Secrets Manager for encrypting and rotating database credentials"
+      ],
+      "correctAnswer": [0, 1, 3],
+      "explanation": "AWS KMS with customer managed keys provides full control over encryption keys, including the ability to immediately disable keys to revoke access to encrypted data, and supports automatic annual rotation (or manual rotation for more frequent schedules). S3 bucket policies with aws:SecureTransport condition enforce HTTPS/TLS for all requests, ensuring encryption in transit. AWS Certificate Manager provisions, manages, and deploys SSL/TLS certificates for services like ALB, CloudFront, and API Gateway, ensuring encryption in transit across the application. CloudHSM (option C) provides higher security but isn't required for most use cases - KMS meets HIPAA requirements. Option E is partially incorrect - KMS automatic rotation is annual (365 days), not 90 days; for 90-day rotation, you need manual rotation. Secrets Manager (option F) is valuable but focused on credential management, not the primary encryption requirements described."
+    },
+    {
+      "id": "MULTI-Q6",
+      "type": "multiple",
+      "question": "A company needs to prevent data exfiltration from their AWS environment. Which security controls should they implement to detect and prevent unauthorized data transfers? (Select FOUR)",
+      "options": [
+        "VPC endpoints with endpoint policies restricting access to specific S3 buckets",
+        "AWS Network Firewall with domain filtering rules to block unauthorized external destinations",
+        "IAM Access Analyzer to identify resources shared with external entities",
+        "S3 Block Public Access enabled at the organization level",
+        "GuardDuty monitoring for unusual API activity and data access patterns",
+        "VPC Flow Logs for analyzing all network traffic"
+      ],
+      "correctAnswer": [0, 1, 2, 3],
+      "explanation": "VPC endpoints with restrictive endpoint policies can limit which S3 buckets and AWS services can be accessed from the VPC, preventing data exfiltration to unauthorized buckets. AWS Network Firewall with domain filtering (allowlist) blocks outbound connections to unauthorized external destinations, preventing data transfer to attacker-controlled servers. IAM Access Analyzer continuously scans resource policies to identify resources (S3 buckets, IAM roles, KMS keys) shared with external AWS accounts or the public internet. S3 Block Public Access at the organization level prevents any S3 bucket from being made public, blocking a common data exfiltration vector. While GuardDuty (option E) detects anomalies and threats, it's primarily detective, not preventive. VPC Flow Logs (option F) are useful for forensics but don't prevent data exfiltration - they're detective controls, not preventive."
+    },
+    {
+      "id": "MULTI-Q7",
+      "type": "multiple",
+      "question": "A company operates a microservices architecture on Amazon EKS across multiple AWS accounts and regions. They need centralized observability, distributed tracing, and security monitoring. Which AWS services should they implement? (Select THREE)",
+      "options": [
+        "Amazon CloudWatch Container Insights for monitoring EKS cluster metrics and logs",
+        "AWS X-Ray for distributed tracing across microservices",
+        "Amazon Managed Service for Prometheus (AMP) for Kubernetes-native metrics collection",
+        "VPC Flow Logs for network traffic analysis",
+        "AWS CloudTrail for API activity logging",
+        "Amazon Managed Grafana (AMG) for unified visualization of metrics and traces"
+      ],
+      "correctAnswer": [1, 2, 5],
+      "explanation": "AWS X-Ray provides distributed tracing for microservices, allowing you to trace requests across multiple services, identify bottlenecks, and debug issues in complex distributed architectures. Amazon Managed Service for Prometheus is designed for Kubernetes environments and natively scrapes Prometheus metrics from EKS clusters, providing detailed application and infrastructure metrics. Amazon Managed Grafana provides unified visualization, pulling data from multiple sources (AMP, CloudWatch, X-Ray) to create comprehensive dashboards. While Container Insights (option A) is useful, Prometheus (option C) is more Kubernetes-native and commonly used in EKS environments. VPC Flow Logs (option D) and CloudTrail (option E) are valuable for security but aren't the primary tools for application observability and distributed tracing in microservices."
+    },
+    {
+      "id": "MULTI-Q8",
+      "type": "multiple",
+      "question": "A financial institution must implement defense-in-depth security for web applications. Which AWS services and configurations provide multiple layers of security against web attacks? (Select FOUR)",
+      "options": [
+        "AWS WAF with AWS Managed Rules for OWASP Top 10 protection on CloudFront and ALB",
+        "AWS Shield Advanced for DDoS protection with 24/7 DDoS Response Team support",
+        "Amazon GuardDuty for detecting compromised instances and malicious activity",
+        "AWS Firewall Manager for centrally managing WAF rules across accounts",
+        "Amazon Inspector for automated security assessments of EC2 instances",
+        "VPC Network ACLs for subnet-level traffic filtering"
+      ],
+      "correctAnswer": [0, 1, 2, 3],
+      "explanation": "AWS WAF with Managed Rules provides Layer 7 (application layer) protection against OWASP Top 10 vulnerabilities including SQL injection, XSS, and bad bots. Deploying on both CloudFront (edge) and ALB (origin) provides defense in depth. Shield Advanced provides enhanced DDoS protection at Layer 3/4 and Layer 7, includes cost protection, and provides access to the DDoS Response Team for sophisticated attacks. GuardDuty detects threats like compromised instances, cryptocurrency mining, and unusual API activity, providing runtime protection. Firewall Manager centrally manages and enforces WAF rules across multiple AWS accounts, ensuring consistent security policies. Inspector (option E) is valuable for vulnerability scanning but focused on pre-runtime security. NACLs (option F) provide network-level filtering but are less effective against web application attacks compared to WAF."
+    },
+    {
+      "id": "MULTI-Q9",
+      "type": "multiple",
+      "question": "A company needs to implement a Zero Trust security model for their AWS environment. Which security controls and services align with Zero Trust principles? (Select FOUR)",
+      "options": [
+        "AWS IAM with least privilege permissions and deny by default policies",
+        "AWS Systems Manager Session Manager for SSH-less instance access with auditing",
+        "AWS PrivateLink for private connectivity without exposing services to the internet",
+        "Security groups allowing all traffic from trusted VPC CIDR ranges",
+        "AWS IAM Identity Center (SSO) with MFA enforcement for all user access",
+        "VPC peering connections for unrestricted resource sharing between VPCs"
+      ],
+      "correctAnswer": [0, 1, 2, 4],
+      "explanation": "Zero Trust principles include 'never trust, always verify,' least privilege, and micro-segmentation. IAM with least privilege and deny by default ensures users and services only have necessary permissions, requiring explicit grants. Session Manager eliminates the need for SSH keys or bastion hosts, provides session logging, and requires authentication for every session - aligning with Zero Trust's verify-every-access principle. PrivateLink provides private service access without internet exposure, supporting network segmentation and reducing attack surface. IAM Identity Center with MFA enforces strong authentication for all users, a core Zero Trust requirement. Option D (allowing all traffic from VPC CIDR) violates Zero Trust - you should use specific security group rules, not broad CIDR-based trust. Option F (unrestricted VPC peering) also violates Zero Trust - access should be controlled even between VPCs."
+    },
+    {
+      "id": "MULTI-Q10",
+      "type": "multiple",
+      "question": "A company needs to optimize costs for their DynamoDB workload while maintaining performance. The table has 100 GB of data with predictable traffic patterns and occasional read spikes. Which cost optimization strategies should they implement? (Select THREE)",
+      "options": [
+        "Use DynamoDB Standard-IA storage class for infrequently accessed items",
+        "Enable DynamoDB auto scaling for read and write capacity",
+        "Implement DynamoDB Accelerator (DAX) to reduce read capacity unit consumption",
+        "Use on-demand capacity mode for all tables to eliminate unused capacity costs",
+        "Enable DynamoDB point-in-time recovery for cost-effective backups",
+        "Archive old data to S3 with DynamoDB exports and delete from the table"
+      ],
+      "correctAnswer": [0, 2, 5],
+      "explanation": "DynamoDB Standard-IA storage class reduces storage costs by 60% for items accessed less than once per month, ideal for older historical data that must remain queryable. DAX caches frequently accessed items, significantly reducing read capacity consumption (and costs) during read spikes while providing microsecond latency. Exporting old data to S3 and deleting from DynamoDB reduces both storage and throughput costs - S3 is much cheaper for archival data. Auto scaling (option B) helps but isn't the most effective cost optimization for predictable traffic - reserved capacity would be better. On-demand mode (option D) is more expensive than provisioned capacity for predictable workloads. Point-in-time recovery (option E) adds cost (~$0.20 per GB/month) and isn't a cost optimization strategy - it's a backup feature."
+    },
+    {
+      "id": "MULTI-Q11",
+      "type": "multiple",
+      "question": "A media streaming company needs to optimize CloudFront distribution for 4K video content delivered globally. Which configurations and features should they implement? (Select THREE)",
+      "options": [
+        "Enable CloudFront Origin Shield to reduce origin load and improve cache hit ratio",
+        "Configure Lambda@Edge for dynamic content manipulation and personalization",
+        "Use CloudFront field-level encryption for protecting sensitive user data",
+        "Enable HTTP/3 support for improved performance over lossy networks",
+        "Implement signed URLs with custom policies for content access control",
+        "Configure CloudFront with multiple origins for failover capability"
+      ],
+      "correctAnswer": [0, 3, 4],
+      "explanation": "Origin Shield provides an additional caching layer between edge locations and the origin, significantly improving cache hit ratios (especially for large video files requested from multiple regions) and reducing origin load/costs. HTTP/3 (QUIC protocol) provides better performance for video streaming over networks with packet loss and reduces latency for connection establishment, improving user experience. Signed URLs with custom policies enable secure content distribution with time-based access, IP address restrictions, and expiration - essential for premium video content. Lambda@Edge (option B) adds latency and isn't typically needed for static video delivery. Field-level encryption (option C) is for protecting sensitive form data, not relevant for video streaming. Multiple origins for failover (option F) is useful for availability but not the primary optimization for video delivery."
+    },
+    {
+      "id": "MULTI-Q12",
+      "type": "multiple",
+      "question": "A company running containerized applications on Amazon ECS needs to optimize costs without impacting availability. Which strategies should they implement? (Select FOUR)",
+      "options": [
+        "Use Fargate Spot for fault-tolerant, stateless workloads to save up to 70%",
+        "Implement Savings Plans for consistent ECS Fargate or EC2 usage",
+        "Use EC2 Spot Instances for ECS cluster capacity with Spot Instance draining",
+        "Enable ECS Service Auto Scaling to match capacity with actual demand",
+        "Switch all workloads to smallest task sizes to minimize costs",
+        "Use AWS Compute Optimizer recommendations to right-size task definitions"
+      ],
+      "correctAnswer": [0, 1, 2, 3],
+      "explanation": "Fargate Spot provides up to 70% cost savings for interruption-tolerant workloads like batch processing, making it highly cost-effective. Savings Plans provide up to 50% discount on Fargate or EC2 usage in exchange for commitment, ideal for baseline consistent workloads. EC2 Spot Instances with ECS capacity providers can save up to 90% for cluster capacity, and Spot Instance draining ensures graceful task migration. ECS Service Auto Scaling automatically adjusts task count based on metrics, eliminating over-provisioning. Option E (smallest task sizes) is problematic - undersizing tasks can cause performance issues and actually increase costs through inefficiency. Option F (Compute Optimizer) is valuable but less impactful than the other four strategies for immediate cost reduction."
+    },
+    {
+      "id": "MULTI-Q13",
+      "type": "multiple",
+      "question": "A company needs to implement disaster recovery for their multi-tier application with RTO of 4 hours and RPO of 1 hour. Which AWS services and strategies should they implement? (Select THREE)",
+      "options": [
+        "AWS Backup for centralized backup management across multiple AWS services",
+        "RDS automated backups with point-in-time recovery enabled",
+        "CloudFormation templates stored in S3 for infrastructure-as-code DR",
+        "RDS Multi-AZ deployment for automatic failover within a region",
+        "Cross-region RDS read replicas with manual promotion capability",
+        "EBS snapshots copied to secondary region on hourly schedule"
+      ],
+      "correctAnswer": [0, 2, 4],
+      "explanation": "AWS Backup provides centralized backup management for RDS, EBS, DynamoDB, EFS, and more, with automated backup schedules and cross-region backup copy to meet the 1-hour RPO requirement. CloudFormation templates enable rapid infrastructure recreation in DR region, supporting the 4-hour RTO by automating deployment of VPCs, subnets, security groups, and compute resources. Cross-region RDS read replicas provide near real-time replication (meeting 1-hour RPO) and can be manually promoted to standalone database in DR scenario within the 4-hour RTO. Option B (automated backups) is important but covered by AWS Backup (option A) which provides better centralized management. Option D (Multi-AZ) is for high availability within a region, not disaster recovery across regions. Option F (hourly EBS snapshots) is covered by AWS Backup with better orchestration."
+    },
+    {
+      "id": "MULTI-Q14",
+      "type": "multiple",
+      "question": "A company migrating to AWS needs to establish hybrid DNS resolution between on-premises and AWS. Which configurations enable seamless DNS resolution in both directions? (Select THREE)",
+      "options": [
+        "Route 53 Resolver inbound endpoints to allow on-premises to query Route 53 private hosted zones",
+        "Route 53 Resolver outbound endpoints with forwarding rules to resolve on-premises DNS names from AWS",
+        "VPC DHCP option sets configured with on-premises DNS server IP addresses",
+        "Route 53 public hosted zones for all domain names",
+        "Amazon Route 53 Resolver DNS Firewall for filtering malicious domains",
+        "Direct Connect with private VIF for DNS query transport"
+      ],
+      "correctAnswer": [0, 1, 5],
+      "explanation": "Route 53 Resolver inbound endpoints create ENIs in your VPC that on-premises systems can query, allowing them to resolve AWS private hosted zone records and VPC-internal DNS names. Route 53 Resolver outbound endpoints with forwarding rules enable EC2 instances and other AWS resources to resolve on-premises domain names by forwarding queries to on-premises DNS servers. Direct Connect with private VIF provides the low-latency, private network connectivity needed to transport DNS queries between on-premises and AWS without traversing the internet. Option C (DHCP option sets with on-premises DNS) doesn't provide the bi-directional capability and doesn't work well for Route 53 private hosted zones. Option D (public hosted zones) doesn't help with private, internal DNS resolution. Option E (DNS Firewall) is for security, not hybrid resolution."
+    },
+    {
+      "id": "MULTI-Q15",
+      "type": "multiple",
+      "question": "A company running Apache Kafka workloads on-premises wants to modernize to a managed service on AWS. Which benefits will Amazon MSK (Managed Streaming for Apache Kafka) provide? (Select FOUR)",
+      "options": [
+        "Automatic patching and version upgrades for Kafka brokers with minimal downtime",
+        "Fully managed Zookeeper ensemble with automatic failure recovery",
+        "Built-in integration with AWS Lambda for serverless stream processing",
+        "Automatic scaling of broker compute capacity based on throughput",
+        "Multi-AZ deployment for high availability with automatic broker replacement",
+        "Native support for Kafka Connect for data ingestion and export"
+      ],
+      "correctAnswer": [0, 1, 4, 5],
+      "explanation": "MSK automatically handles Kafka version upgrades and patching with rolling updates, minimizing operational overhead. MSK manages the Zookeeper ensemble (or KRaft in newer versions) including provisioning, scaling, and replacing failed Zookeeper nodes automatically. MSK deploys brokers across multiple AZs and automatically detects and replaces failed brokers, ensuring high availability. MSK fully supports Apache Kafka Connect with managed connectors for integrating with various data sources and sinks. While Lambda can consume from MSK (option C), it's not unique to MSK - you can use Lambda with any Kafka. Option D is incorrect - MSK doesn't automatically scale broker compute; you must manually change broker instance types or add brokers (though MSK Serverless provides automatic scaling)."
+    }
+  ]
+}
