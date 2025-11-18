@@ -1,3 +1,22 @@
+---
+title: "Task 3.5: Identify Opportunities for Cost Optimization"
+domain: 3
+domain_name: "Continuous Improvement for Existing Solutions"
+task: 3.5
+weight: "25%"
+task_weight: "~20% of domain"
+exam_topics:
+  - cost-optimization
+  - rightsizing
+  - savings-plans
+  - spot-instances
+  - cost-explorer
+  - compute-optimizer
+  - trusted-advisor
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Task 3.5: Identify Opportunities for Cost Optimization
 
 ## Overview

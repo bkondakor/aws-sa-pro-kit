@@ -1,3 +1,20 @@
+---
+title: "Domain 3: Continuous Improvement for Existing Solutions"
+domain: 3
+domain_name: "Continuous Improvement for Existing Solutions"
+weight: "25%"
+exam_questions: "~19 out of 75"
+file_type: "domain-overview"
+exam_topics:
+  - operational-excellence
+  - security-improvements
+  - performance-optimization
+  - reliability-improvements
+  - cost-optimization
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Domain 3: Continuous Improvement for Existing Solutions (25%)
 
 ## Overview

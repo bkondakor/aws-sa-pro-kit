@@ -1,3 +1,23 @@
+---
+title: "Task 4.2: Determine the Optimal Migration Approach"
+domain: 4
+domain_name: "Accelerate Workload Migration and Modernization"
+task: 4.2
+weight: "20%"
+task_weight: "~30% of domain"
+exam_topics:
+  - migration-approach
+  - application-migration-service
+  - mgn
+  - database-migration-service
+  - dms
+  - data-transfer
+  - snowball
+  - datasync
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Task 4.2: Determine the Optimal Migration Approach
 
 ## Overview

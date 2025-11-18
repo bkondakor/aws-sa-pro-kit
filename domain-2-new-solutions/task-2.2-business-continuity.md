@@ -1,3 +1,23 @@
+---
+title: "Task 2.2: Design a Solution to Ensure Business Continuity"
+domain: 2
+domain_name: "Design for New Solutions"
+task: 2.2
+weight: "29%"
+task_weight: "~17% of domain"
+exam_topics:
+  - disaster-recovery
+  - rto-rpo
+  - backup
+  - multi-az
+  - multi-region
+  - data-replication
+  - failover
+  - business-continuity
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Task 2.2: Design a Solution to Ensure Business Continuity
 
 ## Overview

@@ -1,3 +1,22 @@
+---
+title: "Task 3.2: Determine a Strategy to Improve Security"
+domain: 3
+domain_name: "Continuous Improvement for Existing Solutions"
+task: 3.2
+weight: "25%"
+task_weight: "~20% of domain"
+exam_topics:
+  - security-improvements
+  - detective-controls
+  - guardduty
+  - security-hub
+  - config
+  - automated-remediation
+  - iam-access-analyzer
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Task 3.2: Determine a Strategy to Improve Security
 
 ## Overview

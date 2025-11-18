@@ -1,3 +1,18 @@
+---
+title: "Domain 3: Service Comparison Matrix"
+domain: 3
+domain_name: "Continuous Improvement for Existing Solutions"
+weight: "25%"
+file_type: "service-comparisons"
+exam_topics:
+  - service-comparisons
+  - monitoring
+  - optimization
+  - aws-services
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Domain 3: Service Comparison Matrix
 
 ## Overview

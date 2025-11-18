@@ -1,3 +1,25 @@
+---
+title: "Task 2.3: Determine Security Controls Based on Requirements"
+domain: 2
+domain_name: "Design for New Solutions"
+task: 2.3
+weight: "29%"
+task_weight: "~16% of domain"
+exam_topics:
+  - security-controls
+  - encryption
+  - kms
+  - cloudhsm
+  - network-security
+  - waf
+  - shield
+  - ddos
+  - compliance
+  - guardduty
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Task 2.3: Determine Security Controls Based on Requirements
 
 ## Overview

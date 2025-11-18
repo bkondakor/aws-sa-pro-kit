@@ -1,3 +1,19 @@
+---
+title: "Domain 3: Hands-On Labs Guide"
+domain: 3
+domain_name: "Continuous Improvement for Existing Solutions"
+weight: "25%"
+file_type: "hands-on-labs"
+exam_topics:
+  - hands-on-practice
+  - cloudwatch
+  - security-improvements
+  - performance-testing
+  - cost-optimization
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Domain 3: Hands-On Labs Guide
 
 ## Overview

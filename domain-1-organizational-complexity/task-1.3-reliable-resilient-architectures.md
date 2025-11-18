@@ -1,4 +1,24 @@
-# Domain 1 - Task 1.3: Design Reliable and Resilient Architectures
+---
+title: "Task 1.3: Design Reliable and Resilient Architectures"
+domain: 1
+domain_name: "Design Solutions for Organizational Complexity"
+task: 1.3
+weight: "26%"
+exam_topics:
+  - reliability
+  - resilience
+  - multi-region
+  - disaster-recovery
+  - route53
+  - backup
+  - rds
+  - dynamodb-global-tables
+  - s3-replication
+status: complete
+last_updated: "2025-11-18"
+---
+
+# Task 1.3: Design Reliable and Resilient Architectures
 
 ## Overview
 Reliability and resilience are core principles of the AWS Well-Architected Framework. This task focuses on designing architectures that can withstand failures, recover quickly from disruptions, and maintain service availability through various failure scenarios.

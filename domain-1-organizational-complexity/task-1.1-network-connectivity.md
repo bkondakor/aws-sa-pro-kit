@@ -1,4 +1,22 @@
-# Domain 1 - Task 1.1: Architect Network Connectivity Strategies
+---
+title: "Task 1.1: Architect Network Connectivity Strategies"
+domain: 1
+domain_name: "Design Solutions for Organizational Complexity"
+task: 1.1
+weight: "26%"
+exam_topics:
+  - networking
+  - hybrid-connectivity
+  - vpc
+  - direct-connect
+  - site-to-site-vpn
+  - transit-gateway
+  - privatelink
+status: complete
+last_updated: "2025-11-18"
+---
+
+# Task 1.1: Architect Network Connectivity Strategies
 
 ## Overview
 Network connectivity is a foundational skill for the AWS Solutions Architect Professional exam. This task focuses on designing hybrid and multi-VPC architectures that are scalable, resilient, and cost-effective.

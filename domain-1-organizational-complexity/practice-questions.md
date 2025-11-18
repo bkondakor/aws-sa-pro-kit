@@ -1,3 +1,19 @@
+---
+title: "Domain 1: Practice Questions"
+domain: 1
+domain_name: "Design Solutions for Organizational Complexity"
+weight: "26%"
+file_type: "practice-questions"
+question_count: 30
+time_per_question: "2.4 minutes"
+exam_topics:
+  - exam-practice
+  - multiple-choice
+  - scenario-based
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Domain 1: Practice Questions
 
 ## Overview

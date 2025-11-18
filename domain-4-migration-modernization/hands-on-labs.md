@@ -1,3 +1,19 @@
+---
+title: "Domain 4: Hands-On Labs"
+domain: 4
+domain_name: "Accelerate Workload Migration and Modernization"
+weight: "20%"
+file_type: "hands-on-labs"
+exam_topics:
+  - hands-on-practice
+  - dms
+  - mgn
+  - containerization
+  - database-migration
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Domain 4: Hands-On Labs
 
 ## Overview

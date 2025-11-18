@@ -1,15 +1,34 @@
 # AWS Solutions Architect Professional Exam Preparation Kit
 
-A comprehensive Claude Code configuration for preparing for the AWS Certified Solutions Architect - Professional exam.
+A comprehensive, Obsidian-compatible study guide for the AWS Certified Solutions Architect - Professional exam (SAP-C02).
+
+## 📚 Start Here
+
+**[📖 INDEX.md](./INDEX.md)** - Your complete study guide with all materials organized by domain
 
 ## Overview
 
-This repository is configured with Claude Code to help you efficiently prepare for the AWS SA Pro certification exam. It includes:
+This repository provides a complete exam preparation system with:
 
+- **Obsidian-Compatible Format**: YAML frontmatter, wiki-style links, and organized structure
+- **40+ Study Documents**: 29,000+ lines of comprehensive study materials
+- **4 Exam Domains**: Complete coverage of SAP-C02 blueprint
+- **Practice Materials**: Scenarios, questions, and hands-on labs
 - **AWS MCP Servers**: Direct access to AWS documentation and knowledge base
-- **AWS Expert Agent**: Specialized agent for creating exam-focused learning materials
-- **Claude Skills**: Pre-built workflows for common study tasks
-- **Slash Commands**: Quick access to study tools
+- **Claude Code Integration**: AI-powered study tools and custom commands
+- **Slash Commands**: Quick access to study workflows
+
+## 📖 Study Materials
+
+All materials are now **Obsidian-compatible** with:
+- ✅ YAML frontmatter with metadata
+- ✅ Standardized folder structure
+- ✅ Wiki-style internal links
+- ✅ Cross-domain tags
+- ✅ Consistent heading hierarchy
+- ✅ Domain-based organization
+
+See **[INDEX.md](./INDEX.md)** for complete navigation and study paths.
 
 ## Features
 
