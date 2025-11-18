@@ -187,8 +187,9 @@ body {
 }
 
 .btn-secondary:hover:not(:disabled) {
-    background: white;
+    background: var(--bg-primary);
     border-color: var(--primary-color);
+    transform: translateY(-2px);
 }
 
 .btn-success {
@@ -202,7 +203,7 @@ body {
 }
 
 .btn-flag {
-    background: white;
+    background: var(--bg-primary);
     color: var(--text-primary);
     border: 2px solid var(--border-color);
 }
@@ -260,7 +261,7 @@ body {
 }
 
 .question-container {
-    background: white;
+    background: var(--bg-primary);
     padding: 30px;
     border-radius: 12px;
     margin-bottom: 25px;
@@ -307,13 +308,13 @@ body {
 }
 
 .option:hover {
-    background: white;
+    background: var(--bg-primary);
     border-color: var(--primary-color);
     transform: translateX(5px);
 }
 
 .option.selected {
-    background: white;
+    background: var(--bg-primary);
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.1);
 }
@@ -339,6 +340,7 @@ body {
     flex: 1;
     font-size: 1rem;
     line-height: 1.5;
+    color: var(--text-primary);
 }
 
 .exam-navigation {
@@ -373,13 +375,14 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: white;
+    background: var(--bg-primary);
     border: 2px solid var(--border-color);
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
     font-size: 0.9rem;
     transition: all 0.2s;
+    color: var(--text-primary);
 }
 
 .palette-item:hover {
@@ -550,7 +553,7 @@ body {
 }
 
 .review-item {
-    background: white;
+    background: var(--bg-primary);
     padding: 30px;
     border-radius: 12px;
     margin-bottom: 25px;
@@ -611,6 +614,7 @@ body {
     border-radius: 8px;
     border: 2px solid var(--border-color);
     background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .review-option.user-answer {
@@ -648,7 +652,7 @@ body {
 }
 
 .explanation {
-    background: #f8f9fa;
+    background: var(--bg-secondary);
     padding: 20px;
     border-radius: 8px;
     border-left: 4px solid var(--accent-color);
