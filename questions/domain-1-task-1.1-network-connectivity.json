@@ -1,0 +1,145 @@
+{
+  "domain": "Domain 1: Organizational Complexity",
+  "task": "Task 1.1: Network Connectivity",
+  "question_count": 12,
+  "questions": [
+    {
+      "question": "A global financial services company has four 100 Gbps AWS Direct Connect connections in a Link Aggregation Group (LAG) at their primary location. They need to enable MACsec encryption for security compliance. After reviewing the requirements, what is the PRIMARY limitation they will face?",
+      "options": [
+        "MACsec is not supported on 100 Gbps connections, only on 10 Gbps and 400 Gbps",
+        "Each connection in the LAG can use a different MACsec key for enhanced security",
+        "LAGs with 100 Gbps connections can only have a maximum of two connections, not four",
+        "MACsec requires dynamic CAK mode which is not supported on Direct Connect"
+      ],
+      "correctAnswer": 2,
+      "explanation": "According to AWS Direct Connect limits, LAGs can have a maximum of 4 connections when the port speed is 1 Gbps or 10 Gbps, but only 2 connections when the port speed is 100 Gbps or 400 Gbps. This means they would need to reduce from four to two connections. Option A is incorrect because MACsec IS supported on 100 Gbps (also 10 Gbps and 400 Gbps). Option B is incorrect because only a single MACsec key can be used across all LAG links at any time (multiple keys are only for rotation). Option D is incorrect because Direct Connect supports static CAK mode, which is what's required (dynamic CAK is not supported, but static is)."
+    },
+    {
+      "question": "An enterprise with a hub-and-spoke network architecture using AWS Transit Gateway across multiple regions is experiencing routing issues. They have 15,000 routes that need to be advertised from on-premises through a transit virtual interface. What is the MOST likely cause of their connectivity problems?",
+      "options": [
+        "Transit Gateway route tables have a hard limit of 10,000 routes, exceeding which causes route drops",
+        "Transit virtual interfaces support only 100 prefixes from AWS to on-premises by default",
+        "Transit Gateway VPN connections have a hard limit of 100 BGP routes, causing random BGP session resets",
+        "The MTU size of 8500 bytes on Transit Gateway is causing packet fragmentation issues"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS Transit Gateway route tables can hold up to 10,000 routes (static or propagated combined). With 15,000 routes being advertised, this exceeds the limit and will cause routing issues. Option B is partially correct about limits but outdated - the prefix limit per Transit Gateway from AWS to on-premises on a transit virtual interface was increased to 200 in early 2023, and this relates to routes FROM AWS, not TO AWS. Option C is true about VPN connections but the scenario mentions a transit virtual interface (Direct Connect), not VPN. Option D is incorrect because 8500 byte MTU is supported for Direct Connect attachments and wouldn't cause connectivity problems; rather it's a feature for jumbo frames."
+    },
+    {
+      "question": "A company is designing a multi-region network architecture and is evaluating between AWS Transit Gateway with cross-region peering and AWS Cloud WAN. They have workloads in 8 AWS regions with plans to expand to 15 regions, require automated VPC attachments, and need centralized network policy management. Which solution is MOST appropriate and why?",
+      "options": [
+        "AWS Transit Gateway because it provides better cross-region performance and lower latency than Cloud WAN",
+        "AWS Cloud WAN because it provides centralized management, automated VPC attachments, and global network automation that scales across multiple regions",
+        "AWS Transit Gateway because Cloud WAN doesn't support integration with existing Transit Gateway infrastructure",
+        "AWS Cloud WAN because Transit Gateway has a hard limit of 5 regions per deployment"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS Cloud WAN is specifically designed for multi-region, global network deployments with centralized management and automation. It provides automated VPC attachments, centralized policy management, and automatic inter-region connectivity without manual peering configuration. With 8+ regions and plans for 15, Cloud WAN's automated management significantly reduces operational overhead compared to manually managing Transit Gateway peering connections across 15 regions. Option A is incorrect - both services provide similar performance characteristics. Option C is false - Cloud WAN can federate with Transit Gateways and replace manual peering. Option D is false - Transit Gateway has no such 5-region limit; you can use it in all AWS regions, but managing many regions becomes operationally complex."
+    },
+    {
+      "question": "A Solutions Architect is designing a hybrid network with redundant connectivity. The company has two AWS Direct Connect connections at different locations and wants to implement backup VPN connectivity. For both Direct Connect connections, they're using BGP with the same AS number, and they want the VPN to only be used when both Direct Connect connections fail. Which configuration achieves this MOST effectively?",
+      "options": [
+        "Configure the VPN with a longer AS path prepend to make it less preferred than Direct Connect routes",
+        "Set the Direct Connect BGP routes with a local preference of 200 and VPN routes with local preference of 100",
+        "Use the same BGP weight on all connections and rely on the inherent Direct Connect route preference",
+        "Configure Direct Connect to advertise routes with MED value of 50 and VPN with MED value of 100"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AS path prepending is the correct approach for making VPN backup routes less preferred. When you prepend additional AS numbers to the VPN route advertisements, the BGP path becomes longer, making it less preferred in BGP path selection. Direct Connect routes will naturally be preferred due to shorter AS path. This ensures VPN is only used when Direct Connect fails. Option B discusses local preference, which is configured on the AWS side and controls outbound traffic preference from AWS, but the question implies controlling both directions and ensuring proper failover. Option C is incorrect because while Direct Connect routes are generally preferred over VPN, relying solely on implicit preferences without explicit configuration isn't a reliable design pattern. Option D (MED) works for influencing incoming traffic from a single AS, but AS path prepending is more universally effective across different routing scenarios."
+    },
+    {
+      "question": "An organization has overlapping CIDR ranges (10.0.0.0/16) in two VPCs that cannot be re-addressed due to legacy application constraints. Both VPCs need to communicate with a central shared services VPC. The shared services VPC should be able to initiate connections to specific subnets in both VPCs. What is the MOST operationally efficient solution?",
+      "options": [
+        "Use Transit Gateway with separate route tables and route propagation to handle overlapping CIDRs automatically",
+        "Deploy AWS PrivateLink endpoints in both VPCs, allowing the shared services VPC to access services without direct network routing",
+        "Implement NAT Gateways in each VPC with Elastic IPs and use IP-based routing in the shared services VPC",
+        "Use VPC Peering with longest prefix match routing to route to the correct VPC based on more specific subnet ranges"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS PrivateLink is specifically designed to solve the overlapping IP problem. Services in the overlapping VPCs can be exposed through PrivateLink endpoints, which are accessed via unique DNS names and endpoint-specific IP addresses that don't overlap. The shared services VPC can connect to these endpoint services without requiring direct network routing between overlapping CIDR ranges. Option A is incorrect because Transit Gateway does NOT support overlapping CIDRs between attached VPCs - this is a fundamental limitation. Option C is overly complex and doesn't truly solve the bidirectional communication problem efficiently. Option D is incorrect because VPC Peering also does not support overlapping CIDR blocks - this is explicitly documented as a limitation."
+    },
+    {
+      "question": "A company using AWS Site-to-Site VPN with BGP routing to their corporate data center is experiencing issues where their Transit Gateway VPN connection randomly drops and re-establishes BGP sessions every few hours. They have 150 BGP prefixes being advertised from on-premises. What is the MOST likely root cause?",
+      "options": [
+        "The VPN tunnel encryption overhead is causing packet loss at high throughput",
+        "Transit Gateway VPN has a hard limit of 100 BGP routes, and exceeding this causes random BGP session resets",
+        "BGP keepalive timers are misconfigured, causing the sessions to time out prematurely",
+        "The VPN connection is experiencing MTU issues because Transit Gateway doesn't support PMTUD on VPN"
+      ],
+      "correctAnswer": 1,
+      "explanation": "This is a critical and tricky limitation: Transit Gateway VPN connections have the same hard limit of 100 BGP routes as classic VGW VPN. When BGP prefixes exceed 100, the TGW VPN randomly resets the BGP session, leading to unpredictable network outages. With 150 prefixes being advertised, this exceeds the limit and would cause exactly the behavior described. The solution would be to summarize routes or use static routing. Option A is unlikely to cause random BGP resets. Option C could cause issues but wouldn't specifically correlate with the number of routes. Option D is true (Transit Gateway doesn't support PMTUD on VPN) but this would cause fragmentation issues, not random BGP session resets."
+    },
+    {
+      "question": "A global corporation needs to connect 6,000 VPCs across multiple AWS accounts and regions. They require network segmentation, where only certain groups of VPCs can communicate with each other. They want to minimize operational overhead. Which architecture should they implement?",
+      "options": [
+        "Deploy multiple Transit Gateways, one per segment, with VPC attachments and cross-region peering",
+        "Use a single AWS Cloud WAN with segment-based policies and automated VPC attachment rules",
+        "Implement VPC Peering with a hub-and-spoke topology using a central inspection VPC",
+        "Cannot be achieved as Transit Gateway has a hard limit of 5,000 VPC attachments"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS Cloud WAN is the optimal solution for this scale and requirement. Cloud WAN supports network segmentation through segments (isolated routing domains) and can handle thousands of VPC attachments with automated attachment policies. It provides centralized configuration and policy management across regions, significantly reducing operational overhead compared to managing multiple Transit Gateways. Option A would work but creates significant operational overhead managing multiple Transit Gateways and their peering connections at this scale. Option C (VPC Peering) is not scalable - you'd need thousands of individual peering connections. Option D contains a true fact (Transit Gateway limit is 5,000 VPCs) but that's why this scenario exceeds a single TGW capacity and Cloud WAN is needed, which can scale beyond a single TGW's limits through its distributed architecture."
+    },
+    {
+      "question": "A company has a Direct Connect connection with a private virtual interface attached to a Virtual Private Gateway (VGW) for a single VPC. They want to expand connectivity to 50 VPCs in the same region without creating 50 separate virtual interfaces. What is the MOST scalable solution?",
+      "options": [
+        "Create a Transit Gateway, migrate the VGW attachment to a Transit Virtual Interface, and attach all VPCs to the Transit Gateway",
+        "Use VPC Peering to connect all 50 VPCs to the original VPC that has the Direct Connect connection",
+        "Create 50 private virtual interfaces on the same Direct Connect connection, one for each VPC",
+        "Use AWS PrivateLink to share the Direct Connect connectivity across all VPCs"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Migrating to Transit Gateway with a Transit Virtual Interface is the correct and most scalable approach. A single Direct Connect connection with a Transit Virtual Interface can connect to a Transit Gateway, which can then attach up to 5,000 VPCs. This provides a hub-and-spoke model with centralized routing. Option B (VPC Peering) would require 49 peering connections from the primary VPC and doesn't provide a scalable routing model for on-premises connectivity. Option C technically works but is operationally nightmare - managing 50 virtual interfaces and their BGP sessions is not scalable and you're limited by the number of virtual interfaces per connection (50 private VIFs limit). Option D is incorrect - PrivateLink is for service connectivity, not for providing network-layer Direct Connect connectivity."
+    },
+    {
+      "question": "A company is implementing AWS Direct Connect with MACsec encryption for compliance. They are using 10 Gbps dedicated connections. During the security review, the CISO asks which encryption cipher will be used. What should the Solutions Architect respond?",
+      "options": [
+        "AES-128-GCM only, as it's the standard for 10 Gbps connections",
+        "Either GCM-AES-256 or GCM-AES-XPN-256, both are supported for 10 Gbps connections",
+        "GCM-AES-XPN-256 only, as it's required for all MACsec implementations",
+        "TLS 1.3 with AES-256, as Direct Connect uses TLS for encryption"
+      ],
+      "correctAnswer": 1,
+      "explanation": "For 10 Gbps Direct Connect connections, AWS MACsec supports both GCM-AES-256 and GCM-AES-XPN-256 cipher suites. The XPN (Extended Packet Numbering) variant provides extended packet numbering for very high-volume traffic scenarios. Only 256-bit keys are supported (not 128-bit). For 100 Gbps and 400 Gbps connections, only GCM-AES-XPN-256 is supported. Option A is incorrect because 128-bit is not supported; only 256-bit keys are supported. Option C is incorrect because for 10 Gbps, you have a choice between standard and XPN variants. Option D is fundamentally wrong - MACsec operates at Layer 2 (data link layer) and uses GCM-AES encryption, not TLS which is a Layer 4/7 protocol."
+    },
+    {
+      "question": "An enterprise is designing a hybrid DNS architecture using Amazon Route 53 Resolver. They need on-premises servers to resolve AWS private hosted zone queries and AWS resources to resolve on-premises DNS queries. The on-premises network is connected via Direct Connect. Which components are required? (Select THREE)",
+      "options": [
+        "Route 53 Resolver inbound endpoints in AWS VPCs",
+        "Route 53 Resolver outbound endpoints in AWS VPCs",
+        "Resolver rules forwarding on-premises domains to on-premises DNS servers",
+        "VPC DNS resolution enabled (enableDnsSupport)",
+        "A separate NAT Gateway for DNS traffic",
+        "Route 53 public hosted zones configured as private"
+      ],
+      "type": "multiple",
+      "correctAnswer": [0, 1, 2, 3],
+      "explanation": "This requires: (1) Inbound endpoints - allow on-premises DNS servers to forward queries to Route 53 Resolver for private hosted zones, (2) Outbound endpoints and Resolver rules - allow AWS resources to forward queries for on-premises domains to on-premises DNS servers, and (3) VPC DNS resolution enabled is a prerequisite for Route 53 Resolver to function. Option E (NAT Gateway) is not needed - DNS traffic flows through the Direct Connect connection using the Resolver endpoints. Option F is incorrect - you don't convert public hosted zones to private; private hosted zones are created separately for internal DNS resolution. Note: The question asks for three but four are technically required - in the real exam, you'd select the three most specific components (A, B, C), though D is a prerequisite."
+    },
+    {
+      "question": "A company has a Transit Gateway with three route tables: Production, Development, and Shared-Services. The Production VPCs should be able to access Shared-Services but NOT Development. Development VPCs should access both Shared-Services and Production for read-only database access. Shared-Services should reach both. What is the CORRECT route table association and propagation strategy?",
+      "options": [
+        "Associate each VPC with its own route table, propagate Shared-Services routes to all tables, propagate Production to Development and Shared-Services tables only",
+        "Associate each VPC with its own route table, propagate routes bidirectionally between all tables to ensure full connectivity",
+        "Use a single route table with security groups to control access between environments",
+        "Associate Production and Development with separate tables, use blackhole routes in Production table for Development CIDRs, propagate all routes to Shared-Services table"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Transit Gateway route table association and propagation works as follows: Each VPC attachment is associated with ONE route table (which determines where traffic FROM that VPC can go). Route propagation determines which VPC routes appear in which route tables. For this scenario: Production VPCs associate with Production route table (which has Shared-Services routes propagated, but NOT Development routes). Development VPCs associate with Development route table (which has both Shared-Services AND Production routes propagated). Shared-Services VPCs associate with Shared-Services route table (which has both Production and Development routes propagated). Option B creates full mesh which violates the requirement. Option C is incorrect - security groups don't work across VPCs through Transit Gateway; routing controls the connectivity. Option D's blackhole approach is more complex than necessary and doesn't address the Development-to-Production read access requirement properly."
+    },
+    {
+      "question": "A media streaming company requires their AWS resources to communicate with their on-premises data center using private IP addresses for services like S3 and DynamoDB, without traversing the public internet. They have Direct Connect established. Which architecture components are required? (Select THREE)",
+      "options": [
+        "VPC Gateway Endpoints for S3 and DynamoDB in each VPC",
+        "AWS Transit Gateway with Direct Connect Gateway attachment",
+        "VPC Interface Endpoints (AWS PrivateLink) for S3 and DynamoDB",
+        "Direct Connect public virtual interface for AWS service access",
+        "Route tables in each VPC routing S3 and DynamoDB prefixes to the Transit Gateway",
+        "NAT Gateway for outbound connectivity to AWS services"
+      ],
+      "type": "multiple",
+      "correctAnswer": [0, 1, 4],
+      "explanation": "This scenario requires: (1) VPC Gateway Endpoints for S3 and DynamoDB - these create route table entries that direct traffic to these services through AWS's private network, (2) Transit Gateway with Direct Connect Gateway - this connects on-premises to the VPCs through private connectivity, and (3) Route table entries routing the VPC endpoint prefixes to the Transit Gateway so on-premises traffic can reach the gateway endpoints. The gateway endpoints use AWS's private IP space and don't traverse the internet. Option C (Interface Endpoints) could technically work but are more expensive than gateway endpoints for S3/DynamoDB and the question implies using gateway endpoints (the standard solution). Option D (public VIF) would traverse public AWS network space, not meeting the requirement. Option F (NAT Gateway) is for internet access, not AWS service access via private IPs."
+    }
+  ]
+}
