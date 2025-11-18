@@ -1,7 +1,7 @@
 {
   "metadata": {
     "totalFiles": 15,
-    "totalQuestions": 132,
+    "totalQuestions": 172,
     "domains": [
       "Domain 1: Organizational Complexity",
       "Domain 2: Design for New Solutions",
@@ -9,7 +9,7 @@
       "Domain 3: Continuous Improvement for Existing Solutions",
       "Domain 4: Accelerate Workload Migration and Modernization"
     ],
-    "lastUpdated": "2025-11-18T21:49:04.846Z"
+    "lastUpdated": "2025-11-18T22:08:53.845Z"
   },
   "questionSets": [
     {
@@ -680,7 +680,7 @@
     {
       "filename": "domain-2-all-remaining.json",
       "domain": "Domain 2: Design for New Solutions",
-      "task": "Tasks 2.2, 2.3, 2.4",
+      "task": "task_2.2_business_continuity",
       "taskKey": "task_2.2_business_continuity",
       "question_count": 14,
       "questions": [
@@ -1766,6 +1766,522 @@
           ],
           "correctAnswer": 0,
           "explanation": "CloudFormation Hooks provide pre-deployment validation: (1) Hooks are registered with CloudFormation, (2) Hooks execute before CREATE, UPDATE, or DELETE operations on stacks, (3) Hook evaluates stack template and resources, (4) If hook returns FAILED, CloudFormation operation aborts (stack not created/updated), (5) If hook returns SUCCESS, operation proceeds. For this scenario: Create Hook checking CloudFormation template for: EBS volumes with Encrypted=true, S3 buckets with BucketEncryption configuration, RDS instances with StorageEncrypted=true. Hook Lambda function parses template, validates encryption properties, returns pass/fail. This prevents deployment of non-compliant stacks. Option B (Config rules) is detective (after deployment), not preventive. Option C (cfn-lint) is static analysis tool useful for syntax and basic validation but doesn't have context of organizational policies - would need custom rules. Option D (SCPs) prevents API calls but is organization-wide, not template-specific, and difficult to manage for complex policies. CloudFormation Hooks use cases: Policy enforcement (tagging, encryption, approved resource types), Cost control (deny expensive instance types), Security validation (no public S3 buckets, required security groups), Compliance (HIPAA, PCI-DSS resource requirements). Hooks can: Scan entire template, Evaluate specific resource types, Make API calls for external validation, Timeout after 30 seconds (plan hook execution accordingly). Deploy hooks using: CloudFormation Registry, Hooks CLI plugin, Share hooks across organization using AWS Organizations. Alternative: Use CloudFormation Guard rules (policy-as-code) to validate templates, integrated into CI/CD pipeline. Guard uses declarative rules: 'AWS::S3::Bucket { Properties.BucketEncryption exists }'. Hook vs Guard: Hooks run in CloudFormation service (required for deployment), Guard runs in CI/CD (shift-left validation). Use both for defense-in-depth: Guard in CI/CD for fast feedback, Hooks as final enforcement gate."
+        }
+      ]
+    },
+    {
+      "filename": "domain-4-migration-modernization-all.json",
+      "domain": "Domain 4: Accelerate Workload Migration and Modernization",
+      "task": "task_4.1_migration_selection",
+      "taskKey": "task_4.1_migration_selection",
+      "question_count": 10,
+      "questions": [
+        {
+          "id": "D4-T4.1-Q1",
+          "question": "A company has 200 on-premises servers running mixed workloads. They need to determine migration strategy (rehost, replatform, refactor) for each workload. Which AWS service provides automated assessment with TCO calculations and migration strategy recommendations?",
+          "options": [
+            "AWS Application Discovery Service for inventory collection",
+            "AWS Migration Evaluator (formerly TSO Logic) for right-sizing and TCO analysis with strategy recommendations",
+            "AWS Migration Hub for migration tracking",
+            "AWS Database Migration Service for database assessment"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS Migration Evaluator provides comprehensive migration planning: (1) Agentless data collection from on-premises environment (CPU, memory, storage, network utilization), (2) Pattern analysis over 30+ days, (3) Right-sizing recommendations for AWS (EC2 instance types, storage options), (4) TCO comparison (on-premises vs AWS with 3-year projection), (5) Migration strategy recommendations based on: complexity, dependencies, quick wins vs long-term optimization. Evaluator considers: current utilization patterns, AWS pricing (On-Demand, Reserved, Savings Plans), cost of migration tools, operational efficiency gains. Option A (Application Discovery Service) collects data but doesn't provide TCO analysis or strategy recommendations. Option C (Migration Hub) tracks migrations but doesn't assess/recommend. Option D (DMS) is specific to database migration."
+        },
+        {
+          "id": "D4-T4.1-Q2",
+          "question": "Database migration assessment shows Oracle database with custom stored procedures, PL/SQL packages, and Oracle-specific features. Target is PostgreSQL on Aurora. What's the FIRST step in migration planning?",
+          "options": [
+            "Use AWS Database Migration Service to start replicating data immediately",
+            "Run AWS Schema Conversion Tool (SCT) to analyze schema compatibility and generate conversion assessment report",
+            "Manually rewrite all stored procedures in PostgreSQL",
+            "Migrate to RDS Oracle first, then to Aurora PostgreSQL"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS Schema Conversion Tool (SCT) is essential for heterogeneous database migration: (1) Connects to source Oracle database, (2) Analyzes schema, stored procedures, functions, triggers, (3) Generates assessment report showing: automatic conversion percentage (e.g., 85% auto-convertible), manual effort required, incompatible features, complexity score, estimated effort (person-days). (4) Converts schema to PostgreSQL equivalent, (5) Highlights items requiring manual intervention. Assessment report guides: Go/no-go decision, effort estimation, resource planning. For this scenario: SCT identifies which PL/SQL can convert automatically vs manual rewrite needed. Option A (immediate DMS) fails without schema conversion - target schema must exist before data migration. Option C (manual rewrite) without assessment is inefficient. Option D (staged migration) adds unnecessary step. Migration phases: Assess (SCT report), Convert (SCT conversion + manual fixes), Migrate data (DMS), Test, Cutover."
+        },
+        {
+          "id": "D4-T4.1-Q3",
+          "question": "A retail company must decide migration strategy for mainframe application processing transactions. Application is business-critical, poorly documented, and contains COBOL code. Which 7 R's strategy is MOST appropriate initially?",
+          "options": [
+            "Rehost (lift-and-shift) to EC2",
+            "Refactor to microservices architecture",
+            "Replatform using AWS Mainframe Modernization",
+            "Retire the application and build new in cloud"
+          ],
+          "correctAnswer": 2,
+          "explanation": "AWS Mainframe Modernization (Replatform) is appropriate for mainframe migrations: Service provides: (1) Automated refactoring (converts COBOL to Java) or Replatform (runtime environment for COBOL on AWS), (2) Managed runtime environment, (3) Migration tools, (4) Reduced risk vs full refactor. For business-critical, poorly documented system: Replatform minimizes risk - application logic stays in COBOL, runs on AWS infrastructure. Option A (Rehost) doesn't apply to mainframes - can't lift-and-shift mainframe to EC2. Option B (Refactor) is high-risk for undocumented critical system - requires understanding entire codebase. Option D (Retire/rebuild) is risky without knowing all business logic. 7 R's: Rehost (lift-and-shift), Replatform (lift-tinker-shift), Refactor (re-architect), Repurchase (move to SaaS), Retire (decommission), Retain (keep on-premises), Relocate (VMware Cloud on AWS). Mainframe modernization phases: Assess (analyze code dependencies), Refactor or Replatform (choose approach), Test (functional, performance), Train (operations team), Cutover."
+        },
+        {
+          "id": "D4-T4.1-Q4",
+          "question": "Company has 50 applications running on-premises. They want to map application dependencies to understand which applications can be migrated together in waves. Which AWS service provides this capability?",
+          "options": [
+            "AWS Application Discovery Service with agent-based discovery to collect server performance, network connections, and process data",
+            "AWS Migration Hub for tracking only",
+            "AWS Config for resource inventory",
+            "Manual documentation by IT team"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS Application Discovery Service maps application dependencies: Agent-based discovery: Installs agent on servers, collects system configuration, performance, network connections (which server talks to which), running processes. Agentless discovery (VMware only): Collects VM config, performance, doesn't capture network dependencies. Dependency mapping: Visualize server dependencies, identify application groups (servers that communicate together), plan migration waves (migrate dependent applications together). Integration with Migration Hub: Discovered data flows to Migration Hub, track migration status per application group. For this scenario: Agent-based discovery captures network connections, identifies 50 applications' interdependencies, groups servers by communication patterns, enables wave planning (migrate tightly coupled apps in same wave). Option B (Migration Hub) tracks migrations but doesn't discover dependencies. Option C (Config) tracks AWS resources only (not on-premises). Option D manual approach error-prone and time-consuming. Discovery data includes: server specs (CPU, RAM, disk), utilization metrics, network flows (source/destination IP, ports), running processes and applications. Use case: dependency mapping prevents breaking applications by migrating dependent components separately."
+        },
+        {
+          "id": "D4-T4.1-Q5",
+          "question": "E-commerce application uses proprietary CMS (Content Management System) hosted on-premises. AWS migration assessment suggests moving to SaaS CMS like WordPress on AWS Lightsail or managed WordPress. Which 7 R strategy is this?",
+          "options": [
+            "Rehost - lift and shift the proprietary CMS",
+            "Repurchase - replace with SaaS or different product",
+            "Refactor - rebuild the CMS on AWS",
+            "Retain - keep on-premises"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Repurchase strategy replaces existing software with SaaS or commercial product: Examples: proprietary CMS → WordPress SaaS, custom CRM → Salesforce, self-managed email → Microsoft 365, on-premises HR system → Workday. Benefits: eliminate maintenance of legacy software, leverage vendor innovation, faster time-to-value, predictable subscription pricing, reduced operational burden. Trade-offs: data migration complexity, training users on new system, potential feature gaps, vendor lock-in. For this scenario: Proprietary CMS requires maintenance (security patches, feature development), WordPress SaaS eliminates operational overhead, managed WordPress on AWS (Lightsail, or third-party managed) provides WordPress benefits with AWS hosting. Repurchase migration process: (1) Evaluate SaaS alternatives (feature comparison, cost analysis), (2) Plan data migration (export from proprietary system, import to SaaS), (3) Test (functionality, integrations), (4) Train users, (5) Cutover. When to repurchase: maintaining legacy software costs high, SaaS alternative meets requirements, total cost of ownership lower, want to focus on business vs infrastructure. When NOT to repurchase: unique business requirements SaaS doesn't meet, regulatory data residency restrictions, tight legacy integration requirements."
+        },
+        {
+          "id": "D4-T4.1-Q6",
+          "question": "VMware workloads (200 VMs) need to migrate to AWS. Company wants to maintain VMware operational model and tools. Which 7 R strategy and AWS service?",
+          "options": [
+            "Rehost to EC2 using AWS Application Migration Service",
+            "Relocate to VMware Cloud on AWS maintaining VMware environment",
+            "Refactor to containers on EKS",
+            "Repurchase SaaS alternatives"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Relocate to VMware Cloud on AWS for VMware workloads: VMware Cloud on AWS: VMware-managed SDDC (Software-Defined Data Center) on dedicated AWS infrastructure, same VMware tools (vCenter, vSphere, NSX, vSAN), hybrid cloud between on-premises VMware and AWS, enables vMotion to AWS (live migration without downtime). 7 R's - Relocate strategy: specifically for VMware workloads moving to VMware Cloud on AWS, retains exact VMware environment, operational continuity (same processes, tools, skills). For this scenario (200 VMware VMs, want VMware tools): Relocate preserves VMware operational model, teams use existing VMware skills, vMotion enables gradual migration, hybrid connectivity (AWS Direct Connect, VPN). Alternative (Option A - Rehost to EC2): converts VMs to EC2 instances, loses VMware management layer, operational model changes. Migration approaches comparison: Relocate (VMware Cloud on AWS): fastest for VMware, no refactoring, Option A (Rehost): convert to native EC2, new operational model. Refactor (Option C): significant development effort. Use VMware Cloud on AWS when: large VMware footprint, want operational continuity, hybrid cloud strategy, time-sensitive migration (<6 months). After stabilizing on VMware Cloud, optionally refactor to native AWS services over time."
+        },
+        {
+          "id": "D4-T4.1-Q7",
+          "question": "Legacy application has licensing tied to specific physical servers. Application cannot be easily refactored. Runs on physical server with dedicated resources. What's appropriate migration strategy?",
+          "options": [
+            "Rehost to EC2 dedicated host for bring-your-own-license compliance",
+            "Refactor to remove licensing dependency",
+            "Repurchase new licensing model",
+            "Retain on-premises permanently"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Rehost to EC2 Dedicated Host for BYOL (Bring Your Own License): EC2 Dedicated Host: Physical server dedicated to your use, visibility into sockets, cores, host ID for license tracking, supports BYOL for server-bound licenses (Windows Server, SQL Server, Oracle, SAP). For this scenario (license tied to physical server): Dedicated Host provides server-level isolation needed for licensing, enables BYOL to AWS, reduces licensing costs vs acquiring new cloud licenses. Dedicated Host vs Dedicated Instance: Dedicated Host: physical server dedicated to you, socket/core visibility for licensing, host affinity (instance stays on same host), higher cost but BYOL support. Dedicated Instance: isolated instances on dedicated hardware, no visibility into physical infrastructure, cannot use with server-bound licenses. Licensing scenarios: per-socket licensing (Oracle Database): use Dedicated Host with known socket count, per-core licensing (SQL Server): Dedicated Host shows core count, per-VM licensing: regular EC2 instances sufficient. Migration process: Provision Dedicated Hosts (specify instance family, cores needed), migrate workload using MGN to Dedicated Host, maintain license compliance reporting. Alternative (Option C - repurchase): buy cloud-native licenses (expensive for legacy apps), or Option D (retain on-premises): if migration too costly."
+        },
+        {
+          "id": "D4-T4.1-Q8",
+          "question": "Application dependency mapping shows application with database tier used by multiple applications. Should database be migrated with first application or wait until all dependent applications migrate?",
+          "options": [
+            "Migrate database with first application, leaving it accessible to remaining on-premises applications via hybrid connectivity",
+            "Wait until all applications migrate to move database",
+            "Create database replica in AWS for migrated application, keep original for on-premises",
+            "Retire the database entirely"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Migrate shared database early with hybrid connectivity: Shared database migration strategy: (1) Migrate database to AWS (RDS or EC2), (2) Maintain hybrid connectivity (Direct Connect or VPN), (3) On-premises applications access AWS database over hybrid connection, (4) Migrate applications incrementally, (5) Eventually all applications in AWS, decompose database later if needed. For this scenario: Database on AWS provides cloud benefits (automated backups, HA), on-premises applications continue functioning via hybrid network, enables incremental application migration. Hybrid network requirements: Low latency (<10ms for interactive apps, <50ms for batch), adequate bandwidth (based on database traffic), redundant connections (Direct Connect with VPN backup). Option B (wait for all apps) delays migration start, misses cloud benefits. Option C (replica approach) creates data synchronization complexity (writes to both? conflict resolution?), DMS bidirectional replication possible but complex. Database migration sequencing: Migrate databases early (persistent state component), applications follow incrementally, enables lift-and-shift first, optimize later pattern. Network architecture: AWS Private Link or Transit Gateway for centralized hybrid connectivity, VPC peering between AWS VPCs, Route 53 private hosted zones for DNS."
+        },
+        {
+          "id": "D4-T4.1-Q9",
+          "question": "200 applications assessed for migration. 50 can be retired (no longer used), 30 can move to SaaS, 70 can rehost, 50 need refactoring. How should migration waves be prioritized?",
+          "options": [
+            "Wave 1: Retire and Repurchase (quick wins, 80 apps), Wave 2: Rehost (70 apps), Wave 3: Refactor (50 apps - most complex)",
+            "All applications simultaneously for fastest migration",
+            "Largest applications first",
+            "Most complex applications first to learn lessons"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Prioritize quick wins then increasing complexity: Wave-based migration strategy: Wave 1 (quick wins): Retire unused applications (decommission, cost savings immediate), Repurchase with SaaS (subscription setup, data migration, limited refactoring), demonstrates early value, builds organizational confidence. Wave 2 (moderate complexity): Rehost compatible applications (lift-and-shift using MGN), predictable process, accelerates migration pace, learns operational patterns in AWS. Wave 3 (highest complexity): Refactor applications requiring re-architecture, time-intensive, benefits from learnings of previous waves, team experienced with AWS by this point. For this scenario (80 quick wins available): Immediate value (retire 50 = cost savings, repurchase 30 = reduced maintenance), builds momentum and stakeholder confidence, funds subsequent waves with cost savings. Wave prioritization factors: Business value (revenue-generating apps higher priority), dependencies (migrate grouped apps together), risk (start with low-risk), technical complexity (simple to complex). Migration portfolio approach: Portfolio assessment identifies all 200 apps, categorize by 7 R's, create migration factory (repeatable process for rehost wave), allocate team resources (SaaS team, refactoring team, infrastructure team). Option B (simultaneous) overwhelming, high risk. Option C/D don't optimize for quick wins."
+        },
+        {
+          "id": "D4-T4.1-Q10",
+          "question": "Windows Server 2008 R2 applications (end of support) running on-premises. Microsoft requires Software Assurance for extended security updates on-premises. What migration strategy addresses security and licensing?",
+          "options": [
+            "Rehost to AWS EC2 - receive free extended security updates for legacy Windows on EC2",
+            "Keep on-premises and purchase extended support from Microsoft",
+            "Refactor to Linux",
+            "Containerize on ECS"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS provides extended security updates for legacy Windows on EC2: Legacy Windows migration benefit: Windows Server 2008/2008 R2 on EC2 receives extended security updates at no additional charge (through Systems Manager), no Software Assurance required on AWS (vs on-premises requires paid extended support), simplified patching via Systems Manager Patch Manager. For this scenario (Windows 2008 R2 end-of-support): Rehost to EC2 maintains application compatibility, receives security updates in AWS without extra licensing costs, reduces security risk of unsupported OS. Migration approach: assess applications on Windows 2008 R2, migrate to EC2 using MGN (preserves Windows installation), enable Systems Manager for patch management, plan eventual OS upgrade to Windows Server 2019/2022 in AWS. AWS licensing benefits for Windows: License Mobility (reuse Windows Server licenses with Software Assurance on EC2 Dedicated Hosts), License included EC2 instances (pay per hour, includes Windows license), Extended security updates for legacy versions. Alternative modernization path: after migrating to EC2, containerize application (if suitable) to Windows containers on ECS, or refactor to Linux if application allows (Option C - but high effort). Option B keeps on-premises with paid extended support (misses cloud benefits). Extended updates via Systems Manager: automatic deployment, integrated with AWS patch baseline, CloudWatch monitoring."
+        }
+      ]
+    },
+    {
+      "filename": "domain-4-migration-modernization-all.json",
+      "domain": "Domain 4: Accelerate Workload Migration and Modernization",
+      "task": "task_4.2_migration_approach",
+      "taskKey": "task_4.2_migration_approach",
+      "question_count": 12,
+      "questions": [
+        {
+          "id": "D4-T4.2-Q1",
+          "question": "Large-scale server migration (500 physical servers) requires replication-based migration with minimal downtime. Applications are heterogeneous (Windows, Linux, various databases). Which AWS service is MOST appropriate?",
+          "options": [
+            "AWS Application Migration Service (MGN) with continuous replication and cutover orchestration",
+            "AWS Server Migration Service (SMS) - deprecated, not recommended",
+            "CloudEndure Migration (now part of MGN)",
+            "Manual VM export/import to EC2"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS Application Migration Service (MGN) is the current recommended solution for replication-based migration: (1) Agent installed on source servers, (2) Continuous block-level replication to AWS (staging area in AWS), (3) Minimal performance impact on source systems, (4) Non-disruptive testing (launch test instances without affecting replication), (5) Cutover automation (switch from source to migrated), (6) Automated conversion (source volumes to EBS, network config). MGN supports: Windows, Linux, Physical servers, VMware, Hyper-V, Azure VMs. Replication RTO: minutes (failover to already-replicated instances), RPO: seconds (near real-time replication). Option B (SMS) deprecated December 2022 - replaced by MGN. Option C (CloudEndure) was acquired by AWS, became MGN. Option D (manual) doesn't scale. MGN migration phases: Install agent, Initial sync (full replication), Continuous data replication, Test (launch test instance), Cutover (redirect traffic), Finalize (terminate replication)."
+        },
+        {
+          "id": "D4-T4.2-Q2",
+          "question": "MySQL database (5TB) must migrate from on-premises to RDS with minimal downtime (<30 minutes). Database receives constant updates. Which DMS configuration achieves this?",
+          "options": [
+            "DMS full load only (long downtime for 5TB)",
+            "DMS full load + CDC (ongoing replication) with cutover during low-traffic window",
+            "Export to S3, then import to RDS",
+            "Use AWS Snowball for data transfer, then DMS for incremental sync"
+          ],
+          "correctAnswer": 1,
+          "explanation": "DMS full load + CDC (Change Data Capture) minimizes downtime: (1) DMS replication instance created in AWS, (2) Full load begins (copy all existing data while source remains online), (3) CDC captures changes during full load (binary logs for MySQL), (4) After full load complete, CDC applies captured changes (replication lag decreases), (5) When lag is near zero (seconds), cutover: stop application, apply final changes, redirect application to RDS. Downtime = time to apply final changes + DNS/connection string update (< 30 minutes achievable). Option A (full load only) requires stopping source during entire migration (hours for 5TB). Option C (S3 export/import) similar downtime issue. Option D (Snowball) for large initial sync works but unnecessary complexity for 5TB over network. DMS CDC uses database transaction logs: MySQL binary logs, Oracle archive logs, PostgreSQL WAL. Prerequisites: binary logging enabled, appropriate permissions (replication slave for MySQL). DMS homogeneous vs heterogeneous: homogeneous (MySQL → RDS MySQL) uses native tools, heterogeneous (Oracle → PostgreSQL) requires schema conversion. DMS performance: Multi-AZ for HA, choose appropriate instance size (r5 for memory-intensive, c5 for CPU), monitor CloudWatch metrics (CDCLatencySource, CDCLatencyTarget)."
+        },
+        {
+          "id": "D4-T4.2-Q3",
+          "question": "500TB file server data must migrate to AWS. Network bandwidth: 100 Mbps (takes 5+ months). Data must be available in AWS within 2 weeks. What's the MOST efficient approach?",
+          "options": [
+            "Use AWS Snowball Edge devices (80TB each, 7 devices) for initial bulk transfer, then AWS DataSync for incremental sync",
+            "Use AWS DataSync over VPN for entire transfer",
+            "Use AWS Storage Gateway with cached volumes",
+            "Use third-party tools like Aspera for faster transfer"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Snowball Edge + DataSync hybrid approach: (1) Order multiple Snowball Edge devices (80TB usable per device, 100TB raw), (2) Copy data to Snowball devices on-premises (local network speed), (3) Ship devices to AWS (AWS uploads to S3), (4) After bulk transfer complete, use DataSync to sync incremental changes and new files created during shipping, (5) Cutover when sync complete. Timeline: Snowball data copy (days), Shipping (1 week), AWS upload (days), DataSync incremental (hours/days). Total: ~2 weeks. Option B (DataSync over 100 Mbps) calculation: 500TB × 8 bits / 100 Mbps / 86400 sec/day ≈ 463 days (impossible in 2 weeks). Option C (Storage Gateway cached) doesn't solve initial transfer problem. Option D (Aspera) accelerates network transfer but still limited by 100 Mbps bandwidth. Snowball family: Snowball Edge Storage Optimized (80TB, 40 vCPUs), Snowball Edge Compute Optimized (39.5TB, 52 vCPUs, GPU), Snowmobile (up to 100PB, for exabyte-scale). When to use Snowball: >10TB data, limited bandwidth, cost (cheaper than months of high-bandwidth transfer), time-sensitive migration."
+        },
+        {
+          "id": "D4-T4.2-Q4",
+          "question": "AWS MGN (Application Migration Service) agent installation blocked by strict firewall rules. What's 2025 solution for VMware environments?",
+          "options": [
+            "Open all outbound ports temporarily",
+            "Use MGN agentless replication for VMware (2025 feature supporting VMware vCenter 8)",
+            "Manually export/import VMs",
+            "Use AWS Server Migration Service"
+          ],
+          "correctAnswer": 1,
+          "explanation": "MGN agentless replication for VMware (2025 enhancement): Agentless replication: No agent installation on source VMs, VMware vCenter integration reads VM data directly, Supports VMware vCenter 6.7, 7.0, and 8.0 (added 2025), can use proxy server for connectivity (2025 feature), supports AWS credentials update for agentless replication. Benefits: No firewall changes on source VMs, no performance impact from agent, centralized management through vCenter, suitable for security-restricted environments. Requirements: VMware vCenter access, network connectivity from MGN Connector to vCenter, VMware vSphere permissions (read VM configuration, snapshots). For this scenario (strict firewall): Agentless bypass VM-level firewall restrictions, MGN Connector communicates with vCenter (not individual VMs), maintains security posture while enabling migration. MGN Connector features (2025): Automates agent installation where allowed, supports agentless for VMware, communicates over HTTP with Windows servers, password authentication with Linux servers, deployed in on-premises or AWS environment. Option A dangerous security practice. Option C manual process doesn't scale. Option D (SMS) deprecated 2022. Agent vs Agentless comparison: Agent-based: All platforms (physical, VMware, Hyper-V, Azure), block-level replication, broader compatibility. Agentless: VMware only, VMware snapshot-based replication, no agent overhead. 2025 MGN enhancements: Amazon Linux 2023 support, Rocky Linux 9.0 support, UEFI boot mode retention, kernel up to 6.5."
+        },
+        {
+          "id": "D4-T4.2-Q5",
+          "question": "DMS Serverless vs instance-based DMS for migrating 10TB SQL Server database. DMS Serverless announced 2025 enhancements. When to use each?",
+          "options": [
+            "Always use DMS instance-based for control",
+            "DMS Serverless for simplified management with automatic capacity scaling and April 2025 unlimited storage scaling",
+            "DMS Serverless only for small databases",
+            "Instance-based for all production migrations"
+          ],
+          "correctAnswer": 1,
+          "explanation": "DMS Serverless advantages with 2025 enhancements: DMS Serverless (released 2023, with 2025 enhancements): Automatic capacity provisioning and scaling (no instance sizing needed), February 2025: Premigration assessments (evaluate migration compatibility before starting), April 2025: Automatic storage scaling (no more 100GB default limit - unlimited storage), pay-per-use billing (DMS Capacity Units - DCUs), 1 DCU = 2GB RAM. For this scenario (10TB SQL Server): Serverless automatically scales capacity based on transaction volume, April 2025 storage scaling handles 10TB without manual intervention, simplified operations (no capacity planning), cost-effective (pay only for actual usage). DMS Serverless vs Instance-based: Serverless: automatic scaling, simplified management, pay-per-use, unlimited storage (2025 enhancement), ideal for: variable workloads, unpredictable transaction volumes, simplified operations. Instance-based: fixed capacity, manual scaling, hourly pricing regardless of usage, more control over resources, ideal for: predictable workloads, specific instance requirements, consistent high throughput. Migration types supported (both): Homogeneous (SQL Server → RDS SQL Server), heterogeneous (SQL Server → Aurora PostgreSQL with SCT), full load + CDC for minimal downtime. DMS Serverless limitations: Some features still instance-only (check latest docs), generally most migrations now supported on Serverless. 2025 recommendation: Start with DMS Serverless for operational simplicity, use instance-based only if specific requirements demand it."
+        },
+        {
+          "id": "D4-T4.2-Q6",
+          "question": "Migrating NFS file server (100TB, millions of small files) to AWS. Need POSIX permissions, metadata preserved. Which service?",
+          "options": [
+            "AWS DataSync to Amazon EFS with metadata preservation",
+            "Snowball to S3",
+            "rsync to EC2",
+            "AWS Storage Gateway File Gateway"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS DataSync to EFS for POSIX file migration: DataSync capabilities: Automated file transfer service, preserves metadata (permissions, timestamps, ownership), verifies data integrity, bandwidth throttling, scheduling (hourly, daily, weekly), encryption in transit. DataSync to EFS: Maintains POSIX permissions, preserves file metadata, directly mounts source NFS share, transfers to EFS (managed NFS service in AWS), handles millions of files efficiently, incremental transfers (only changed files). For this scenario (NFS → AWS with metadata): DataSync agent deployed on-premises, agent connects to source NFS and target EFS, transfer preserves all POSIX attributes, EFS provides managed NFS in AWS (no server management). Migration process: (1) Create EFS file system in AWS, (2) Deploy DataSync agent on-premises (VM or physical), (3) Configure DataSync task (source NFS, destination EFS, schedule), (4) Run initial full sync, (5) Incremental syncs until cutover, (6) Applications point to EFS. Option B (Snowball to S3) doesn't preserve POSIX metadata natively, S3 is object storage (not file system). Option C (rsync) works but manual, no verification, no scheduling, DataSync purpose-built. Option D (Storage Gateway File) provides hybrid access but not migration tool. DataSync vs alternatives: DataSync: Purpose-built for migration, metadata preservation, verification. Snowball: >10TB with limited bandwidth (but loses metadata). rsync: Manual, no verification. Transfer Family: For ongoing SFTP access (not bulk migration). DataSync performance: Parallelized transfer (multi-threaded), saturates available bandwidth, CloudWatch monitoring."
+        },
+        {
+          "id": "D4-T4.2-Q7",
+          "question": "Oracle database migration to Aurora PostgreSQL. SCT assessment shows 92% automatic conversion, 8% manual effort (custom PL/SQL functions). What's migration sequence?",
+          "options": [
+            "Use DMS directly without schema conversion",
+            "SCT for schema conversion (automatic + manual fixes), then DMS for data migration with CDC",
+            "Manual rewrite of entire database",
+            "Keep Oracle, use RDS Oracle"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Heterogeneous migration requires SCT then DMS: Migration sequence: (1) SCT assessment report (already completed - 92% auto-convertible), (2) SCT automatic schema conversion (creates PostgreSQL schema from Oracle), (3) Manual fixes for 8% non-convertible code (rewrite custom PL/SQL functions in PL/pgSQL), (4) Test converted schema (functional testing), (5) DMS replication instance setup, (6) DMS full load + CDC (migrate data while source active), (7) Cutover when replication lag near zero. For this scenario (Oracle → PostgreSQL, 92% convertible): SCT handles bulk of conversion work automatically, 8% manual effort manageable (custom functions require developer expertise), DMS handles data migration separately from schema. SCT conversion: Converts tables, indexes, constraints, stored procedures, functions, triggers, generates PostgreSQL-compatible SQL, highlights items needing manual intervention (e.g., Oracle-specific features like hierarchical queries). Manual conversion (8%): Review SCT action items, rewrite Oracle-specific PL/SQL in PostgreSQL PL/pgSQL, leverage PostgreSQL features (e.g., CTEs for hierarchical queries), test thoroughly. DMS CDC for minimal downtime: Full load copies existing data, CDC captures ongoing changes (archive logs), apply CDC to keep synchronized, cutover when lag <seconds. Option A fails - heterogeneous requires schema conversion. Option C unnecessary - 92% auto-converts. Option D misses modernization opportunity (Aurora benefits over Oracle)."
+        },
+        {
+          "id": "D4-T4.2-Q8",
+          "question": "Windows file server with SMB shares (50TB, Active Directory integrated permissions) migrating to AWS. Need SMB protocol, AD integration. Which service?",
+          "options": [
+            "Amazon EFS (NFS only, no SMB)",
+            "Amazon FSx for Windows File Server with AD integration",
+            "S3 with SMB gateway",
+            "EC2 with Windows Server file shares"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Amazon FSx for Windows File Server for SMB workloads: FSx for Windows features: Fully managed Windows file server, native SMB protocol (SMB 2.0, 3.0, 3.1.1), Active Directory integration (AWS Managed AD or self-managed AD), Windows ACLs, NTFS file system, DFS namespaces, deduplication, shadow copies. For this scenario (Windows SMB + AD permissions): FSx provides Windows-native file shares, integrates with existing AD (maintains permissions), supports all Windows features applications expect, managed service (automatic patching, backups). Migration approach: (1) Create FSx file system, (2) Join FSx to Active Directory domain, (3) Use AWS DataSync or Robocopy to migrate data, (4) Preserve ACLs and metadata, (5) Update client mount points to FSx, (6) Cutover. FSx deployment types: Single-AZ (cost-optimized, single availability zone), Multi-AZ (HA with automatic failover to standby), storage types (SSD for latency-sensitive, HDD for throughput). Option A (EFS) Linux NFS protocol, no SMB. Option C (S3) object storage, requires SMB gateway (adds complexity vs native FSx). Option D (EC2 Windows) self-managed (defeats purpose of cloud migration). FSx vs alternatives: FSx: Native Windows, fully managed, AD integrated. EC2 Windows: Self-managed, operational overhead. Storage Gateway File: Hybrid, local cache + S3, not for full cloud migration. Data migration to FSx: DataSync (automated, scheduled, verified), Robocopy (Windows native, supports ACLs), AWS Transfer Family SFTP (if coming from SFTP source)."
+        },
+        {
+          "id": "D4-T4.2-Q9",
+          "question": "Mainframe application with VSAM datasets needs migration to AWS. Data access patterns: sequential reads for batch, indexed access for online transactions. Which AWS service for data migration?",
+          "options": [
+            "Migrate VSAM to S3 using custom scripts",
+            "AWS Mainframe Modernization with automated data migration utilities",
+            "AWS DMS (doesn't support VSAM)",
+            "Manual export to CSV, import to RDS"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS Mainframe Modernization handles VSAM migration: Mainframe Modernization capabilities: Two patterns: Automated refactoring (COBOL → Java), Replatform (runtime for COBOL on AWS). Data migration: Converts VSAM datasets to AWS-compatible storage, supports VSAM KSDS (key-sequenced), ESDS (entry-sequenced), RRDS (relative-record), maps to relational databases or file storage based on access patterns. For this scenario (VSAM with sequential + indexed access): Automated tools analyze VSAM dataset characteristics, sequential datasets may map to S3, indexed datasets (KSDS) map to relational database with indexes, batch processes adapted to read from AWS storage. Migration process: (1) Assess mainframe applications and data dependencies, (2) Choose refactor or replatform approach, (3) Migrate code (automated conversion or runtime), (4) Migrate data (VSAM → AWS storage), (5) Test (batch + online transactions), (6) Cutover. VSAM to AWS storage mapping: KSDS (indexed) → RDS/Aurora with indexes or DynamoDB, ESDS (sequential) → S3 with file organization, RRDS (relative record) → database with sequential IDs. Option A custom scripts complex and error-prone. Option C DMS designed for database replication, not mainframe data. Option D manual CSV loses data structure and metadata. Mainframe modernization benefits: eliminate mainframe costs, cloud scalability, integrate with AWS services (Lambda, Step Functions), modern developer experience. Alternative: Partner solutions (Micro Focus, BluAge) if AWS Mainframe Modernization doesn't fit specific requirements."
+        },
+        {
+          "id": "D4-T4.2-Q10",
+          "question": "SAP system migration to AWS. Requires precise timing between application and database migration to minimize downtime. Which approach?",
+          "options": [
+            "Migrate database first, then application",
+            "Use SAP-specific migration tools: AWS Launch Wizard for SAP or MGN for infrastructure + DMS for database with coordinated cutover",
+            "Manual migration during maintenance window",
+            "Migrate application first, then database"
+          ],
+          "correctAnswer": 1,
+          "explanation": "SAP migration requires coordinated approach with SAP-specific tools: SAP migration strategies: AWS Launch Wizard for SAP: Automated SAP deployment on AWS (HANA, NetWeaver), infrastructure provisioning, HA configuration, best practices built-in. MGN + DMS approach: MGN replicates SAP application servers (continuous replication), DMS replicates SAP database (HANA, Oracle, SQL Server), coordinated cutover minimizes downtime. For this scenario (precise timing required): Parallel replication (application via MGN, database via DMS), Both remain in sync with production, Coordinated cutover: (1) Stop SAP application, (2) Final MGN sync of app servers, (3) Final DMS CDC sync of database, (4) Start SAP on AWS, (5) Validate. Downtime window: minutes (time for final sync + SAP startup). SAP on AWS considerations: Instance types (x1e for SAP HANA large memory), EBS volumes (io2 for database performance), Networking (placement groups for low latency), HA setup (Multi-AZ, HANA System Replication). Option A/D (sequential) extends downtime - database and app must migrate together (interdependent). Option C (manual) risky for complex SAP landscape. SAP migration tools: AWS Launch Wizard: Greenfield SAP deployments, automated configuration. MGN: Lift-and-shift existing SAP infrastructure. AWS Backint Agent: SAP HANA backups to S3. CloudEndure Disaster Recovery (now MGN DR): SAP HA/DR. Post-migration: SAP on AWS optimizations (autoscaling non-production, Spot for test systems, S3 for HANA backups, Reserved Instances for production)."
+        },
+        {
+          "id": "D4-T4.2-Q11",
+          "question": "Active-active database replication across on-premises and AWS during migration for zero-downtime testing. Source: MySQL, Target: Aurora MySQL. What's the architecture?",
+          "options": [
+            "DMS bidirectional replication between on-premises MySQL and Aurora MySQL",
+            "Read-only Aurora replica, promote at cutover",
+            "Periodic snapshots and restore",
+            "Application writes to both databases"
+          ],
+          "correctAnswer": 0,
+          "explanation": "DMS bidirectional replication enables active-active testing: DMS bidirectional setup: Two DMS tasks: Task 1: on-premises MySQL → Aurora (full load + CDC), Task 2: Aurora → on-premises MySQL (CDC only - full load already done). Ongoing replication keeps both databases synchronized. Use case: Gradual migration (some traffic to on-premises, some to AWS), zero-downtime testing (test AWS environment with production data), confidence building (validate performance before full cutover). For this scenario: Start with Task 1 (on-prem → Aurora) until Aurora synchronized, Enable Task 2 (Aurora → on-prem) for bidirectional, Route subset of traffic to Aurora-backed application, Monitor for conflicts (rare with DMS conflict resolution), Gradually increase traffic to AWS, Final cutover: stop on-premises writes, disable Task 2. DMS conflict detection and resolution: Detects conflicting writes (same record modified in both), resolution strategies (use latest timestamp, configurable), monitoring via CloudWatch. Trade-offs: Complexity vs unidirectional, small replication lag (async replication), potential conflicts need monitoring, operational overhead. Option B (read replica) doesn't allow writes to Aurora during testing. Option C (snapshots) not continuous, stale data. Option D (dual writes) application complexity, no conflict resolution. When to use bidirectional: gradual migration with testing, zero-downtime requirement, need to rollback easily. When NOT: application can't tolerate replication lag, write conflicts likely (highly concurrent writes to same records)."
+        },
+        {
+          "id": "D4-T4.2-Q12",
+          "question": "Tape backup library (500TB historical data) needs migration to AWS for long-term archival (10-year retention). Data rarely accessed. What's most cost-effective approach?",
+          "options": [
+            "Ship tapes to AWS, manually restore and upload",
+            "AWS Snowball Edge to S3, then lifecycle to S3 Glacier Deep Archive",
+            "AWS Storage Gateway Tape Gateway (VTL) with Glacier integration, then Snowball import of historical tapes to S3 Glacier Deep Archive",
+            "DataSync to S3 Standard"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Tape Gateway + Snowball for historical tape migration: Architecture: AWS Storage Gateway Tape Gateway (VTL - Virtual Tape Library): Presents iSCSI-based VTL to backup applications, virtual tapes stored in S3 (cached tapes) or Glacier/Glacier Deep Archive (archived tapes), maintains tape catalog for restore. Historical tape migration: Ship physical tapes to AWS via Snowball, AWS imports tape data to S3 Glacier Deep Archive directly, preserves tape archive catalog, maintains retrievability for 10+ years. For this scenario (500TB, rare access, 10-year retention): Tape Gateway for ongoing backups (replaces physical tape library), historical tapes imported via Snowball (faster than network for 500TB), S3 Glacier Deep Archive cheapest storage ($0.00099/GB/month), maintains tape abstraction backup software expects. Cost comparison: Glacier Deep Archive $0.00099/GB vs Glacier Flexible Retrieval $0.004/GB vs Standard $0.023/GB, for 500TB: Deep Archive ~$500/month vs Standard ~$11,500/month. Migration process: (1) Deploy Tape Gateway in on-premises or AWS (EC2), (2) Configure backup software to use VTL, (3) Begin backing up to virtual tapes (new backups), (4) Ship historical tapes via Snowball to AWS, (5) AWS imports to Glacier Deep Archive, (6) Catalog merged in Tape Gateway. Option A manual process too complex. Option B Snowball good but doesn't maintain tape abstraction. Option D Standard storage too expensive. Tape Gateway retrieval: Standard retrieval (12-48 hours for Glacier Deep Archive), Expedited retrieval (3-5 hours for Glacier Flexible), maintains tape catalog for browse without retrieval."
+        }
+      ]
+    },
+    {
+      "filename": "domain-4-migration-modernization-all.json",
+      "domain": "Domain 4: Accelerate Workload Migration and Modernization",
+      "task": "task_4.3_architecture_design",
+      "taskKey": "task_4.3_architecture_design",
+      "question_count": 10,
+      "questions": [
+        {
+          "id": "D4-T4.3-Q1",
+          "question": "Monolithic application (3-tier: presentation, business logic, data) migrated to AWS on EC2. Now refactoring to microservices. What's the recommended decomposition strategy to minimize risk?",
+          "options": [
+            "Strangler Fig pattern: incrementally extract services while monolith runs, routing traffic gradually to new services",
+            "Big Bang rewrite: rebuild entire application as microservices simultaneously",
+            "Database-first split: divide database first, then split application",
+            "Keep monolith, just containerize it"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Strangler Fig pattern minimizes risk during refactoring: (1) Identify bounded contexts (business capabilities that can be independent services), (2) Extract service for one capability (e.g., payment processing), (3) Deploy new service alongside monolith, (4) Use API Gateway or ALB to route traffic: new feature → microservice, existing feature → monolith, (5) Gradually migrate features to microservices, (6) Eventually, monolith 'strangled' - all traffic to microservices. Benefits: Incremental (low risk), Testable (validate each extraction), Rollback capability. Option B (Big Bang) high-risk - if anything fails, everything fails. Option C (database-first) risky - application and database tightly coupled, splitting database first breaks application. Option D (containerize) improves deployment but doesn't achieve microservices benefits. Strangler Fig steps: Prioritize services (high value, low dependency), Define contracts (APIs between services), Implement new service, Route subset of traffic, Monitor, Expand. Tools: AWS App Mesh (service mesh), API Gateway (routing), ECS/EKS (container orchestration), DynamoDB (per-service databases)."
+        },
+        {
+          "id": "D4-T4.3-Q2",
+          "question": "Application uses batch processing jobs running nightly on EC2 (8 hours). Jobs are fault-tolerant. AWS migration should optimize cost. What's the BEST compute choice?",
+          "options": [
+            "On-Demand EC2 instances for predictable pricing",
+            "EC2 Spot Instances with Spot Fleet for up to 90% cost savings",
+            "Lambda functions for serverless processing",
+            "ECS Fargate for managed containers"
+          ],
+          "correctAnswer": 1,
+          "explanation": "EC2 Spot Instances optimal for fault-tolerant batch workloads: Spot pricing up to 90% discount vs On-Demand. Spot Fleet configuration: (1) Define instance types (multiple types for availability), (2) Target capacity (e.g., 20 instances), (3) Allocation strategy (lowest price, diversified), (4) Spot interruption handling (checkpointing). For batch processing: implement checkpointing (save progress periodically), Spot interruption handling (2-minute warning, save state), Job queue (SQS) for work distribution, Auto Scaling based on queue depth. Option A (On-Demand) most expensive for long-running jobs. Option C (Lambda) has 15-minute max execution time - unsuitable for 8-hour jobs. Option D (Fargate) more expensive than Spot EC2 for long-duration workloads. AWS Batch service simplifies: job queues, compute environments (Spot, On-Demand, Fargate), job dependencies, automatic retries. Batch job patterns: array jobs (parallel processing), multi-node jobs (MPI), GPU jobs (ML training). Spot best practices: multiple instance types (flexibility), checkpointing (fault tolerance), Spot Fleet (automatic replacement), monitoring (Spot interruption rate)."
+        },
+        {
+          "id": "D4-T4.3-Q3",
+          "question": "Real-time analytics application processes IoT sensor data (100,000 messages/second). Currently batch processes data hourly on-premises. AWS migration should provide real-time insights. Which architecture is MOST appropriate?",
+          "options": [
+            "IoT Core → Kinesis Data Streams → Lambda → DynamoDB → QuickSight",
+            "IoT Core → SQS → EC2 batch processing → RDS",
+            "IoT Core → S3 → EMR batch processing → Redshift",
+            "IoT Core → Kinesis Data Firehose → S3 → Athena"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Real-time architecture with Kinesis: (1) AWS IoT Core ingests sensor data (MQTT, HTTPS), (2) IoT Rules route to Kinesis Data Streams (scales to millions msg/sec), (3) Lambda or Kinesis Data Analytics processes streams in real-time (aggregations, filtering, enrichment), (4) DynamoDB stores processed results for low-latency queries, (5) QuickSight dashboards visualize real-time metrics. This achieves second-level latency vs hourly batch. Option B (SQS + batch) still batch processing - not real-time. Option C (S3 + EMR) batch analytics. Option D (Firehose + Athena) near real-time but has minute-level delays (Firehose buffers), query latency (Athena) - not suitable for real-time dashboards. Kinesis Data Streams: shard-based scaling, sub-second latency, ordered records per partition key. Use cases: real-time dashboards, alerting, fraud detection, clickstream analytics. Alternative real-time stack: Kafka on MSK (Managed Streaming for Kafka) for Kafka ecosystem, Kinesis Data Analytics with SQL for stream processing, Amazon Timestream for time-series data, Lambda for event-driven processing. Performance: Kinesis shard = 1MB/s ingress or 1000 records/s, Lambda concurrency = shards × parallelization factor (up to 10)."
+        },
+        {
+          "id": "D4-T4.3-Q4",
+          "question": "Microservices architecture on ECS requires service-to-service communication with mutual TLS, traffic management, and observability. Which AWS service provides these capabilities?",
+          "options": [
+            "Application Load Balancer with HTTPS",
+            "AWS App Mesh for service mesh capabilities with Envoy proxy sidecars",
+            "API Gateway for service routing",
+            "Direct service-to-service HTTP calls"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS App Mesh provides service mesh for microservices: App Mesh capabilities: Service discovery (integrates with Cloud Map, Kubernetes), traffic management (weighted routing, retries, timeouts), observability (metrics to CloudWatch, traces to X-Ray), mutual TLS (mTLS between services), health checks, circuit breakers. How it works: Envoy proxy sidecar deployed alongside each service task, proxies intercept all network traffic, enforce policies (mTLS, routing), emit metrics and traces. For this scenario (microservices needing mTLS + traffic management): App Mesh configures Envoy sidecars automatically, enables zero-trust networking (mTLS service-to-service), provides traffic shaping (canary deployments, retries), observability built-in (CloudWatch metrics, X-Ray traces). App Mesh resources: Virtual services (logical service names), virtual nodes (actual service deployments on ECS/EKS/EC2), virtual routers (route traffic based on rules), virtual gateways (ingress/egress). Deployment example: ECS task definition includes Envoy sidecar container, application container configured to route through Envoy (localhost proxy), App Mesh configures Envoy policies centrally. Option A (ALB) handles ingress (external to services) but not service-to-service mesh. Option C (API Gateway) for external APIs, not internal mesh. Option D (direct calls) no traffic management or mTLS enforcement. App Mesh vs alternatives: App Mesh: AWS-managed control plane, works across ECS/EKS/EC2, CloudWatch/X-Ray integration. Istio on EKS: Self-managed, Kubernetes-only, broader ecosystem. Consul: Service discovery + mesh, self-managed."
+        },
+        {
+          "id": "D4-T4.3-Q5",
+          "question": "Migrated monolithic database to AWS. Now splitting into microservice databases. Each service needs own database but some queries need data from multiple services. What pattern addresses cross-service queries?",
+          "options": [
+            "Keep single shared database for all services",
+            "API composition pattern: services expose APIs, orchestrator queries multiple services and aggregates results",
+            "Distributed transactions across service databases",
+            "Database replication from all services to central query database"
+          ],
+          "correctAnswer": 1,
+          "explanation": "API composition for cross-service queries in microservices: Microservices database patterns: Database per service: Each service owns its database schema, services expose APIs for data access, no direct database access between services. For cross-service queries: API composition: Orchestrator (API Gateway Lambda, GraphQL server, BFF pattern) queries multiple services via APIs, aggregates results in application layer, returns combined response. CQRS (Command Query Responsibility Segregation): Services publish events on data changes, read-optimized view database subscribes to events, aggregates data for queries, separates write model (individual services) from read model (aggregated). For this scenario (need cross-service queries after database split): API composition for simple queries (query 2-3 services, aggregate in code), CQRS + event sourcing for complex analytics (materialized views updated via events), supports microservice independence while enabling cross-service queries. Example: Order service has orders DB, Customer service has customers DB, Order details query: query both services APIs, join in application layer, return combined result. Trade-offs: API composition: simple, real-time data, can be slow if many services, network chattiness. CQRS: complex setup, eventual consistency, optimized for read-heavy. Option A (shared database) violates microservices principle (tight coupling). Option C (distributed transactions) complex, poor performance, avoided in microservices. Option D (replication) creates data copies but needs change propagation mechanism (better as CQRS event-driven)."
+        },
+        {
+          "id": "D4-T4.3-Q6",
+          "question": "E-commerce architecture processes orders via queue. Orders must be processed exactly once in correct sequence per customer. High throughput (5000 orders/sec) with thousands of customers. What architecture?",
+          "options": [
+            "SQS Standard queue (at-least-once delivery, best-effort ordering)",
+            "SQS FIFO queue with message group ID = customer ID for partitioned ordering and deduplication",
+            "Kinesis Data Streams with customer ID as partition key",
+            "DynamoDB with conditional writes"
+          ],
+          "correctAnswer": 1,
+          "explanation": "SQS FIFO with message grouping for partitioned exactly-once ordering: SQS FIFO capabilities: Exactly-once processing (deduplication based on MessageDeduplicationId), ordering guarantee within message group (MessageGroupId), high throughput mode (3000 msg/sec per action, 30K with batching). For this scenario (exactly-once, ordered per customer, 5000 msg/sec total): Use MessageGroupId = customer_id (ordering per customer, not global), enables parallel processing (different consumers handle different customers), 5000 msg/sec total across all groups (within FIFO high throughput limits), exactly-once via deduplication. Architecture: Producer sends to FIFO queue with MessageGroupId=customer123, MessageDeduplicationId=order456 (or content-based), Consumer Lambda processes orders, maintains ordering per customer group, different customers processed in parallel (different message groups). SQS FIFO ordering semantics: Within message group: strict ordering (customer123's orders processed in sequence), across message groups: no ordering guarantee (customer123 and customer456 orders process in parallel), this enables parallelism while maintaining per-customer ordering. Option A (Standard) at-least-once (duplicates possible), best-effort ordering (not guaranteed). Option C (Kinesis) works but more complex (Lambda needs to track sequence numbers), SQS FIFO simpler for this use case. Option D (DynamoDB) not a queue. When to use SQS FIFO: need exactly-once + ordering, partitioned workload (message groups), throughput <30K msg/sec. When to use Kinesis: need data replay, multiple consumers same stream, throughput >30K msg/sec."
+        },
+        {
+          "id": "D4-T4.3-Q7",
+          "question": "Data lake architecture on S3 with raw data, processed data, and curated data layers. Need to catalog data, manage access controls, and enable athena/redshift queries. Which AWS service provides centralized governance?",
+          "options": [
+            "S3 bucket policies only",
+            "AWS Lake Formation for data lake governance, catalog, and fine-grained access control",
+            "IAM policies only",
+            "AWS Glue Data Catalog only"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS Lake Formation for data lake governance: Lake Formation capabilities: Data catalog (built on Glue Data Catalog - tables, schemas, metadata), fine-grained access control (column-level, row-level security), data ingestion (blueprints for common sources), data transformation (ETL workflows), centralized permissions (across Athena, Redshift Spectrum, EMR). For this scenario (S3 data lake with governance needs): Lake Formation registers S3 locations as data lake, catalogs datasets (tables, partitions), defines permissions (database/table/column level), enforces access when queried via Athena/Redshift. Permission model: Grant permissions in Lake Formation (not IAM), supports: database-level, table-level, column-level, row-level filtering. Athena/Redshift query against Lake Formation catalog, Lake Formation enforces permissions, returns only authorized data. Data lake layers with Lake Formation: Raw layer (bronze): ingest from sources, register in Lake Formation, grant read to data engineers. Processed layer (silver): cleaned and transformed, grant read to analysts. Curated layer (gold): business-ready, grant read to business users, column-level security (hide PII from some users). Option A/C (S3/IAM policies) bucket-level only, no column/row filtering, no catalog. Option D (Glue Catalog) catalogs data but no fine-grained access control enforcement. Lake Formation vs alternatives: Lake Formation: Centralized governance, fine-grained access, AWS analytics integration. AWS Glue only: Catalog and ETL, no access control. Third-party (Collibra, Alation): Broader governance, multi-cloud, more complex. Use Lake Formation when: Building S3 data lake, need column/row level security, using Athena/Redshift/EMR."
+        },
+        {
+          "id": "D4-T4.3-Q8",
+          "question": "Containerized application on ECS Fargate scales based on CPU. During traffic spikes, tasks scale but new tasks take 2 minutes to start (container image pull + app initialization). How to improve responsiveness?",
+          "options": [
+            "Use ECS Service Auto Scaling with target tracking on custom application-ready metric instead of CPU",
+            "Pre-scale before expected traffic using scheduled scaling + reduce container startup time with smaller images",
+            "Increase CPU threshold for scaling",
+            "Switch to EC2-based ECS for faster startup"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Pre-scaling and startup optimization for Fargate responsiveness: Scaling challenges with slow startup: Reactive scaling (CPU-based) starts scaling after load increases, 2-minute startup = capacity lags demand, users experience latency during ramp-up. Solutions: (1) Pre-scaling: Scheduled scaling before predictable traffic (daily patterns), Target tracking with predictive scaling (if available for ECS). Step scaling with CloudWatch alarm on queue depth (leading indicator). (2) Reduce startup time: Optimize container image (multi-stage builds, smaller base images), Pre-pull images (ECS caches on underlying infrastructure), Application warm-up optimization (lazy loading, faster initialization). For this scenario (2-minute startup, traffic spikes): If predictable: scheduled scaling 5 minutes before peak, if unpredictable: reduce startup time to <30 seconds (image optimization), consider CPU threshold tuning (scale earlier at 50% vs 70%). Container image optimization: Use slim base images (alpine, distroless), multi-stage builds (build dependencies not in final image), layer caching (frequently changing layers last), example: 500MB image → 50MB = faster pull. ECS/Fargate startup time components: Image pull (depends on image size), container initialization (app startup code), health check (until marked healthy). Option A (application-ready metric) improves accuracy but doesn't solve 2-minute lag. Option C (higher threshold) delays scaling further (worse). Option D (EC2 ECS) startup time similar (still pulls image). 2025 best practice: Predictive scaling (where available) + startup optimization."
+        },
+        {
+          "id": "D4-T4.3-Q9",
+          "question": "Event-driven architecture needs to process events from multiple sources (S3, DynamoDB Streams, custom applications). Need to route events to different Lambda functions based on event content. Which service?",
+          "options": [
+            "SNS with message filtering",
+            "Amazon EventBridge with event patterns and multiple targets",
+            "SQS with Lambda polling",
+            "Direct Lambda invocation from each source"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Amazon EventBridge for centralized event routing: EventBridge capabilities: Event bus (central event router), event patterns (content-based filtering), multiple targets per rule (route to Lambda, SQS, Step Functions, etc.), schema registry (event structure documentation), archive and replay, cross-account event delivery. For this scenario (multiple sources, content-based routing): EventBridge centralized event bus receives from all sources (S3, DynamoDB Streams via Pipes, custom apps via PutEvents), rules with event patterns match content (e.g., {detail.type: ['order.created']}), routes to appropriate Lambda functions. Event routing examples: Rule 1: Pattern matches 'order.created' → routes to OrderProcessingLambda. Rule 2: Pattern matches 'inventory.low' → routes to InventoryAlertLambda. Rule 3: Pattern matches all events → routes to AuditLogLambda. Multiple targets: same event can match multiple rules, enables fan-out to multiple processors. EventBridge event sources: AWS services (100+ services emit events), custom applications (PutEvents API), SaaS integrations (Stripe, Shopify, etc.), EventBridge Pipes (DynamoDB Streams, Kinesis, SQS sources). Option A (SNS) message filtering works but less powerful than EventBridge patterns (SNS filters on attributes, EventBridge on full event content). Option C (SQS) requires polling, no content-based routing. Option D (direct invocation) tightly couples sources to functions. EventBridge vs SNS: EventBridge: Rich event patterns, schema registry, archive/replay, 100+ AWS integrations. SNS: Simpler pub/sub, message filtering, higher throughput (SNS FIFO 300 msg/sec, EventBridge 10K+ events/sec default). Use EventBridge for: complex event routing, AWS service integration, schema evolution. Use SNS for: simple fan-out, high-throughput pub/sub."
+        },
+        {
+          "id": "D4-T4.3-Q10",
+          "question": "Migrated web application to AWS Serverless (API Gateway + Lambda + DynamoDB). Load testing shows Lambda cold starts cause 2-3 second latency spikes. Application needs consistent <500ms response. What optimizations?",
+          "options": [
+            "Increase Lambda memory to reduce cold start time",
+            "Use Lambda Provisioned Concurrency to keep functions warm + optimize function code for faster initialization",
+            "Switch to ECS Fargate",
+            "Add caching layer only"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Lambda Provisioned Concurrency eliminates cold starts: Cold start issue: Lambda creates new execution environment (container, runtime initialization), first invocation experiences latency (2-3 seconds for large packages/dependencies), subsequent invocations fast (<milliseconds on warm container). Solutions for consistent latency: (1) Provisioned Concurrency: keeps N functions initialized and warm, eliminates cold starts for provisioned instances, scales automatically when concurrency exceeds provisioned. (2) Function optimization: reduce deployment package size (remove unused dependencies), minimize initialization code (lazy load libraries), use runtime initialization outside handler (connection pools), use Lambda SnapStart (Java - instant cold starts). For this scenario (<500ms requirement, 2-3s cold start): provision 10-20 concurrent Lambdas (handles baseline traffic), Auto Scaling adds provisioned concurrency during peak, optimize code: lazy load, smaller packages, connection pool reuse. Provisioned Concurrency costs: charged for provisioned instances ($0.0000041667 per GB-second), plus invocation costs, trade-off: cost vs performance SLA. Code optimization techniques: minimize dependencies (tree-shaking, bundling), lazy loading (import libraries only when needed), global scope for reusable connections (database, HTTP clients), example: 200MB package → 20MB = faster cold start. Option A (memory increase) helps modestly but doesn't eliminate cold starts. Option C (Fargate) also has cold starts (task startup). Option D (caching) helps repeat requests but not cold start latency. Lambda cold start factors: Runtime (Python/Node fast, Java slow), package size (50MB vs 5MB), initialization code (database connections slow). 2025 optimization: Provisioned Concurrency + SnapStart (Java) + code optimization."
+        }
+      ]
+    },
+    {
+      "filename": "domain-4-migration-modernization-all.json",
+      "domain": "Domain 4: Accelerate Workload Migration and Modernization",
+      "task": "task_4.4_modernization",
+      "taskKey": "task_4.4_modernization",
+      "question_count": 8,
+      "questions": [
+        {
+          "id": "D4-T4.4-Q1",
+          "question": "Application runs on EC2 with scheduled jobs (Lambda via CloudWatch Events can handle these better). Most functions are stateless, request-response pattern, <5 minute execution. What's the modernization opportunity?",
+          "options": [
+            "Migrate EC2 to Lambda functions for event-driven, serverless execution with automatic scaling and pay-per-use pricing",
+            "Containerize the application using ECS",
+            "Keep on EC2 but use Auto Scaling",
+            "Migrate to Elastic Beanstalk"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Lambda modernization for suitable workloads: Current: EC2 running 24/7, pay for idle time, manual scaling. Lambda: event-driven execution (EventBridge schedules, API Gateway, S3 events), pay only for execution time (100ms granularity), automatic scaling (concurrent executions), no server management. For this scenario: scheduled jobs (EventBridge → Lambda), <5 min execution (within Lambda 15-min limit), stateless (Lambda paradigm). Benefits: cost savings (vs always-on EC2), simplified operations, high availability (Lambda managed by AWS). Consider Lambda when: stateless workloads, short duration (<15 min), event-driven triggers, variable load. Keep EC2 when: long-running (>15 min), stateful (persistent connections), specific OS requirements, GPU/high memory (>10GB). Option B (ECS) suitable for containerized apps but still requires cluster management. Option C (Auto Scaling) improves EC2 but still paying for servers. Option D (Elastic Beanstalk) PaaS simplification but still server-based. Lambda limitations: 15-minute max, 10GB memory max, /tmp storage (10GB), deployment package size (250MB unzipped). Modernization migration: identify stateless functions, containerize as Lambda deployment package, configure triggers (EventBridge, API Gateway), test concurrency limits, monitor CloudWatch metrics."
+        },
+        {
+          "id": "D4-T4.4-Q2",
+          "question": "Self-managed Kubernetes cluster on EC2 (10 worker nodes, multiple operators for logging, monitoring, service mesh). Operations team spends significant time on cluster upgrades, patching, and control plane HA. What's the modernization path?",
+          "options": [
+            "Migrate to Amazon EKS for managed Kubernetes control plane and integrated AWS services",
+            "Migrate to ECS for AWS-native container orchestration",
+            "Keep self-managed but automate with Infrastructure as Code",
+            "Migrate to Lambda for serverless"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Amazon EKS modernization: EKS manages Kubernetes control plane (HA across 3 AZs, automatic upgrades, patching), integrates with AWS services (ALB/NLB ingress, EBS/EFS storage, IAM authentication, CloudWatch monitoring). Benefits vs self-managed: no control plane management, SLA-backed availability (99.95%), security (automatic security patches), AWS integrations (VPC networking, IAM). Operations team focuses on applications, not cluster infrastructure. For this scenario: 10 worker nodes become EKS-managed, service mesh (App Mesh or continue using existing), logging (CloudWatch Container Insights), monitoring (integrated with CloudWatch). Migration: create EKS cluster, migrate workloads (kubectl apply manifests), test, cutover. Option B (ECS) requires rewriting K8s manifests to ECS task definitions - significant effort if already Kubernetes. Option C (IaC) improves self-managed but doesn't eliminate operational burden. Option D (Lambda) for Kubernetes workloads is major refactoring. EKS features: Managed node groups (automatic patching, upgrades), Fargate for serverless pods, IRSA (IAM Roles for Service Accounts), EKS Add-ons (managed installation of VPC CNI, CoreDNS, kube-proxy). When to use EKS: existing Kubernetes workloads, multi-cloud (Kubernetes portable), need K8s API. When to use ECS: AWS-only, simpler container orchestration, tight AWS integration."
+        },
+        {
+          "id": "D4-T4.4-Q3",
+          "question": "Application uses Jenkins on EC2 for CI/CD. Jenkins server requires patching, plugin management, and often is underutilized. AWS-native modernization?",
+          "options": [
+            "Migrate to AWS CodePipeline, CodeBuild, and CodeDeploy for fully managed CI/CD without server management",
+            "Run Jenkins on Elastic Beanstalk",
+            "Containerize Jenkins on ECS",
+            "Keep Jenkins but use Auto Scaling"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS CodePipeline + CodeBuild + CodeDeploy provides serverless CI/CD: CodePipeline (workflow orchestration), CodeBuild (build and test - runs in containers, scales automatically), CodeDeploy (deployment to EC2, ECS, Lambda with blue/green, canary). Benefits vs Jenkins: No server management (fully managed), pay per build minute (vs always-on Jenkins), integrated with AWS (IAM, CloudWatch, S3), automatic scaling. Migration: translate Jenkins pipeline to CodePipeline stages, Jenkinsfile to CodeBuild buildspec.yml, Jenkins deploy scripts to CodeDeploy appspec. Considerations: complex Jenkins pipelines may need phased migration, Jenkins plugins map to CodeBuild Docker images or Lambda functions, Jenkins artifacts migrate to S3. Option B/C (Beanstalk, ECS) still requires Jenkins management. Option D (Auto Scaling) doesn't solve operational burden. Alternative: GitHub Actions or GitLab CI/CD if using those platforms. AWS Developer Tools: CodeCommit (Git repository), CodeBuild (build service), CodeDeploy (deployment), CodePipeline (orchestration), CodeArtifact (artifact repository), CodeGuru (code review AI). When to modernize: reduce operational overhead, improve scalability, leverage AWS-native features. When to keep Jenkins: complex pipelines difficult to migrate, heavy Jenkins plugin dependence, multi-cloud (Jenkins portable)."
+        },
+        {
+          "id": "D4-T4.4-Q4",
+          "question": "Traditional RDS MySQL database currently handles 10,000 reads/sec with complex queries. Considering modernization to Aurora. What are the key Aurora advantages for this workload?",
+          "options": [
+            "Aurora MySQL provides up to 5x throughput vs RDS MySQL, storage auto-scales, 15 read replicas, faster failover",
+            "Aurora is cheaper than RDS MySQL",
+            "Aurora eliminates need for read replicas",
+            "Aurora MySQL doesn't support InnoDB"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Aurora MySQL modernization benefits: Performance: Up to 5x throughput vs standard MySQL (SSD-backed virtualized storage layer), 15 low-latency read replicas (vs 5 for RDS MySQL), millisecond replica lag (vs seconds for RDS). Storage: Auto-scales from 10GB to 128TB automatically, 6-way storage replication across 3 AZs, self-healing storage (automatic block repair). Availability: <30 second failover to replica (vs 1-2 minutes RDS Multi-AZ), continues operating with loss of 2 copies (writes) or 3 copies (reads), backtrack (rewind to point in time without restore). For this scenario (10,000 reads/sec, complex queries): 15 read replicas distribute query load, faster storage layer improves query performance, auto-scaling storage eliminates capacity planning. Migration from RDS MySQL to Aurora: Create Aurora replica of RDS instance (replication lag until synchronized), promote Aurora replica to standalone cluster when ready, cutover application connections to Aurora, minimal downtime (<5 minutes). Aurora Global Database (additional benefit): cross-region replication (<1 second lag), disaster recovery with RPO <1 second, RTO <1 minute. Cost consideration: Aurora storage billed per GB used (vs RDS provisioned), Aurora I/O costs (can use Aurora I/O-Optimized for predictable pricing), often cost-neutral or lower TCO when considering performance and HA. Option B incorrect - Aurora not necessarily cheaper (depends on workload). Option C incorrect - read replicas still needed for scale. Option D incorrect - Aurora uses InnoDB. When to migrate to Aurora: need >5 read replicas, need fast failover (<30s), high read throughput, automatic storage scaling. When to keep RDS: cost-sensitive workload (low I/O), don't need additional replicas."
+        },
+        {
+          "id": "D4-T4.4-Q5",
+          "question": "Application uses self-managed Redis on EC2 for caching with manual configuration, patching, and scaling. Modernization to ElastiCache Redis provides what operational benefits?",
+          "options": [
+            "ElastiCache Redis provides automatic failover, automated patching, backup/restore, and Redis Cluster mode for horizontal scaling",
+            "ElastiCache is incompatible with Redis protocol",
+            "ElastiCache requires manual patching",
+            "ElastiCache doesn't support Redis data structures"
+          ],
+          "correctAnswer": 0,
+          "explanation": "ElastiCache Redis modernization benefits: Operational: Automated patching (engine version upgrades in maintenance window), automatic failover (primary to replica <60 seconds), automated backups and point-in-time restore, CloudWatch monitoring integration. Scalability: Cluster mode for horizontal scaling (up to 500 shards), up to 5 replicas per shard, online resharding (add/remove shards without downtime). Compatibility: 100% Redis compatible (all data structures, commands), supports Redis 6.x and 7.x features, drop-in replacement for self-managed Redis. For this scenario (self-managed Redis operational burden): ElastiCache eliminates: manual patching (AWS handles), failover scripting (automatic with Multi-AZ), monitoring setup (CloudWatch integration), backup automation (ElastiCache handles). Migration from EC2 Redis to ElastiCache: Create ElastiCache cluster (same Redis version), use Redis MIGRATE command or third-party tool (riot-redis), or online migration service, cutover application to ElastiCache endpoint. ElastiCache features: Redis AUTH for authentication, encryption at-rest (KMS), encryption in-transit (TLS), VPC isolation, IAM authentication (Redis 7.x). Cost comparison: ElastiCache vs self-managed: ElastiCache pay per node-hour, self-managed pay for EC2 + operational labor, generally ElastiCache lower TCO when factoring operations. Option B/D incorrect - fully Redis compatible. Option C incorrect - automated patching. When to use ElastiCache: reduce operational overhead, need automated failover, want managed backups. When self-manage: specific Redis config not supported, extreme cost sensitivity, need complete control. Alternative: Amazon MemoryDB for Redis for durable Redis with Multi-AZ strong consistency."
+        },
+        {
+          "id": "D4-T4.4-Q6",
+          "question": "Company runs Hadoop clusters on-premises for batch processing (10TB data processed nightly). Considering modernization. What's AWS alternative that reduces operational overhead?",
+          "options": [
+            "Self-managed Hadoop on EC2",
+            "Amazon EMR with auto-scaling and Spot Instances, or AWS Glue for serverless ETL",
+            "RDS for data processing",
+            "Lambda for batch processing"
+          ],
+          "correctAnswer": 1,
+          "explanation": "EMR and Glue as Hadoop modernization options: Amazon EMR (Elastic MapReduce): Managed Hadoop framework (Hadoop, Spark, Hive, Presto), auto-scaling (scale based on workload), Spot Instances integration (70-90% cost savings), transient clusters (spin up for job, terminate after), S3 as persistent storage (EMRFS). AWS Glue: Serverless ETL (no cluster management), auto-scaling (automatic capacity), pay per DPU-hour (Data Processing Unit), integrates with Glue Data Catalog, supports Spark and Python. For this scenario (10TB nightly batch processing): EMR approach: spin up cluster nightly (transient), process data from S3, use Spot Instances (cost-optimized), terminate cluster after job, no cluster management when idle. Glue approach: define Glue job (PySpark or Scala), schedule with EventBridge, Glue auto-scales resources, serverless (no infrastructure). Migration from on-premises Hadoop: Migrate data to S3 (DataSync or Snowball), port Hadoop jobs to EMR (mostly compatible) or Glue (some refactoring), test performance and cost, cutover batch scheduling to AWS. EMR vs Glue decision: EMR when: need specific Hadoop ecosystem tools (Hive, Presto, HBase), complex Spark jobs requiring tuning, want cluster control. Glue when: standard ETL workloads, want serverless simplicity, Python/Spark based jobs. Cost optimization: Transient EMR clusters (only pay during job runtime), Spot Instances for EMR (steep discounts), S3 storage cheaper than HDFS on EBS. Option A self-managed defeats modernization purpose. Option C/D inappropriate for big data batch. Additional AWS big data services: Redshift for data warehousing, Athena for SQL on S3 (serverless queries), Kinesis for streaming data."
+        },
+        {
+          "id": "D4-T4.4-Q7",
+          "question": "Windows applications use on-premises Active Directory for authentication. After migrating to AWS, need to maintain AD authentication. What modernization approach balances management overhead and functionality?",
+          "options": [
+            "Self-managed AD on EC2",
+            "AWS Managed Microsoft AD for fully managed AD with trust relationships to on-premises",
+            "Eliminate AD entirely and use IAM",
+            "Azure AD (not AWS service)"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS Managed Microsoft AD for AD modernization: AWS Managed Microsoft AD (Directory Service): Actual Microsoft AD (not compatible alternative), fully managed by AWS (patching, backups, monitoring), multi-AZ deployment for HA, trust relationships with on-premises AD (hybrid scenarios). Capabilities: Standard AD features (Group Policy, LDAP, Kerberos, NTLM), schema extensions, trusts (one-way, two-way) with on-premises AD, integrates with AWS services (RDS SQL Server, FSx Windows, WorkSpaces). For this scenario (Windows apps need AD after migration): Managed Microsoft AD in AWS (no server management), establish trust with on-premises AD (hybrid), migrated applications authenticate against AWS-managed AD, users synchronized from on-premises (or use trust for lookup). Migration approaches: Hybrid: trust relationship between on-premises AD and AWS Managed AD, users/groups remain in on-premises, AWS applications trust on-premises AD. Cloud-only: migrate users/groups to AWS Managed AD, decommission on-premises AD eventually. AD Connector (alternative): proxy to on-premises AD (no data in AWS), suitable for simple authentication passthrough, doesn't support all AD features. Managed AD sizes: Standard: up to 5,000 users, 30,000 directory objects, Enterprise: up to 500,000+ directory objects. Option A (self-managed) operational overhead of patch, backup, HA configuration. Option C (eliminate AD) breaking change for Windows applications. Option D (Azure AD) not AWS service, different purpose (SaaS SSO vs traditional AD). When to use Managed AD: Windows workloads requiring traditional AD, hybrid scenarios (on-premises + AWS), need AD features (GP, trusts). When to use IAM: cloud-native apps, REST API authentication, AWS service access."
+        },
+        {
+          "id": "D4-T4.4-Q8",
+          "question": "Self-managed monitoring stack (Prometheus, Grafana on EC2) for containerized applications. Considering modernization to reduce operational overhead. What AWS managed alternative?",
+          "options": [
+            "Amazon Managed Service for Prometheus (AMP) and Amazon Managed Grafana (AMG)",
+            "CloudWatch only (doesn't support Prometheus)",
+            "Keep self-managed stack",
+            "Third-party SaaS (not AWS service)"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Amazon Managed Service for Prometheus (AMP) and Managed Grafana (AMG): AMP (Amazon Managed Prometheus): Prometheus-compatible monitoring service, serverless (automatic scaling), secure (IAM integration, encryption), HA (Multi-AZ), integrates with EKS, ECS, EC2, Lambda. AMG (Amazon Managed Grafana): Fully managed Grafana service, pre-integrated with AMP, CloudWatch, X-Ray, connects to multiple data sources, user management via SSO (SAML), built-in dashboards. For this scenario (self-managed Prometheus/Grafana operational burden): AMP replaces self-managed Prometheus (no server management, auto-scaling, HA), AMG replaces self-managed Grafana (managed service, SSO, upgrades handled), integrates seamlessly (AMP as data source for AMG). Migration from self-managed: Configure Prometheus remote write to AMP workspace, gradual cutover (run both in parallel), import Grafana dashboards to AMG, update data sources to AMP, decommission self-managed. Architecture: EKS/ECS with Prometheus agent (scrapes metrics), agent sends to AMP via remote write, AMG queries AMP for visualization, users access AMG dashboards. Benefits: No server patching (fully managed), automatic scaling (no capacity planning), integrated security (IAM, encryption), pay-per-use (no idle costs), highly available (Multi-AZ). Cost model: AMP: per metric sample ingested and stored, per query sample processed, AMG: per active user per month. Option B CloudWatch alternative but not Prometheus-compatible (different query language). Self-managed (Option C) defeats modernization goal. When to use AMP/AMG: want Prometheus compatibility, reduce operational overhead, EKS/ECS monitoring. When self-manage: need bleeding-edge Prometheus features, extreme cost sensitivity, specific plugins not available."
         }
       ]
     }
