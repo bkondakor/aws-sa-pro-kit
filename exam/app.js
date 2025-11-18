@@ -1,53 +1,58 @@
-// Exam Application
+// AWS SA Pro Practice Exam Application
 class ExamApp {
     constructor() {
+        this.allQuestionSets = [];
         this.questions = [];
         this.currentQuestionIndex = 0;
         this.userAnswers = [];
         this.flaggedQuestions = new Set();
         this.startTime = null;
         this.timerInterval = null;
+        this.examMode = null;
+        this.examConfig = null;
+
         this.screens = {
             welcome: document.getElementById('welcomeScreen'),
+            config: document.getElementById('configScreen'),
             exam: document.getElementById('examScreen'),
             results: document.getElementById('resultsScreen'),
             review: document.getElementById('reviewScreen')
         };
+
         this.init();
     }
 
     async init() {
-        await this.loadQuestions();
+        await this.loadAllQuestions();
         this.setupEventListeners();
-        this.updateTotalQuestions();
+        this.checkSavedExam();
     }
 
-    async loadQuestions() {
+    async loadAllQuestions() {
         try {
-            const response = await fetch('questions.json');
+            const response = await fetch('all-questions.json');
             const data = await response.json();
-            this.questions = data.questions;
-
-            // Shuffle questions for randomization
-            this.shuffleArray(this.questions);
-
-            // Initialize user answers array
-            this.userAnswers = new Array(this.questions.length).fill(null);
+            this.allQuestionSets = data.questionSets;
+            document.getElementById('totalQuestions').textContent = data.metadata.totalQuestions;
         } catch (error) {
             console.error('Error loading questions:', error);
-            alert('Failed to load questions. Please ensure questions.json is available.');
-        }
-    }
-
-    shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+            alert('Failed to load questions. Please ensure all-questions.json is available.');
         }
     }
 
     setupEventListeners() {
-        document.getElementById('startBtn').addEventListener('click', () => this.startExam());
+        // Exam mode selection
+        document.querySelectorAll('.exam-mode-card').forEach(card => {
+            card.addEventListener('click', () => this.selectExamMode(card.dataset.mode));
+        });
+
+        // Navigation buttons
+        document.getElementById('backToWelcomeBtn')?.addEventListener('click', () => this.showScreen('welcome'));
+        document.getElementById('continueExamBtn')?.addEventListener('click', () => this.continueSavedExam());
+        document.getElementById('newExamBtn')?.addEventListener('click', () => this.startNewExam());
+        document.getElementById('startConfiguredExamBtn')?.addEventListener('click', () => this.startConfiguredExam());
+
+        // Exam controls
         document.getElementById('nextBtn').addEventListener('click', () => this.nextQuestion());
         document.getElementById('prevBtn').addEventListener('click', () => this.prevQuestion());
         document.getElementById('flagBtn').addEventListener('click', () => this.toggleFlag());
@@ -57,13 +62,167 @@ class ExamApp {
         document.getElementById('backToResultsBtn').addEventListener('click', () => this.showResults());
     }
 
-    updateTotalQuestions() {
-        document.getElementById('totalQuestions').textContent = this.questions.length;
+    checkSavedExam() {
+        const saved = localStorage.getItem('examState');
+        if (saved) {
+            const examState = JSON.parse(saved);
+            const savedExamSection = document.getElementById('savedExamSection');
+            const savedExamDetails = document.getElementById('savedExamDetails');
+
+            const answered = examState.userAnswers.filter(a => a !== null).length;
+            const total = examState.questions.length;
+            const percentage = Math.round((answered / total) * 100);
+
+            savedExamDetails.textContent = `${answered} of ${total} questions answered (${percentage}%)`;
+            savedExamSection.style.display = 'block';
+        }
     }
 
-    showScreen(screenName) {
-        Object.values(this.screens).forEach(screen => screen.classList.remove('active'));
-        this.screens[screenName].classList.add('active');
+    selectExamMode(mode) {
+        this.examMode = mode;
+
+        if (mode === 'full') {
+            // Start full exam immediately
+            this.prepareFullExam();
+            this.startExam();
+        } else if (mode === 'random') {
+            // Show random exam configuration
+            this.showRandomConfig();
+        } else if (mode === 'domain') {
+            // Show domain selection
+            this.showDomainConfig();
+        }
+    }
+
+    prepareFullExam() {
+        this.questions = [];
+        this.allQuestionSets.forEach(set => {
+            this.questions.push(...set.questions);
+        });
+        this.shuffleArray(this.questions);
+    }
+
+    showRandomConfig() {
+        this.showScreen('config');
+        document.getElementById('configTitle').textContent = 'Configure Random Exam';
+
+        const configContent = document.getElementById('configContent');
+        configContent.innerHTML = `
+            <div class="config-option">
+                <label>
+                    <span>Number of questions:</span>
+                    <input type="number" id="randomQuestionCount" min="10" max="132" value="30">
+                </label>
+            </div>
+            <div class="config-option">
+                <label>
+                    <input type="checkbox" id="shuffleOptions" checked>
+                    <span>Shuffle answer options</span>
+                </label>
+            </div>
+        `;
+    }
+
+    showDomainConfig() {
+        this.showScreen('config');
+        document.getElementById('configTitle').textContent = 'Select Domains';
+
+        // Group question sets by domain
+        const domainMap = new Map();
+        this.allQuestionSets.forEach(set => {
+            if (!domainMap.has(set.domain)) {
+                domainMap.set(set.domain, []);
+            }
+            domainMap.get(set.domain).push(set);
+        });
+
+        const configContent = document.getElementById('configContent');
+        let html = '<div class="domain-list">';
+
+        domainMap.forEach((sets, domain) => {
+            const totalQuestions = sets.reduce((sum, set) => sum + set.questions.length, 0);
+            html += `
+                <div class="domain-item">
+                    <input type="checkbox" id="domain-${this.sanitizeId(domain)}" value="${domain}" checked>
+                    <label for="domain-${this.sanitizeId(domain)}">${domain}</label>
+                    <span class="question-count">${totalQuestions} questions</span>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+        configContent.innerHTML = html;
+    }
+
+    sanitizeId(str) {
+        return str.replace(/[^a-zA-Z0-9]/g, '-');
+    }
+
+    startConfiguredExam() {
+        if (this.examMode === 'random') {
+            const count = parseInt(document.getElementById('randomQuestionCount').value);
+            this.prepareRandomExam(count);
+        } else if (this.examMode === 'domain') {
+            this.prepareDomainExam();
+        }
+
+        if (this.questions.length === 0) {
+            alert('Please select at least one domain or adjust your configuration.');
+            return;
+        }
+
+        this.startExam();
+    }
+
+    prepareRandomExam(count) {
+        // Collect all questions
+        const allQuestions = [];
+        this.allQuestionSets.forEach(set => {
+            allQuestions.push(...set.questions);
+        });
+
+        // Shuffle and select random questions
+        this.shuffleArray(allQuestions);
+        this.questions = allQuestions.slice(0, Math.min(count, allQuestions.length));
+    }
+
+    prepareDomainExam() {
+        this.questions = [];
+        const selectedDomains = [];
+
+        document.querySelectorAll('.domain-item input[type="checkbox"]:checked').forEach(checkbox => {
+            selectedDomains.push(checkbox.value);
+        });
+
+        this.allQuestionSets.forEach(set => {
+            if (selectedDomains.includes(set.domain)) {
+                this.questions.push(...set.questions);
+            }
+        });
+
+        this.shuffleArray(this.questions);
+    }
+
+    startNewExam() {
+        localStorage.removeItem('examState');
+        document.getElementById('savedExamSection').style.display = 'none';
+    }
+
+    continueSavedExam() {
+        const saved = localStorage.getItem('examState');
+        if (saved) {
+            const examState = JSON.parse(saved);
+            this.questions = examState.questions;
+            this.currentQuestionIndex = examState.currentQuestionIndex;
+            this.userAnswers = examState.userAnswers;
+            this.flaggedQuestions = new Set(examState.flaggedQuestions);
+            this.startTime = examState.startTime;
+
+            this.showScreen('exam');
+            this.startTimer();
+            this.renderQuestion();
+            this.renderQuestionPalette();
+        }
     }
 
     startExam() {
@@ -75,6 +234,31 @@ class ExamApp {
         this.showScreen('exam');
         this.renderQuestion();
         this.renderQuestionPalette();
+        this.saveExamState();
+    }
+
+    saveExamState() {
+        const examState = {
+            questions: this.questions,
+            currentQuestionIndex: this.currentQuestionIndex,
+            userAnswers: this.userAnswers,
+            flaggedQuestions: Array.from(this.flaggedQuestions),
+            startTime: this.startTime,
+            examMode: this.examMode
+        };
+        localStorage.setItem('examState', JSON.stringify(examState));
+    }
+
+    shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    showScreen(screenName) {
+        Object.values(this.screens).forEach(screen => screen.classList.remove('active'));
+        this.screens[screenName].classList.add('active');
     }
 
     startTimer() {
@@ -212,6 +396,7 @@ class ExamApp {
         });
 
         this.renderQuestionPalette();
+        this.saveExamState();
     }
 
     toggleMultipleAnswer(optionIndex) {
@@ -243,6 +428,7 @@ class ExamApp {
         });
 
         this.renderQuestionPalette();
+        this.saveExamState();
     }
 
     toggleFlag() {
@@ -252,12 +438,14 @@ class ExamApp {
             this.flaggedQuestions.add(this.currentQuestionIndex);
         }
         this.renderQuestion();
+        this.saveExamState();
     }
 
     nextQuestion() {
         if (this.currentQuestionIndex < this.questions.length - 1) {
             this.currentQuestionIndex++;
             this.renderQuestion();
+            this.saveExamState();
         }
     }
 
@@ -265,12 +453,14 @@ class ExamApp {
         if (this.currentQuestionIndex > 0) {
             this.currentQuestionIndex--;
             this.renderQuestion();
+            this.saveExamState();
         }
     }
 
     goToQuestion(index) {
         this.currentQuestionIndex = index;
         this.renderQuestion();
+        this.saveExamState();
     }
 
     renderQuestionPalette() {
@@ -310,6 +500,7 @@ class ExamApp {
         this.stopTimer();
         this.calculateResults();
         this.showResults();
+        localStorage.removeItem('examState');
     }
 
     calculateResults() {
@@ -320,7 +511,7 @@ class ExamApp {
             const correctAnswer = question.correctAnswer;
 
             if (question.type === 'multiple') {
-                // For multiple choice, check if arrays match (same elements, order doesn't matter)
+                // For multiple choice, check if arrays match
                 if (Array.isArray(userAnswer) && Array.isArray(correctAnswer)) {
                     const userSorted = [...userAnswer].sort();
                     const correctSorted = [...correctAnswer].sort();
@@ -397,14 +588,12 @@ class ExamApp {
 
             let isCorrect = false;
             if (isMultipleChoice) {
-                // Check if arrays match for multiple choice
                 if (Array.isArray(userAnswer) && Array.isArray(correctAnswer)) {
                     const userSorted = [...userAnswer].sort();
                     const correctSorted = [...correctAnswer].sort();
                     isCorrect = JSON.stringify(userSorted) === JSON.stringify(correctSorted);
                 }
             } else {
-                // Direct comparison for single choice
                 isCorrect = userAnswer === correctAnswer;
             }
 
@@ -472,7 +661,7 @@ class ExamApp {
                     optionDiv.appendChild(label);
                 }
 
-                // Mark wrong answer (user selected but incorrect)
+                // Mark wrong answer
                 if (isUserAnswer && !isCorrectAnswer) {
                     optionDiv.classList.add('wrong-answer');
                 }
@@ -506,9 +695,10 @@ class ExamApp {
     }
 
     retakeExam() {
-        // Shuffle questions again for a new experience
         this.shuffleArray(this.questions);
+        localStorage.removeItem('examState');
         this.showScreen('welcome');
+        this.checkSavedExam();
     }
 }
 

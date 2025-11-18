@@ -23,7 +23,7 @@
                         <div class="info-icon">📝</div>
                         <div class="info-text">
                             <strong>Questions</strong>
-                            <span id="totalQuestions">--</span>
+                            <span id="totalQuestions">132</span>
                         </div>
                     </div>
                     <div class="info-card">
@@ -41,7 +41,54 @@
                         </div>
                     </div>
                 </div>
-                <button id="startBtn" class="btn btn-primary">Start Exam</button>
+
+                <!-- Continue Saved Exam Section -->
+                <div id="savedExamSection" class="saved-exam-section" style="display: none;">
+                    <div class="saved-exam-alert">
+                        <div class="saved-exam-icon">💾</div>
+                        <div class="saved-exam-info">
+                            <h3>Continue Your Exam</h3>
+                            <p id="savedExamDetails">You have a saved exam in progress</p>
+                        </div>
+                        <div class="saved-exam-actions">
+                            <button id="continueExamBtn" class="btn btn-primary">Continue</button>
+                            <button id="newExamBtn" class="btn btn-secondary">Start New</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="examModeSelection">
+                    <h3 style="margin: 30px 0 20px; color: var(--secondary-color);">Select Exam Mode</h3>
+                    <div class="exam-modes">
+                        <div class="exam-mode-card" data-mode="full">
+                            <div class="mode-icon">📚</div>
+                            <h4>Full Exam</h4>
+                            <p>All 132 questions across all domains</p>
+                        </div>
+                        <div class="exam-mode-card" data-mode="random">
+                            <div class="mode-icon">🎲</div>
+                            <h4>Random Exam</h4>
+                            <p>Customizable random selection</p>
+                        </div>
+                        <div class="exam-mode-card" data-mode="domain">
+                            <div class="mode-icon">🎯</div>
+                            <h4>By Domain</h4>
+                            <p>Focus on specific domains</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exam Configuration Screen -->
+        <div id="configScreen" class="screen">
+            <div class="welcome-content">
+                <h2 id="configTitle">Configure Your Exam</h2>
+                <div id="configContent"></div>
+                <div class="config-actions">
+                    <button id="backToWelcomeBtn" class="btn btn-secondary">Back</button>
+                    <button id="startConfiguredExamBtn" class="btn btn-primary">Start Exam</button>
+                </div>
             </div>
         </div>
 
