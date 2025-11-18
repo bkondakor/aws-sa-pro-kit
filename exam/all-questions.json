@@ -1,17 +1,988 @@
 {
   "metadata": {
-    "totalFiles": 15,
-    "totalQuestions": 172,
+    "totalFiles": 20,
+    "totalQuestions": 247,
     "domains": [
       "Domain 1: Organizational Complexity",
       "Domain 2: Design for New Solutions",
       "Domain 3: Continuous Improvement",
       "Domain 3: Continuous Improvement for Existing Solutions",
-      "Domain 4: Accelerate Workload Migration and Modernization"
+      "Domain 4: Accelerate Workload Migration and Modernization",
+      "Mixed Domains: Advanced Multi-Select Scenarios"
     ],
-    "lastUpdated": "2025-11-18T22:08:53.845Z"
+    "lastUpdated": "2025-11-18T23:23:13.959Z"
   },
   "questionSets": [
+    {
+      "filename": "advanced-scenarios-batch-1.json",
+      "domain": "Domain 1: Organizational Complexity",
+      "task": "Advanced Scenarios - Networking, Multi-Account, Security",
+      "question_count": 15,
+      "questions": [
+        {
+          "question": "A multinational corporation is migrating from multiple site-to-site VPN connections to AWS Transit Gateway VPN. They have 25 branch offices that need to connect to AWS. Each branch office has dual ISP connections for redundancy. During testing, they notice that aggregate throughput per VPN tunnel is only reaching 1.25 Gbps despite having sufficient bandwidth. What is the PRIMARY reason for this limitation?",
+          "options": [
+            "Transit Gateway VPN connections are limited to 1.25 Gbps per VPN tunnel due to single-flow IPsec throughput limits",
+            "Transit Gateway has a global bandwidth cap of 50 Gbps for all VPN connections combined",
+            "The customer gateway devices need hardware acceleration to achieve higher throughput",
+            "BGP route limits are causing traffic to be throttled at the Transit Gateway"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS Transit Gateway VPN connections have a per-tunnel throughput limit of 1.25 Gbps due to IPsec single-flow encryption overhead. This is a fundamental limitation of IPsec VPN tunnels as they cannot utilize multiple CPU cores for a single tunnel. To achieve higher throughput, you must use ECMP (Equal Cost Multi-Path) routing with multiple VPN tunnels and ensure traffic is distributed across them. Each VPN connection provides two tunnels (for redundancy), and with ECMP, you can add multiple VPN connections to achieve aggregate throughput beyond 1.25 Gbps. Option B is incorrect - Transit Gateway can support up to 50 Gbps per VPN connection with proper ECMP configuration across multiple tunnels. Option C, while hardware acceleration can help, doesn't solve the per-tunnel limit. Option D is unrelated - BGP route limits would cause connectivity issues, not throughput throttling. The key learning is that architects must design for ECMP with multiple VPN tunnels to scale beyond 1.25 Gbps."
+        },
+        {
+          "question": "An enterprise has an existing Direct Connect LAG with two 10 Gbps connections. Due to increasing bandwidth demands, they want to upgrade by adding two 100 Gbps connections to the same LAG while maintaining the existing 10 Gbps connections during the migration period. What will happen when they attempt this configuration?",
+          "options": [
+            "The LAG will automatically adjust to use all four connections with weighted load balancing based on port speed",
+            "The configuration will be rejected because all connections in a LAG must have identical port speeds",
+            "The 100 Gbps connections will be throttled to 10 Gbps to match the existing connections",
+            "The LAG will operate in hybrid mode, routing different traffic types to different speed connections"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS Direct Connect LAG (Link Aggregation Group) has a strict requirement that all connections in a LAG must use the same bandwidth (port speed). You cannot mix 10 Gbps and 100 Gbps connections in the same LAG. This is an IEEE 802.3ad (LACP) standard requirement that AWS enforces. To upgrade from 10 Gbps to 100 Gbps connections, the architect must either: (1) Create a new LAG with 100 Gbps connections, migrate traffic, then decommission the old LAG, or (2) Create individual 100 Gbps connections without LAG, use multiple VIFs with BGP for redundancy. Option A is incorrect - there's no weighted load balancing in LAGs. Option C is false - AWS will reject the configuration entirely rather than throttle. Option D is incorrect - no such hybrid mode exists. The critical learning point is that LAG upgrades require careful planning and cannot be done in-place with mixed speeds, which can catch architects off guard during capacity planning."
+        },
+        {
+          "question": "A Solutions Architect is implementing defense-in-depth security for a multi-account organization. They create an SCP that denies all EC2 instance launches except t3.micro and t3.small. They also implement an IAM permission boundary that allows launching instances up to t3.medium. A developer with full EC2 permissions (within the permission boundary) attempts to launch a t3.medium instance. What will happen?",
+          "options": [
+            "The instance will launch successfully because the IAM permission allows it",
+            "The launch will fail because the SCP takes precedence and denies t3.medium",
+            "The instance will launch as t3.small, automatically downgraded by AWS",
+            "The launch will fail with an SCP override prompt requiring approval"
+          ],
+          "correctAnswer": 1,
+          "explanation": "In AWS, permissions are evaluated using the intersection of all applicable policies: Identity-based policies AND Permission Boundaries AND SCPs AND Resource-based policies. The effective permissions are the intersection (logical AND) of all these. Service Control Policies (SCPs) from AWS Organizations act as a guardrail - they set the maximum permissions that can be granted, regardless of what IAM policies say. In this scenario: The IAM permissions allow EC2 launches, the permission boundary allows up to t3.medium, but the SCP explicitly denies everything except t3.micro and t3.small. Since SCPs are evaluated as part of the authorization chain, the SCP denial takes precedence and blocks the t3.medium launch. Option A is incorrect because IAM permissions alone don't determine access. Option C is false - AWS doesn't auto-downgrade instance types. Option D is incorrect - there's no SCP override mechanism. This is a tricky scenario because architects might assume permission boundaries are the most restrictive element, but SCPs operate at the account level and can override even tightly scoped IAM permissions. The key insight is that all permissions must allow an action for it to succeed."
+        },
+        {
+          "question": "A media company uses CloudFront with an S3 bucket as the primary origin and an on-premises web server as a secondary custom origin. They configure origin failover to use the on-premises server when S3 is unavailable. During testing, they notice that failover to the custom origin happens even when S3 returns 404 errors for missing objects, causing unexpected behavior. What is the BEST way to fix this?",
+          "options": [
+            "Configure origin failover to only trigger on 5xx errors (500, 502, 503, 504) and not 4xx errors",
+            "Disable origin failover and use Lambda@Edge to implement custom failover logic",
+            "Configure S3 bucket policies to return 503 instead of 404 for missing objects",
+            "Use multiple distributions with Route 53 health checks for failover instead"
+          ],
+          "correctAnswer": 0,
+          "explanation": "CloudFront origin failover allows you to specify which HTTP status codes should trigger failover to the secondary origin. By default, CloudFront may fail over on both 4xx and 5xx errors, but this behavior can be customized. A 404 error indicates the object doesn't exist at the origin, which is a valid response and shouldn't trigger failover to a different origin - the object simply doesn't exist. However, 5xx errors (500, 502, 503, 504) indicate origin infrastructure problems and should trigger failover. The solution is to configure the origin group to only failover on 5xx status codes. This is done by specifying StatusCodes in the FailoverCriteria (500, 502, 503, 504). Option B is overly complex - Lambda@Edge adds latency and cost when built-in features suffice. Option C is incorrect - changing valid 404 responses to 503 would break HTTP semantics and caching behavior. Option D is unnecessary complexity and wouldn't solve the fundamental issue of inappropriate failover triggers. The key learning is understanding CloudFront's origin failover behavior and properly configuring status codes for failover criteria to avoid false positives."
+        },
+        {
+          "question": "A financial services company uses AWS KMS multi-region keys for encrypting data that must be available in us-east-1 and eu-west-1. They have a central security account that owns the multi-region primary key in us-east-1 and its replica in eu-west-1. Application accounts need to decrypt data in both regions. After granting cross-account access in the key policy, decryption works in us-east-1 but fails in eu-west-1 with an access denied error. What is the MOST likely cause?",
+          "options": [
+            "Multi-region keys require separate key policies for each region, and the eu-west-1 replica key policy wasn't updated",
+            "Cross-account access with multi-region keys requires VPC endpoints in the same region as the replica",
+            "The application account's IAM role needs to specify the replica key ARN explicitly for eu-west-1",
+            "Multi-region key replicas are read-only and cannot be used for decryption in cross-account scenarios"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS KMS multi-region keys are a powerful feature where related keys in different regions have the same key material but are treated as independent resources with their own key policies, aliases, and permissions. When you create a multi-region primary key and replicate it to another region, each key (primary and replicas) has its own key policy. Cross-account access must be explicitly granted in each region's key policy independently. In this scenario, the security account likely updated the primary key policy in us-east-1 to allow cross-account access, but forgot to update the replica key policy in eu-west-1. The solution is to update the eu-west-1 replica key policy to include the same cross-account permissions. Option B is incorrect - VPC endpoints are not required for cross-account KMS access, though they can be used for private connectivity. Option C is partially true (the ARN must be correct for each region) but the root cause is the missing key policy permission in eu-west-1. Option D is false - replicas can be used for all KMS operations including decryption. This scenario tests understanding that multi-region keys share key material but not policies or permissions."
+        },
+        {
+          "question": "A large enterprise with 200 AWS accounts in an AWS Organization needs to implement centralized DNS resolution for on-premises domain names. They configure Route 53 Resolver outbound endpoints and forwarding rules in a central networking account, then use RAM (Resource Access Manager) to share the rules with all accounts. After sharing, some accounts can resolve on-premises domains while others cannot. What is the MOST likely issue?",
+          "options": [
+            "The VPCs in failing accounts don't have the shared resolver rules associated with them",
+            "RAM sharing of resolver rules requires Organizations to be in all-features mode, which wasn't enabled",
+            "The outbound endpoints need to be created in each account individually, not shared",
+            "Route 53 Resolver has a limit of 100 accounts per shared rule"
+          ],
+          "correctAnswer": 0,
+          "explanation": "When Route 53 Resolver rules are shared via RAM to multiple accounts, the rules become available to those accounts, but they don't automatically apply to VPCs. Each account must explicitly associate the shared resolver rules with their VPCs. This is a common gotcha - architects assume that sharing the rules through RAM automatically enables them across all VPCs in the organization, but there's a second step required. The accounts that can resolve on-premises domains likely manually associated the shared rules with their VPCs, while the failing accounts didn't complete this step. The solution is to ensure each account associates the shared resolver rules with their VPCs via the VPC console or API. Option B is incorrect - while all-features mode is required for some RAM sharing scenarios, it's not the limiting factor here. Option C is false - outbound endpoints don't need to be in every account; they can be centralized and accessed by shared rules. Option D is incorrect - there's no such 100-account limit for shared resolver rules. This tests understanding of the two-step process: sharing rules via RAM, then associating rules with VPCs."
+        },
+        {
+          "question": "A company has Transit Gateways in us-east-1 and eu-west-1 with inter-region peering. They need to route traffic through a security appliance (firewall) VPC in us-east-1 for all traffic flowing between regions. They enable appliance mode on the us-east-1 Transit Gateway attachment for the firewall VPC. Traffic is still bypassing the firewall. What additional configuration is required?",
+          "options": [
+            "Enable appliance mode on the inter-region peering attachment as well",
+            "Configure route tables to explicitly route inter-region traffic through the firewall VPC attachment",
+            "Appliance mode only works for intra-region traffic; use AWS Network Firewall for inter-region inspection",
+            "Configure the firewall VPC attachment as the default route in both Transit Gateway route tables"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Enabling appliance mode on a Transit Gateway VPC attachment ensures that return traffic for a flow uses the same availability zone as the original traffic, which is essential for stateful appliances like firewalls. However, appliance mode itself doesn't route traffic through the appliance - it only ensures consistent AZ-affinity for flows. To actually route traffic through the firewall VPC, you must configure Transit Gateway route tables with explicit routes that direct traffic to the firewall VPC attachment. For inter-region traffic inspection, the route tables in both regions should have routes pointing to the firewall VPC attachment. For example, the eu-west-1 Transit Gateway route table should have routes for us-east-1 CIDRs pointing to the peering attachment, but the us-east-1 side should route that incoming traffic to the firewall VPC attachment before routing to final destinations. Option A is incorrect - appliance mode is not needed on peering attachments. Option C is false - appliance mode works for inter-region traffic when routes are configured correctly. Option D is partially correct but not specific enough; you need explicit routing logic, not just a default route. This tests understanding that appliance mode solves flow symmetry but doesn't handle traffic routing."
+        },
+        {
+          "question": "An organization uses AWS IAM Identity Center (AWS SSO) with Azure AD as the identity source. They acquire another company that uses Okta. They want users from both Azure AD and Okta to access AWS accounts through SSO without migration. What is the BEST approach?",
+          "options": [
+            "Configure IAM Identity Center to use multiple identity sources simultaneously",
+            "Implement federation with both Azure AD and Okta directly to each AWS account using SAML",
+            "Create separate IAM Identity Center instances for each identity provider and use Organizations to manage access",
+            "Consolidate both identity providers into a single Azure AD tenant with B2B guest access for Okta users"
+          ],
+          "correctAnswer": 3,
+          "explanation": "AWS IAM Identity Center (formerly AWS SSO) currently supports only ONE external identity source at a time - you can choose either the built-in Identity Center directory, OR an external IdP like Azure AD, OR an Active Directory connector, but not multiple simultaneously. This is a significant limitation that many architects don't realize. Given this constraint, option D is the most practical solution: consolidate both identity providers by using Azure AD's B2B (business-to-business) collaboration feature to invite Okta users as guest users in the Azure AD tenant. These guest users can then authenticate through their Okta credentials while being represented in the Azure AD tenant that IAM Identity Center uses. Option A is incorrect - IAM Identity Center doesn't support multiple identity sources. Option B would work but loses the benefits of centralized SSO management and creates operational complexity with individual SAML setups per account. Option C is incorrect - you cannot have multiple IAM Identity Center instances in the same organization. This scenario tests awareness of IAM Identity Center's single-identity-source limitation and creative solutions for multi-IdP environments."
+        },
+        {
+          "question": "A company has a Direct Connect Gateway (DXGW) connected to multiple Transit Gateways across 3 regions. They want to add VPN backup connectivity to each Transit Gateway for redundancy. When they try to create VPN attachments to the Transit Gateways that already have DXGW associations, the configuration fails. What is the issue?",
+          "options": [
+            "A Transit Gateway can have either a Direct Connect Gateway association OR VPN attachments, but not both simultaneously",
+            "The BGP AS numbers conflict between the Direct Connect connection and VPN configuration",
+            "VPN attachments require the Transit Gateway to be in VPN mode, which conflicts with Direct Connect Gateway mode",
+            "The issue is that Transit Gateway can have both, but the same on-premises CIDR ranges cannot be advertised over both Direct Connect and VPN connections"
+          ],
+          "correctAnswer": 3,
+          "explanation": "This is a tricky scenario involving routing conflicts. A Transit Gateway CAN have both Direct Connect Gateway associations AND VPN attachments simultaneously - this is actually the recommended architecture for hybrid connectivity with failover. However, the issue arises when the same on-premises CIDR ranges are advertised via BGP over both the Direct Connect connection and the VPN connection to the same Transit Gateway. The Transit Gateway receives conflicting routes for the same CIDR ranges and may reject the configuration or create unpredictable routing behavior. The solution is to use BGP attributes (AS-PATH prepending or local preference) to make one path preferred over the other. Typically, you'd prepend AS numbers on the VPN advertisements to make them less preferred, so Direct Connect is primary and VPN is backup. Option A is false - Transit Gateway supports both connection types simultaneously. Option B might be part of the issue but isn't the primary blocker. Option C is incorrect - there's no such 'VPN mode' or 'Direct Connect Gateway mode' for Transit Gateways. The key learning is that multiple paths to the same destination require proper BGP tuning."
+        },
+        {
+          "question": "A company uses VPC sharing via AWS RAM to share subnets from a central networking account to multiple application accounts. Application teams in Account A and Account B create their own security groups in the shared VPC. Account A's application needs to allow traffic from Account B's application. Account A tries to reference Account B's security group in their security group rules but receives an error. What is the limitation?",
+          "options": [
+            "Security group references only work within the same AWS account, even in shared VPCs",
+            "Cross-account security group references require VPC peering between the accounts",
+            "Security groups in shared VPCs must be created in the owner account to be referenceable across participant accounts",
+            "Cross-account security group references require explicit RAM sharing of the security groups"
+          ],
+          "correctAnswer": 0,
+          "explanation": "This is a critical limitation of VPC sharing that catches many architects. While VPC sharing allows multiple accounts to create resources (EC2 instances, security groups, etc.) in shared subnets, security group references only work within the same AWS account, even when the security groups are in the same shared VPC. You cannot reference a security group owned by Account B in a security group rule created by Account A, even though both security groups are in the same shared VPC. This limitation exists because security groups are account-specific resources despite being in a shared VPC. The workaround is to use CIDR-based rules instead of security group references, or to create shared security groups in the VPC owner account and grant participant accounts permission to use them (though participants still can't reference each other's security groups). Option B is incorrect - VPC peering isn't relevant for shared VPCs. Option C is partially true but doesn't solve cross-account references between participant accounts. Option D is incorrect - RAM doesn't support sharing individual security groups independently. This tests understanding of VPC sharing limitations regarding security group references."
+        },
+        {
+          "question": "An architect is designing centralized egress filtering for 50 VPCs using AWS Network Firewall. To reduce costs, they consider deploying a single Network Firewall in a central VPC and using Gateway Load Balancer Endpoints (GWLBE) in spoke VPCs to route traffic to it. What is the PRIMARY issue with this approach?",
+          "options": [
+            "AWS Network Firewall cannot be used with Gateway Load Balancer; it requires direct VPC attachments",
+            "Gateway Load Balancer is designed for third-party appliances, not AWS native services like Network Firewall",
+            "This architecture would work but requires deploying Network Firewall endpoints in each spoke VPC, negating centralization benefits",
+            "The traffic flow would break return path routing because GWLB doesn't support stateful inspection handoff"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS Network Firewall is not integrated with Gateway Load Balancer. Network Firewall is deployed directly in VPCs using Network Firewall endpoints, which are ENIs in specified subnets. You cannot route traffic to Network Firewall via GWLB. If you want to centralize egress filtering using Network Firewall for multiple VPCs, the architecture should use a centralized egress VPC with Network Firewall endpoints deployed in it, and spoke VPCs route internet-bound traffic through Transit Gateway to the egress VPC. Gateway Load Balancer is specifically designed for integrating third-party virtual appliances (like Palo Alto, Fortinet, Check Point) that are deployed as EC2 instances. Option B is partially true but not the primary issue - GWLB is for third-party appliances, but the key point is Network Firewall doesn't integrate with it at all. Option C is incorrect - Network Firewall endpoints are needed but that's by design, not a workaround. Option D incorrectly suggests the architectural possibility exists. This tests understanding of when to use Network Firewall versus Gateway Load Balancer with third-party appliances."
+        },
+        {
+          "question": "A large enterprise with 1,500 AWS accounts wants to delegate AWS Security Hub administration to their security team's account. They also want to delegate GuardDuty, Config, and CloudFormation StackSets administration to the same security account for centralized management. What limitation will they encounter?",
+          "options": [
+            "Each AWS service can only have one delegated administrator per organization, so all four services can share the same delegated admin account",
+            "An organization can only have 5 delegated administrators total across all services",
+            "AWS Organizations limits delegated administrators to 10 services per account",
+            "Each service supports a different maximum number of member accounts that can be managed by a delegated administrator"
+          ],
+          "correctAnswer": 0,
+          "explanation": "This is actually a trick question where the correct answer describes what works correctly, but architects might overthink it. In AWS Organizations, each integrated AWS service can have one delegated administrator account. However, the same account can be the delegated administrator for multiple services simultaneously. There's no limit preventing a single account from being the delegated admin for Security Hub, GuardDuty, Config, and CloudFormation StackSets all at once. This is actually the recommended best practice - use a centralized security tooling account as the delegated admin for all security and compliance services. Option B is false - there's no such organization-wide limit of 5 delegated administrators across all services. Option C is incorrect - there's no 10-service-per-account limit. Option D, while technically true that different services have different member account limits (for example, Security Hub supports up to 5,000 accounts), isn't a limitation they would encounter when designating the delegated admin, and 1,500 accounts is within the limits of all mentioned services. The key insight is recognizing that delegated admin consolidation in one account is supported and recommended."
+        },
+        {
+          "question": "A consulting company wants to share a Transit Gateway with their client's AWS account using AWS Resource Access Manager (RAM). The consulting company's AWS Organization has RAM sharing with external accounts enabled. After creating the RAM share and sending the invitation to the client account, the client accepts it, but cannot attach VPCs to the shared Transit Gateway. What is the MOST likely issue?",
+          "options": [
+            "The client account must be invited to and accept membership in the consulting company's AWS Organization",
+            "External account sharing of Transit Gateways requires the shared Transit Gateway to be in a specific sharing mode that wasn't enabled",
+            "Transit Gateways cannot be shared with external accounts via RAM; only VPC resources can be shared externally",
+            "The client account needs to enable RAM external sharing in their account settings"
+          ],
+          "correctAnswer": 2,
+          "explanation": "This is a critical limitation of AWS RAM (Resource Access Manager) that many architects miss. While AWS RAM supports sharing many resource types both within an AWS Organization and with external accounts, Transit Gateways can ONLY be shared within the same AWS Organization - they cannot be shared with external accounts. Similarly, AWS License Manager configurations, Route 53 Resolver rules (prior to a recent update), and some other resources have the same limitation. Resources that can be shared externally include VPC subnets (VPC sharing), Aurora DB clusters, CodeBuild projects, and others, but Transit Gateway is explicitly limited to organization-internal sharing. The solution would be either: (1) Have the client join the consulting company's organization as a member account (Option A, but this has significant governance implications), or (2) Use alternative architectures like VPC peering or VPN connections. Option B is incorrect - there's no such 'sharing mode' for Transit Gateway. Option D is incorrect - the receiving account doesn't need to enable anything for external sharing; the limitation is on the resource type itself. This tests awareness of RAM's per-resource-type sharing scope limitations."
+        },
+        {
+          "question": "A SaaS provider hosts their service in us-east-1 behind a Network Load Balancer with an AWS PrivateLink endpoint service. Customers in eu-west-1 want to access the service privately without internet exposure. The provider wants to enable this without deploying duplicate infrastructure in eu-west-1. What is the MOST cost-effective solution?",
+          "options": [
+            "Create inter-region VPC peering from customer VPCs in eu-west-1 to the provider VPC in us-east-1, then use the PrivateLink endpoint",
+            "Deploy an NLB in eu-west-1 as a regional frontend that forwards traffic to the us-east-1 service via PrivateLink",
+            "Use AWS PrivateLink endpoint services with cross-region support enabled to allow eu-west-1 consumers to connect directly",
+            "Deploy a Network Load Balancer in eu-west-1 that targets the us-east-1 NLB IP addresses, then create a PrivateLink endpoint service from it"
+          ],
+          "correctAnswer": 3,
+          "explanation": "AWS PrivateLink endpoint services are region-specific and do not support direct cross-region connectivity. Customers can only create VPC endpoints in the same region as the endpoint service. For cross-region private connectivity, the most cost-effective solution is to deploy an NLB in eu-west-1 that has target groups pointing to the IP addresses of the NLB in us-east-1. Cross-region traffic between the NLBs uses AWS's private backbone. Then create a PrivateLink endpoint service from the eu-west-1 NLB, allowing customers in eu-west-1 to consume it. This creates a regional proxy pattern. Option A (VPC peering) wouldn't work because PrivateLink endpoints are private to the VPC; peering to the provider's VPC doesn't grant access to the endpoint service. Option B is less cost-effective because it suggests each customer deploys their own NLB. Option C is incorrect - PrivateLink doesn't have cross-region support built-in. The key learning is understanding PrivateLink's regional limitation and the NLB-to-NLB proxy pattern for cross-region enablement."
+        },
+        {
+          "question": "A large financial institution uses AWS Control Tower to provision new accounts through Account Factory. They have 25 custom SCPs, 15 custom CloudFormation StackSets for baseline resources, and 8 AWS Config rules that must be applied to every new account. During account provisioning, some of the CloudFormation StackSets fail to deploy. What is the MOST likely cause?",
+          "options": [
+            "Control Tower Account Factory has a limit of 10 CloudFormation StackSets per account and the 15 custom StackSets exceed this",
+            "The StackSets have dependencies on resources created by other StackSets, and there's no execution order guarantee",
+            "Account Factory can only execute AWS-managed StackSets, not custom user-created StackSets",
+            "The IAM role used by Account Factory doesn't have permissions to create all the resources defined in the StackSets"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS Control Tower Account Factory provisions accounts and applies customizations including CloudFormation StackSets. However, there's no built-in mechanism to control the execution order of multiple StackSets. If StackSet A creates a VPC and StackSet B tries to create subnets in that VPC, StackSet B might execute before StackSet A completes, causing failures. This is a common issue when implementing complex account baselines with many interdependent resources. The solution is to either: (1) Combine dependent resources into single StackSets to ensure ordered creation, (2) Use StackSet dependencies within CloudFormation (DependsOn), or (3) Implement Customizations for Control Tower (CfCT) which provides better control over execution sequencing. Option A is incorrect - there's no such 10-StackSet limit. Option C is false - Account Factory can deploy custom StackSets, not just AWS-managed ones. Option D is possible but less likely to be the primary issue since Account Factory uses the AWSControlTowerExecution role which has broad permissions. This tests understanding of Control Tower customization challenges and StackSet execution behavior."
+        }
+      ]
+    },
+    {
+      "filename": "advanced-scenarios-batch-2.json",
+      "domain": "Domain 2: Design for New Solutions",
+      "task": "Advanced Scenarios - Deployment, Architecture Patterns, Reliability",
+      "question_count": 15,
+      "questions": [
+        {
+          "question": "A financial trading application uses Lambda functions connected to a VPC to access RDS databases. Even with provisioned concurrency configured for 50 concurrent executions, users experience occasional 10-15 second delays during peak hours. CloudWatch metrics show that provisioned concurrency is never exhausted. What is the MOST likely cause?",
+          "options": [
+            "Provisioned concurrency doesn't eliminate cold starts for VPC-connected Lambda functions",
+            "The Lambda function's memory allocation is too low, causing slow initialization",
+            "Application Auto Scaling for provisioned concurrency is reacting too slowly to traffic spikes",
+            "Bursts beyond provisioned concurrency still experience ENI creation delays for VPC connections"
+          ],
+          "correctAnswer": 3,
+          "explanation": "While provisioned concurrency keeps Lambda execution environments warm and ready, functions that burst beyond the provisioned concurrency level still need to create new execution environments. For VPC-connected Lambda functions, new execution environments require Hyperplane ENIs to be attached, which can take 10-15 seconds. The scenario states that provisioned concurrency is never exhausted, which means traffic spikes are creating executions beyond the 50 provisioned instances. Option A is incorrect - provisioned concurrency DOES eliminate cold starts for the provisioned instances. Option B is unlikely to cause 10-15 second delays; memory affects execution speed, not initialization time. Option C is possible but the scenario states provisioned concurrency isn't exhausted, suggesting the scaling isn't the issue. The solution is to increase provisioned concurrency to handle peak traffic, or use Lambda's Hyperplane ENI optimization (which since 2019 uses a shared ENI pool, but initial attachment for new environments still has some delay). This tests understanding of Lambda VPC networking and provisioned concurrency limitations."
+        },
+        {
+          "question": "An architect designs an ECS cluster with 10 EC2 instances for a microservices application. They use the binpack placement strategy to maximize resource utilization. During a rolling deployment, several tasks fail to place despite sufficient aggregate cluster resources. What is the PRIMARY issue?",
+          "options": [
+            "Binpack strategy can create fragmentation where no single instance has enough resources for new task placement",
+            "ECS doesn't support rolling deployments with binpack strategy; only spread strategy supports it",
+            "The cluster instances need to be in an Auto Scaling group to support binpack placement",
+            "Binpack strategy has a hard limit of 5 tasks per instance regardless of available resources"
+          ],
+          "correctAnswer": 0,
+          "explanation": "The binpack placement strategy aims to place tasks on instances to maximize resource utilization, filling up instances before moving to the next. During rolling deployments, this can create a fragmentation problem: instances might each have small amounts of free CPU/memory, but no single instance has enough free resources to place a new task. For example, if a task needs 1 vCPU and 2GB RAM, and all 10 instances each have 0.5 vCPU and 1GB RAM free, the aggregate cluster has enough resources (5 vCPU, 10GB RAM) but no single instance can host the task. The solution is to either: (1) Use spread strategy for better distribution during deployments, (2) Overprovision cluster capacity, (3) Use ECS Cluster Auto Scaling to add instances when needed, or (4) Implement binpack with instanceId spread for better distribution. Option B is false - both strategies support rolling deployments. Option C is incorrect - Auto Scaling groups are recommended but not required for binpack. Option D is false - there's no such 5-task limit. This tests understanding of ECS task placement challenges with different strategies."
+        },
+        {
+          "question": "A company processes millions of IoT sensor events per day. Each event requires a simple 3-step transformation workflow taking 30 seconds. They need exactly-once processing semantics and must maintain an audit trail of all executions for 90 days. Which Step Functions workflow type should they use?",
+          "options": [
+            "Express workflows in synchronous mode for exactly-once semantics with CloudWatch Logs for audit trail",
+            "Standard workflows because they provide exactly-once execution and built-in 90-day execution history",
+            "Express workflows in asynchronous mode with DynamoDB for tracking execution state",
+            "Standard workflows with cross-region replication for durability and compliance"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Step Functions has two workflow types with distinct characteristics: Standard workflows provide exactly-once execution, have a full execution history stored for 90 days, and support long-running workflows but are limited to 2,000 executions per second per account per region. Express workflows provide at-least-once execution, don't maintain execution history (only CloudWatch Logs), but support much higher execution rates (100,000 per second). The scenario requires exactly-once semantics and 90-day audit trail, which are exclusive features of Standard workflows. While millions of events per day sounds high, it averages to ~12-40 executions per second, well within Standard workflow limits. Option A is incorrect - Express workflows only provide at-least-once semantics, even in synchronous mode. Option C doesn't solve the exactly-once requirement. Option D adds unnecessary complexity with cross-region replication. The key learning is understanding the execution semantics difference: Standard = exactly-once, Express = at-least-once. This tests awareness of Step Functions workflow type selection based on execution guarantees."
+        },
+        {
+          "question": "A DynamoDB table uses on-demand capacity mode. The table has a Global Secondary Index (GSI) with a different partition key. During traffic spikes, write operations to the base table are being throttled even though the table is in on-demand mode. What is the MOST likely cause?",
+          "options": [
+            "On-demand mode has a per-partition throughput limit that's being exceeded during spikes",
+            "The GSI is throttling writes because GSI projections are being written faster than DynamoDB can handle",
+            "DynamoDB automatically switches to provisioned mode during extreme spikes, causing throttling",
+            "On-demand mode requires time to scale up, and instant traffic spikes exceed the adaptive scaling rate"
+          ],
+          "correctAnswer": 3,
+          "explanation": "DynamoDB on-demand mode provides automatic scaling but not instant unlimited capacity. On-demand mode can accommodate up to double your previous peak traffic within 30 minutes. If you have instant traffic spikes that exceed this adaptive capacity, you'll experience throttling. For example, if your previous peak was 1,000 WCU/s, and you suddenly spike to 5,000 WCU/s, you'll be throttled until the system scales up. This is particularly relevant for GSIs - when you write to a base table with GSIs, DynamoDB must also write to the GSI. If the GSI's capacity cannot scale fast enough, the base table writes are throttled. Option A is partially true (partitions have throughput limits) but on-demand mode handles this with partition splitting; it's not the primary cause here. Option B is incorrectly stated - GSI projections don't have a separate throttling mechanism beyond the GSI's capacity. Option C is false - DynamoDB doesn't automatically switch modes. The solution is to either pre-warm capacity by gradually increasing traffic, use provisioned capacity for predictable spiky workloads, or implement exponential backoff. This tests understanding of on-demand mode scaling limits."
+        },
+        {
+          "question": "A global application uses Aurora Global Database with a primary cluster in us-east-1 and secondary clusters in eu-west-1 and ap-southeast-1. To reduce latency for European users writing data, they enable write forwarding on the eu-west-1 secondary cluster. After enabling it, they notice write performance for European users is worse than before. Why?",
+          "options": [
+            "Write forwarding requires synchronous replication to the primary, increasing latency compared to direct writes to primary",
+            "Write forwarding only works for INSERT operations, not UPDATE or DELETE, causing application errors",
+            "The secondary cluster's instance class must match the primary for write forwarding to work efficiently",
+            "Write forwarding is incompatible with Aurora Serverless v2 instances in the secondary cluster"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Aurora Global Database write forwarding allows secondary (read) clusters to forward writes to the primary cluster. However, this doesn't improve write latency for users closer to secondary regions - it actually increases latency. When write forwarding is enabled, writes to the secondary cluster are sent over the network to the primary cluster, the primary processes and commits them, then the changes replicate back to the secondary. This round-trip adds latency compared to users directly connecting to the primary. Write forwarding is designed for application architecture simplification (single endpoint for both reads and writes), not for improving write performance. For true low-latency writes in multiple regions, you need multi-master (Aurora MySQL only, still in preview), or application-level write routing to the appropriate primary. Option B is false - write forwarding supports all DML operations. Option C is incorrect - instance class matching isn't required. Option D is false - write forwarding works with Serverless v2. This tests understanding of Aurora Global Database write forwarding purpose and limitations."
+        },
+        {
+          "question": "An architect is configuring AWS service access for EKS pods. They need pods to access S3 and DynamoDB with different IAM permissions per pod. They're choosing between IRSA (IAM Roles for Service Accounts) and EKS Pod Identity. The cluster has 500 pods with 50 different service accounts requiring different permissions. What should they consider?",
+          "options": [
+            "IRSA has a limit of 100 service account to IAM role mappings per cluster, requiring EKS Pod Identity instead",
+            "EKS Pod Identity provides better performance with no webhook latency, making it preferable for large-scale deployments",
+            "IRSA requires manual OIDC provider setup per cluster while Pod Identity is automatic, reducing operational overhead",
+            "Both solutions work at scale; Pod Identity is newer with simpler configuration but IRSA is more widely supported across Kubernetes distributions"
+          ],
+          "correctAnswer": 3,
+          "explanation": "Both IRSA (IAM Roles for Service Accounts) and EKS Pod Identity solve the same problem of providing AWS credentials to pods. IRSA has been available since 2019 and uses a webhook to intercept AWS SDK calls and inject temporary credentials via OIDC federation. EKS Pod Identity is newer (2023) and uses a different approach with an agent DaemonSet and simpler configuration. Key differences: IRSA requires OIDC provider setup and trust policy configuration, but works across different Kubernetes distributions. Pod Identity is EKS-specific but has simpler configuration with no OIDC provider needed. Neither has the 100-mapping limit mentioned in Option A. Option B is partially true about webhook latency, but it's negligible for most workloads. Option C is partially true but both are manageable operationally. The right choice depends on your environment: IRSA for multi-distribution support, Pod Identity for EKS-native simplicity. This tests understanding of the two approaches and their trade-offs rather than a specific limitation."
+        },
+        {
+          "question": "A company has an API hosted on API Gateway serving customers globally. They use CloudFront with custom domain names and WAF for security. The API is configured as edge-optimized. Their security team wants to use API Gateway resource policies to restrict access to specific VPC endpoints. What issue will they encounter?",
+          "options": [
+            "Edge-optimized APIs don't support resource policies; they must switch to Regional API endpoints",
+            "Resource policies work with edge-optimized APIs but VPC endpoint restrictions only work with Regional APIs",
+            "API Gateway resource policies cannot be used together with CloudFront distributions",
+            "VPC endpoint restrictions require PrivateLink, which is incompatible with edge-optimized APIs"
+          ],
+          "correctAnswer": 1,
+          "explanation": "API Gateway edge-optimized endpoints automatically create and manage a CloudFront distribution in front of your API. While resource policies work with edge-optimized APIs for general access control, VPC endpoint restrictions (aws:SourceVpc or aws:SourceVpce conditions) only work with Regional API endpoints. This is because edge-optimized APIs route through CloudFront, which doesn't preserve the VPC endpoint source information. If you need to restrict API access to specific VPC endpoints, you must use a Regional API endpoint. The architecture would be: Regional API Gateway → Custom CloudFront distribution → WAF. This gives you control over CloudFront configuration and allows VPC endpoint restrictions on the API Gateway resource policy. Option A is incorrect - resource policies work with edge-optimized APIs for other conditions. Option C is false - you can use resource policies with CloudFront, but not VPC endpoint restrictions on edge-optimized APIs. Option D incorrectly describes PrivateLink compatibility. This tests understanding of API Gateway endpoint types and resource policy capabilities."
+        },
+        {
+          "question": "Organization A needs to send events from their account to Organization B's EventBridge event bus. Organization B creates an event bus policy allowing Organization A's account to PutEvents. After testing, events from Organization A are not appearing in Organization B's bus. The PutEvents calls succeed with no errors. What is missing?",
+          "options": [
+            "EventBridge requires resource-based policies on both the source and target event buses for cross-account delivery",
+            "Organization A must create an EventBridge rule that targets Organization B's event bus ARN",
+            "Cross-account event delivery requires AWS Organizations trust relationship between the accounts",
+            "Organization A's IAM principals need explicit permissions to PutEvents on the remote event bus in addition to the resource policy"
+          ],
+          "correctAnswer": 1,
+          "explanation": "EventBridge cross-account event delivery requires a two-step configuration: (1) The target account (Organization B) must have a resource-based policy on their event bus allowing the source account to send events, and (2) The source account (Organization A) must create an EventBridge rule with the target set to Organization B's event bus ARN. Simply calling PutEvents with Organization B's bus ARN won't work - events go to your default bus unless a rule routes them. The correct flow is: Events → Organization A's default bus → Rule matches events → Rule targets Organization B's event bus (cross-account) → Events appear in Organization B's bus. Option A is incorrect - only the target bus needs a resource policy. Option C is false - Organizations relationship is not required for cross-account EventBridge. Option D is partially correct (IAM permissions are needed) but the primary missing piece is the rule in the source account. This tests understanding of EventBridge cross-account architecture requiring rules, not just PutEvents."
+        },
+        {
+          "question": "A mobile application uses AWS AppSync with DynamoDB as the data source. To improve performance, they enable caching at the API level with a 1-hour TTL. Users report seeing stale data even after making mutations that should update the data. What is the MOST appropriate solution?",
+          "options": [
+            "Reduce the cache TTL to 5 minutes to ensure fresher data",
+            "Implement cache invalidation logic in mutation resolvers to clear affected cached queries",
+            "Disable caching for mutations while keeping it enabled for queries",
+            "Use per-resolver caching instead of API-level caching for better control"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AppSync caching stores resolver results to reduce backend calls. When you enable API-level caching, query results are cached based on field arguments and identity. However, mutations don't automatically invalidate related cached queries. If a user queries for data, the result is cached. If they then mutate that data, the mutation succeeds but the cached query result remains until TTL expires, showing stale data. The solution is to implement cache invalidation in mutation resolvers using the $util.cachingInvalidate() function to specify which cache keys to invalidate. You can invalidate specific cache entries based on arguments or clear entire resolver caches. Option A reduces staleness duration but doesn't solve the fundamental problem. Option C is the default behavior - mutations aren't cached, but that doesn't prevent query caches from becoming stale. Option D (per-resolver caching) provides granular control but doesn't solve invalidation; you still need explicit invalidation logic. This tests understanding of AppSync caching behavior and the need for explicit cache invalidation strategies."
+        },
+        {
+          "question": "A serverless application with thousands of Lambda functions connects to an RDS PostgreSQL database through RDS Proxy for connection pooling. During load testing, they still encounter 'too many connections' errors from PostgreSQL despite Proxy being configured for 1000 max connections. What is the issue?",
+          "options": [
+            "RDS Proxy doesn't support PostgreSQL, only MySQL and Aurora",
+            "The RDS instance's max_connections parameter is set lower than the Proxy's max connections setting",
+            "Lambda functions are not reusing the RDS Proxy connections properly due to incorrect initialization",
+            "RDS Proxy requires all Lambda functions to be in the same VPC subnet for connection sharing"
+          ],
+          "correctAnswer": 1,
+          "explanation": "RDS Proxy provides connection pooling between your applications and the database, but it cannot create more connections to the database than the database allows. The max_connections parameter in RDS determines how many connections the database will accept. If RDS Proxy is configured for 1000 max connections but the RDS instance's max_connections parameter is set to 100, only 100 connections can be established to the database. RDS Proxy will queue additional connection requests. The 'too many connections' error suggests the database's max_connections limit is being hit. The solution is to increase the RDS instance's max_connections parameter (in a custom parameter group) to match or exceed the Proxy configuration. Option A is false - RDS Proxy supports PostgreSQL, MySQL, and Aurora. Option C is about connection reuse which affects efficiency but wouldn't cause 'too many connections' errors from the database. Option D is incorrect - VPC subnet placement doesn't affect connection sharing logic. This tests understanding that RDS Proxy pools connections but is still bound by database-side connection limits."
+        },
+        {
+          "question": "A video streaming platform needs to provide authenticated access to premium content stored in S3. Users should access multiple video files per session without requesting new authorization. The platform has a mix of web and mobile applications. Which approach is MOST appropriate?",
+          "options": [
+            "CloudFront signed URLs because they provide better security with individual file authorization",
+            "CloudFront signed cookies because they allow access to multiple files with a single authentication",
+            "CloudFront signed URLs because signed cookies don't work with mobile applications",
+            "CloudFront signed cookies because they don't expose the signature in the URL, improving security"
+          ],
+          "correctAnswer": 1,
+          "explanation": "CloudFront signed URLs and signed cookies both provide authenticated access to restricted content, but have different use cases. Signed URLs are best for individual files or when you can't modify the client application (e.g., direct downloads, embedded media with specific URLs). Signed cookies are better for providing access to multiple restricted files without generating URLs for each, which is perfect for scenarios like video streaming where a user session needs access to multiple video segments, playlists, subtitles, etc. The cookies are set once upon authentication and grant access to all matching content. Option A is incorrect - signed cookies provide equivalent security and are actually better for multiple files. Option C is false - signed cookies work fine with mobile apps that support cookie storage. Option D is partially true (not exposing signatures in URLs has marginal security benefit) but the primary advantage is the multiple-file access. The key distinction is: signed URLs = individual resources, signed cookies = multiple resources per session. This tests understanding of when to use each CloudFront security feature."
+        },
+        {
+          "question": "A data processing application consumes from a Kinesis Data Stream with 50 shards. They have 8 Lambda functions processing the stream, each needing dedicated throughput. They enable enhanced fan-out for all consumers. After deployment, some consumers experience throttling. What is the MOST likely cause?",
+          "options": [
+            "Enhanced fan-out has a limit of 5 registered consumers per stream",
+            "Lambda functions cannot use enhanced fan-out; only Kinesis Client Library (KCL) applications can",
+            "The account has reached the enhanced fan-out data transfer quota (2 MB/s per shard per consumer)",
+            "Enhanced fan-out requires one shard per consumer, and 50 shards can only support 5 consumers with proper distribution"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Kinesis Data Streams enhanced fan-out allows consumers to get dedicated 2 MB/s throughput per shard without sharing with other consumers. However, there's a hard limit of 5 registered enhanced fan-out consumers per stream. In this scenario, 8 Lambda functions are trying to use enhanced fan-out, exceeding the 5-consumer limit. Some consumers will fail registration or experience throttling. The solution is to either: (1) Use standard (shared) consumers for some functions, (2) Combine multiple Lambda functions under a single enhanced fan-out consumer using KCL with multiple workers, or (3) Split data across multiple streams. Option B is false - Lambda supports enhanced fan-out via event source mapping. Option C states the throughput spec incorrectly - 2 MB/s per shard per consumer is the provided throughput, not a quota limit. Option D is incorrect - the number of shards doesn't dictate consumer limits; the 5-consumer limit is independent of shard count. This tests awareness of Kinesis enhanced fan-out consumer limits."
+        },
+        {
+          "question": "An ECS application uses AWS Cloud Map for service discovery with a private DNS namespace. Services in VPC-A can resolve and connect to each other. The company adds services in VPC-B (peered with VPC-A) but those services cannot resolve the Cloud Map DNS names. What is missing?",
+          "options": [
+            "Cloud Map private DNS namespaces only work within a single VPC and cannot span VPC peering connections",
+            "The VPC-B DNS resolver needs to be configured with conditional forwarding rules to VPC-A",
+            "Cloud Map requires Route 53 Resolver inbound endpoints in VPC-A for cross-VPC resolution",
+            "VPC-B must be associated with the Cloud Map private DNS namespace for DNS resolution to work"
+          ],
+          "correctAnswer": 3,
+          "explanation": "AWS Cloud Map private DNS namespaces create Route 53 private hosted zones under the hood. Private hosted zones must be explicitly associated with VPCs for DNS resolution to work in those VPCs. Even though VPC-A and VPC-B are peered, the private hosted zone created by Cloud Map is initially only associated with VPC-A. Services in VPC-B cannot resolve those DNS names because their VPC isn't associated with the hosted zone. The solution is to associate VPC-B with the Cloud Map namespace (which associates it with the underlying private hosted zone). This can be done through the Cloud Map API or Route 53 console. Option A is incorrect - private hosted zones DO work across peered VPCs when properly associated. Option B is overly complex and unnecessary for peered VPCs with associated hosted zones. Option C is incorrect - Resolver endpoints are for hybrid DNS scenarios, not cross-VPC within AWS. This tests understanding that Cloud Map private namespaces use Route 53 private hosted zones requiring explicit VPC associations."
+        },
+        {
+          "question": "A financial system uses an SQS FIFO queue with content-based deduplication enabled. They send transaction records to the queue. During an incident, the same transaction is sent twice within a 1-minute window, but both messages are delivered to consumers, causing duplicate processing. What is the MOST likely cause?",
+          "options": [
+            "Content-based deduplication only works for messages sent more than 5 minutes apart",
+            "The two transaction messages have different MessageAttributes, which are included in deduplication hash",
+            "Content-based deduplication uses the entire message body, and some timestamp or UUID field differs between messages",
+            "FIFO queues require explicit MessageDeduplicationId; content-based deduplication is only a fallback"
+          ],
+          "correctAnswer": 2,
+          "explanation": "SQS FIFO queues provide exactly-once processing using deduplication. You can either provide an explicit MessageDeduplicationId or enable content-based deduplication, which generates the ID by hashing the message body. Content-based deduplication uses SHA-256 of the message body - any difference in the body, even a single character, results in a different hash and treats messages as unique. If the application includes timestamps, request IDs, or other variable fields in the message body, identical transactions will have different message bodies and won't be deduplicated. The solution is to either: (1) Exclude variable fields from the message body and put them in MessageAttributes instead, (2) Use explicit MessageDeduplicationId based on business logic (transaction ID), or (3) Normalize the message body before sending. Option A is false - the deduplication window is 5 minutes, not a minimum interval. Option B is incorrect - MessageAttributes are NOT included in content-based deduplication hash. Option D is misleading - both methods are valid primary options. This tests understanding of content-based deduplication behavior and common pitfalls."
+        },
+        {
+          "question": "An ALB routes traffic to Lambda functions. The Lambda function receives HTTP requests with multiple Cookie headers (from different sources like browser, proxy). When the function accesses the headers, it only sees one Cookie value. What is the issue and solution?",
+          "options": [
+            "ALB limits HTTP headers to single values; use NLB for multi-value header support",
+            "ALB combines duplicate headers into a comma-separated list; the Lambda must parse it",
+            "Lambda functions receive headers in a different format when invoked by ALB; check the multiValueHeaders field in the event",
+            "This is a limitation of Lambda function URLs; use API Gateway instead for full HTTP header support"
+          ],
+          "correctAnswer": 2,
+          "explanation": "When an Application Load Balancer invokes a Lambda function, it sends an event with a specific structure. Multi-value headers (like multiple Cookie headers) are provided in the multiValueHeaders field as an object where each header name maps to an array of values. If your Lambda function only reads the headers field, it only sees a single value (usually the last one). The solution is to check event.multiValueHeaders instead of event.headers. Similarly, multiValueQueryStringParameters exists for query strings with duplicate parameter names. Option A is incorrect - NLB doesn't support Lambda targets. Option B is partially true for some headers in some contexts, but ALB with Lambda specifically uses multiValueHeaders. Option D is incorrect - this is about ALB to Lambda integration, not Lambda function URLs. This tests understanding of the ALB-to-Lambda event structure and the distinction between headers and multiValueHeaders fields, which is a common source of bugs."
+        }
+      ]
+    },
+    {
+      "filename": "advanced-scenarios-batch-3.json",
+      "domain": "Domain 3: Continuous Improvement for Existing Solutions",
+      "task": "Advanced Scenarios - Optimization, Operations, Performance, Cost",
+      "question_count": 15,
+      "questions": [
+        {
+          "question": "A company stores 500 TB of log data in S3 that must be retained for 7 years for compliance. They enable S3 Intelligent-Tiering to optimize costs. After 6 months, they notice most data is still in the Frequent Access tier despite not being accessed. What is the MOST likely issue?",
+          "options": [
+            "Intelligent-Tiering only monitors object access at the bucket level, not individual objects",
+            "The objects are smaller than 128 KB, which are not eligible for automatic tiering",
+            "Archive Access tiers must be explicitly enabled in the Intelligent-Tiering configuration; they're not enabled by default",
+            "Lifecycle policies are conflicting with Intelligent-Tiering transitions"
+          ],
+          "correctAnswer": 2,
+          "explanation": "S3 Intelligent-Tiering automatically moves objects between access tiers based on access patterns, but the Archive Access and Deep Archive Access tiers are NOT enabled by default. Objects automatically move between Frequent Access (for accessed objects) and Infrequent Access (for objects not accessed for 30 days) by default. To use Archive Access (90+ days) and Deep Archive Access (180+ days), you must explicitly opt-in by configuring archive settings on the bucket. Many architects assume all tiers are automatic, missing potential cost savings. Option A is incorrect - Intelligent-Tiering monitors individual object access. Option B is true (objects under 128 KB stay in Frequent Access and are charged monitoring fees) but the scenario describes 500 TB of logs which are typically large files. Option D is unlikely - lifecycle policies and Intelligent-Tiering can coexist. The solution is to enable Archive Access and Deep Archive Access tiers in the Intelligent-Tiering configuration. This tests understanding of Intelligent-Tiering's default behavior and optional archive tiers."
+        },
+        {
+          "question": "An application uses RDS MySQL with a read replica for reporting queries. Users report that recently updated data doesn't appear in reports for several minutes. Monitoring shows replica lag averaging 2-3 minutes during business hours. The primary instance has 20% CPU utilization. What is the MOST effective solution?",
+          "options": [
+            "Upgrade the read replica to a larger instance class to reduce lag",
+            "Enable Multi-AZ on the primary to improve replication performance",
+            "Reduce the number of write transactions on the primary database",
+            "Investigate network connectivity issues between the primary and replica"
+          ],
+          "correctAnswer": 0,
+          "explanation": "RDS read replica lag occurs when the replica cannot apply changes from the primary as fast as they're generated. Even though the primary has low CPU (20%), replication lag is often due to the replica's resources being insufficient to keep up with applying changes. Replication in RDS is single-threaded for MySQL (until MySQL 8.0's parallel replication features), so CPU-intensive operations on the replica during log application can cause lag. Upgrading the replica instance class provides more CPU and I/O capacity for applying changes. Additionally, check if the replica is handling read queries that compete with replication for resources. Option B is incorrect - Multi-AZ doesn't affect read replica performance; it's for high availability of the primary. Option C is impractical - reducing writes defeats the purpose of the database. Option D is possible but less likely given consistent lag; network issues typically cause sporadic lag spikes. The key insight is that replica lag is often a replica-side resource constraint, not a primary-side issue. Consider enabling parallel replication (MySQL 8.0+) or upgrading replica instance size."
+        },
+        {
+          "question": "A security team runs CloudWatch Logs Insights queries against 100 GB of application logs spanning 30 days. Queries take 2-3 minutes to complete and incur high costs. They need to improve performance and reduce costs. What is the BEST approach?",
+          "options": [
+            "Use CloudWatch Logs subscriptions to stream logs to S3, then query with Athena for better performance",
+            "Reduce the time range of queries to 7 days or less to scan less data",
+            "Increase the CloudWatch Logs Insights query timeout to allow for more thorough analysis",
+            "Create CloudWatch Logs metric filters to pre-aggregate common queries"
+          ],
+          "correctAnswer": 0,
+          "explanation": "CloudWatch Logs Insights charges based on data scanned and can be slow for large datasets. For analysis of large log volumes or historical data, exporting logs to S3 and querying with Amazon Athena provides better performance and lower costs. Athena uses columnar storage (Parquet), partitioning, and distributed processing to scan data efficiently. You can set up a CloudWatch Logs subscription filter to automatically stream logs to Kinesis Data Firehose, which delivers to S3 in Parquet format. This architecture supports complex ad-hoc queries at a fraction of the cost. Option B reduces costs but limits analysis capability - not a solution if they need 30-day analysis. Option C doesn't improve performance or cost, just allows longer wait times. Option D works for known, repetitive queries but doesn't help with ad-hoc security investigations. The key learning is that CloudWatch Logs Insights is designed for interactive debugging and recent logs; for large-scale analytics, export to S3 + Athena is more appropriate. This tests understanding of when to use different log analysis tools."
+        },
+        {
+          "question": "A company enables Point-in-Time Recovery (PITR) on their DynamoDB table for disaster recovery. During a DR test, they attempt to restore the table to a state from 30 seconds ago but find they can only restore to a state from 5 minutes ago. What explains this limitation?",
+          "options": [
+            "PITR granularity is 5 minutes; you cannot restore to arbitrary seconds-level precision",
+            "The most recent 5 minutes of data is not eligible for restoration due to backup processing lag",
+            "DynamoDB PITR requires at least 5 minutes between restore points for data consistency",
+            "The table is in on-demand mode, which only supports 5-minute PITR granularity"
+          ],
+          "correctAnswer": 1,
+          "explanation": "DynamoDB Point-in-Time Recovery allows you to restore to any point in time within the last 35 days with second-level granularity - but not the most recent 5 minutes. This is because PITR works by continuously backing up data, and there's a lag (approximately 5 minutes) for the backup data to be processed and made available for restoration. The restorable window is from 5 minutes ago to 35 days ago, not the current moment. This is a critical detail for RPO planning: your effective RPO with PITR is 5 minutes, not seconds. Option A is incorrect - granularity is second-level, just not for the most recent 5 minutes. Option C incorrectly suggests a minimum interval requirement. Option D is false - PITR behavior is the same for on-demand and provisioned modes. Architects must understand this 5-minute lag when planning DR strategies. For lower RPO, you need application-level replication or Global Tables. This tests awareness of PITR's operational characteristics and its impact on recovery point objectives."
+        },
+        {
+          "question": "A company runs a mix of EC2 workloads: t3.large for web servers (24/7), m5.xlarge for batch processing (12 hours/day), and r5.2xlarge for analytics (variable usage). They want to maximize savings. Their instance families and regions are stable, but specific instance sizes vary monthly. What's the BEST purchasing strategy?",
+          "options": [
+            "EC2 Instance Savings Plans for maximum flexibility across instance sizes within families",
+            "Compute Savings Plans for maximum flexibility across instance families and regions",
+            "Standard Reserved Instances for maximum discount, with Convertible RIs for variable workloads",
+            "Mix of EC2 Instance Savings Plans for stable workloads and On-Demand Capacity Reservations for variable ones"
+          ],
+          "correctAnswer": 0,
+          "explanation": "For workloads with stable instance families but variable instance sizes, EC2 Instance Savings Plans provide the optimal balance of flexibility and savings. They offer up to 72% discount (similar to Standard RIs) and apply to any size within a specific instance family in a specific region (e.g., all m5 instances in us-east-1). You can change between t3.small, t3.medium, t3.large without losing the discount. Compute Savings Plans (Option B) offer more flexibility but lower discount (up to 66%), which isn't optimal if your families are stable. Standard RIs (Option C) offer similar discounts but require you to specify exact instance size and commit for 1-3 years with less flexibility. Option D incorrectly suggests On-Demand Capacity Reservations, which provide capacity guarantees but no discount (combine with Savings Plans for discounts). The key decision factors: Instance Savings Plans = family flexibility, Compute Savings Plans = maximum flexibility with lower discount, RIs = highest discount with least flexibility. This tests understanding of the savings options trade-off matrix."
+        },
+        {
+          "question": "An application uses a 500 GB gp2 volume providing 1,500 IOPS (3 IOPS per GB). The team wants to improve performance and considers migrating to gp3. They need 4,000 IOPS and 250 MB/s throughput. What's the MOST cost-effective approach?",
+          "options": [
+            "Migrate to gp3 500 GB with 4,000 IOPS and 250 MB/s provisioned - lower cost than increasing gp2 volume size",
+            "Increase gp2 volume to 1,334 GB to get 4,000 IOPS (3 IOPS per GB), which is more cost-effective than gp3",
+            "Use io2 volumes instead as gp3 doesn't support provisioned IOPS above 3,000",
+            "Keep gp2 but enable EBS-optimized instances to increase throughput to 250 MB/s"
+          ],
+          "correctAnswer": 0,
+          "explanation": "gp3 volumes fundamentally changed the EBS economics by decoupling volume size from performance. gp2 provides 3 IOPS per GB (minimum 100, maximum 16,000), so to get 4,000 IOPS you'd need a 1,334 GB volume. gp3 provides baseline 3,000 IOPS and 125 MB/s for ANY size, with ability to provision up to 16,000 IOPS and 1,000 MB/s independently. For the scenario: gp3 500 GB with 4,000 IOPS and 250 MB/s provisioned costs significantly less than a 1,334 GB gp2 volume. The gp3 pricing is: base storage cost + additional IOPS cost (above 3,000) + additional throughput cost (above 125 MB/s). Option B is mathematically correct about how to achieve 4,000 IOPS with gp2 but more expensive. Option C is false - gp3 supports up to 16,000 IOPS. Option D is incorrect - EBS-optimized instances affect instance-to-EBS bandwidth, not volume throughput limits. The key insight: for any workload needing IOPS/GB ratio different from 3:1, gp3 is typically more cost-effective. This tests understanding of gp3's independent performance provisioning."
+        },
+        {
+          "question": "A web application uses AWS WAF with a rate-based rule to block IPs making more than 2,000 requests per 5 minutes. During an attack, the rule doesn't block malicious traffic coming from thousands of different IP addresses, each making 100 requests. What should they modify?",
+          "options": [
+            "Reduce the rate limit to 100 requests per 5 minutes to catch the distributed attack",
+            "Change the aggregation key to use a custom header or URI path instead of source IP",
+            "Rate-based rules can't defend against distributed attacks; use AWS Shield Advanced instead",
+            "Add a second rate-based rule with a lower threshold and combine with AND logic"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS WAF rate-based rules count requests based on an aggregation key, which by default is the source IP address. In a distributed attack from thousands of IPs, each IP stays under the threshold individually. To defend against this, you can change the aggregation key to match your use case: for example, aggregate by a session token header, API key, or URI path. This way, you're counting requests per user session or per resource instead of per IP. If an attacker uses thousands of IPs but targets the same API endpoint, aggregating by URI path would catch the attack. Option A would help but causes false positives for legitimate users and doesn't address the fundamental issue. Option C is incorrect - rate-based rules CAN defend against distributed attacks with proper aggregation; Shield Advanced protects against DDoS at network/transport layer, not application-layer rate limiting. Option D won't help - combining rules doesn't change how individual rules aggregate. The key learning is that WAF rate-based rule aggregation keys are customizable beyond just source IP. This tests understanding of advanced WAF configurations."
+        },
+        {
+          "question": "An application uses ElastiCache Redis (cluster mode disabled) with a single shard and 5 read replicas. They're approaching 25 GB memory usage (nearing the r6g.large 26 GB limit) and need to scale. What's the MOST appropriate solution?",
+          "options": [
+            "Add more read replicas to distribute the data across more nodes",
+            "Migrate to cluster mode enabled to shard data across multiple primary nodes",
+            "Upgrade to a larger node type like r6g.xlarge for the primary and replicas",
+            "Enable Multi-AZ to automatically distribute data across availability zones"
+          ],
+          "correctAnswer": 1,
+          "explanation": "ElastiCache Redis has two cluster modes: (1) Cluster mode disabled - single shard (primary + up to 5 replicas), limited by single-node memory, scales reads but not writes or memory. (2) Cluster mode enabled - multiple shards (each with primary + replicas), distributes data across shards, scales reads, writes, and memory. The scenario describes a memory limit issue. Read replicas (Option A) don't help memory constraints - they replicate the full dataset. Upgrading node type (Option C) helps temporarily but doesn't provide horizontal scaling. Migrating to cluster mode enabled allows sharding data across multiple primary nodes (up to 500 shards), breaking the single-node memory limit. For example, 50 GB data can be sharded across 2 r6g.large nodes (25 GB each). Option D (Multi-AZ) is for availability, not capacity scaling. The key distinction: cluster mode disabled = vertical scaling only, cluster mode enabled = horizontal scaling. The migration requires application changes to support sharding (consistent hashing), so it's a significant architectural change. This tests understanding of Redis scaling limitations and cluster mode capabilities."
+        },
+        {
+          "question": "An e-commerce application uses Aurora Serverless v2 configured with 0.5 to 16 ACUs. During flash sales, response times spike to 5-10 seconds for the first minute before improving. CloudWatch shows ACU scaling from 0.5 to 8 within that minute. What's the issue?",
+          "options": [
+            "Aurora Serverless v2 takes 30-60 seconds to scale up, causing the latency spike",
+            "The minimum ACU of 0.5 is too low; increase to 2 ACUs to maintain better baseline performance",
+            "Serverless v2 scaling is not instantaneous; pre-warm capacity by manually scaling before expected traffic",
+            "The application connection pool is too small, causing connection exhaustion during scaling"
+          ],
+          "correctAnswer": 1,
+          "explanation": "While Aurora Serverless v2 scales much faster than v1 (increments in seconds vs minutes), it still experiences performance impact when scaling from very low baseline capacity. Starting at 0.5 ACU means the database has minimal resources when the flash sale begins. Even though it scales to 8 ACU within a minute, the initial seconds at low capacity cause query queuing and latency. Increasing the minimum ACU to a higher baseline (e.g., 2-4 ACU) ensures better baseline performance for the initial burst while still providing cost savings during low-traffic periods. Option A overstates scaling time - Serverless v2 scales in ~15-30 seconds typically, not 30-60. Option C is partially valid but not the best solution - scheduled scaling or application warming can help, but maintaining a higher minimum is simpler. Option D is possible but less likely to cause consistent 5-10 second spikes. The key insight: Serverless v2 minimum ACU should be set based on your baseline performance requirements, not just cost minimization. Very low minimums (0.5 ACU) work for dev/test but may not suit production workloads with variable traffic. This tests understanding of Serverless v2 scaling behavior and capacity planning."
+        },
+        {
+          "question": "A Lambda function processes API requests with a 30-second timeout and 128 MB memory. Users occasionally experience timeouts during cold starts. Increasing timeout to 60 seconds doesn't help. CloudWatch shows cold start initialization takes 25-30 seconds. What should they do?",
+          "options": [
+            "Continue increasing timeout as cold starts are inherently slow and unpredictable",
+            "Increase memory allocation to 512 MB or higher to get more CPU and reduce initialization time",
+            "Enable provisioned concurrency to eliminate cold starts entirely",
+            "Reduce the deployment package size to speed up cold start initialization"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Lambda allocates CPU power proportionally to memory configuration. At 128 MB, the function gets minimal CPU. Cold start initialization time includes downloading and extracting the deployment package, initializing the runtime, and running initialization code. All of these are CPU-bound operations that benefit from more CPU power. Increasing memory to 512 MB or 1024 MB provides more CPU, potentially reducing cold start time from 25-30 seconds to 5-10 seconds. This is often more cost-effective than provisioned concurrency. Option A is incorrect - there are solutions beyond just waiting longer. Option C (provisioned concurrency) works but has ongoing cost; increasing memory is more cost-effective for occasional cold starts. Option D helps but typically provides marginal improvement compared to CPU increase. The key insight: Lambda memory isn't just about RAM - it's the primary way to allocate CPU. The pricing increase for higher memory is often offset by faster execution and reduced cold starts. Best practice: benchmark your function at different memory levels (128, 256, 512, 1024, 1536 MB) and find the cost-performance sweet spot. This tests understanding of Lambda resource allocation and cold start optimization."
+        },
+        {
+          "question": "A company enables S3 Cross-Region Replication (CRR) from us-east-1 to eu-west-1 for a bucket with 10 TB of existing data. After 24 hours, only new objects are replicating; existing objects haven't replicated. What's the issue?",
+          "options": [
+            "CRR only replicates objects created after CRR is enabled; existing objects need to be copied separately",
+            "The replication IAM role lacks permissions to read existing objects",
+            "S3 Batch Replication must be initiated separately to replicate existing objects",
+            "CRR requires versioning to be enabled on both buckets before any objects are created"
+          ],
+          "correctAnswer": 2,
+          "explanation": "S3 Cross-Region Replication (CRR) and Same-Region Replication (SRR) only replicate objects created AFTER the replication configuration is enabled. Existing objects are not automatically replicated. To replicate existing objects, you must use S3 Batch Replication, which creates a batch job to replicate objects that existed before replication was configured. This is a common gotcha - architects enable CRR expecting all data to replicate automatically. Option A is partially correct but doesn't mention the specific solution (Batch Replication). Option B is unlikely - if the role lacked permissions, new objects wouldn't replicate either. Option D is true that versioning is required, but the question states CRR is working for new objects, so versioning must be configured. The process should be: (1) Enable versioning on both buckets, (2) Configure CRR, (3) Create S3 Batch Replication job for existing objects. Batch Replication allows you to replicate existing objects, objects that previously failed to replicate, or objects that were replicated but have since been deleted. This tests understanding of S3 replication behavior for existing vs new objects."
+        },
+        {
+          "question": "A database team uses RDS Performance Insights to troubleshoot query performance. The dashboard shows 'wait events' accounting for 80% of DB load, with 'CPU' showing only 20%. They upgrade the instance to double the CPU capacity, but performance doesn't improve. Why?",
+          "options": [
+            "The instance size increase didn't affect the wait events, which are typically caused by lock contention, I/O bottlenecks, or network latency, not CPU",
+            "Performance Insights takes 24-48 hours to reflect instance size changes in metrics",
+            "RDS requires a reboot after instance type change for Performance Insights to recognize new CPU capacity",
+            "The primary bottleneck is storage IOPS, which doesn't scale with instance size"
+          ],
+          "correctAnswer": 0,
+          "explanation": "RDS Performance Insights shows DB load broken down into wait events and CPU. Wait events represent time spent waiting for resources: I/O (storage), locks (row-level or table-level), network, memory, etc. If 80% of load is wait events and only 20% is CPU, adding more CPU won't help - the bottleneck isn't CPU. You need to investigate which specific wait events are dominant. Common wait events: 'io/file/innodb' (storage I/O bottleneck - increase IOPS), 'synch/mutex' (lock contention - optimize queries or schema), 'io/socket' (network - check network performance or query result size). Option B is false - metrics update in real-time. Option C is incorrect - reboot doesn't affect Performance Insights. Option D is partially true (IOPS may be the issue) but too specific; the key point is understanding wait events vs CPU. The lesson: Performance Insights separates resource consumption into categories. Address the actual bottleneck (wait events) rather than assuming CPU is the issue. This tests understanding of database performance analysis beyond just CPU metrics."
+        },
+        {
+          "question": "A company implements cost allocation tags across all resources in January. In February, they run Cost Explorer reports with tag filters, but January costs don't show tag breakdowns - only February costs do. What explains this?",
+          "options": [
+            "Cost allocation tags require 24-48 hours to propagate and cannot be retroactively applied to historical costs",
+            "Cost allocation tags must be activated in the Billing console and only apply to costs incurred after activation",
+            "January costs are still being finalized by AWS and tags will appear after the billing period closes",
+            "Cost Explorer requires at least 2 months of data before showing tag-based reports"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Cost allocation tags must be activated in the AWS Billing and Cost Management console before they appear in Cost Explorer and cost allocation reports. Importantly, they only apply to costs incurred AFTER the tag is activated - they cannot be retroactively applied to past costs. If you activate a tag on February 1st, only costs from February 1st onward will have that tag dimension available in reports. January costs, even if the resources had the tags applied, won't show the tag breakdown. This is a critical consideration for cost allocation planning: activate tags before deploying resources, not after. Option A is incorrect - tags don't propagate retroactively at all, not even after 48 hours. Option C is false - billing data finalization doesn't affect tag visibility. Option D is incorrect - Cost Explorer works immediately with activated tags. Best practice: activate cost allocation tags (both AWS-generated and user-defined) early in account setup, before deploying production resources. This tests understanding of cost allocation tag activation timing and its impact on cost reporting."
+        },
+        {
+          "question": "A company has a VPC with a single NAT Gateway in us-east-1a handling outbound traffic for workloads across 3 AZs. During peak hours, they experience intermittent connectivity issues and packet loss. CloudWatch shows NAT Gateway throughput at 45 Gbps. What's the issue?",
+          "options": [
+            "NAT Gateway has a hard limit of 45 Gbps; they need to implement NAT Instances for higher throughput",
+            "Cross-AZ traffic to the single NAT Gateway creates bandwidth bottlenecks and increased costs; deploy NAT Gateways in each AZ",
+            "NAT Gateway throttles at 45 Gbps during peak hours; request a limit increase from AWS Support",
+            "The NAT Gateway's associated Elastic IP has a bandwidth limit that's being exceeded"
+          ],
+          "correctAnswer": 1,
+          "explanation": "While NAT Gateway can scale to 100 Gbps, the architectural issue is having a single NAT Gateway serving workloads across multiple AZs. Cross-AZ data transfer creates several problems: (1) Bandwidth bottleneck at the single AZ, (2) Cross-AZ data transfer costs (significant), (3) Single point of failure. Best practice is to deploy a NAT Gateway in each AZ and configure route tables so resources use the NAT Gateway in their own AZ. This provides redundancy, reduces costs, and distributes bandwidth. Option A is incorrect - NAT Gateway can handle up to 100 Gbps, and NAT Instances would be more complex and likely lower performance. Option C is misleading - 45 Gbps isn't a throttling threshold; NAT Gateway scales automatically. Option D is false - Elastic IPs don't have bandwidth limits separate from the associated resource. The key learning: NAT Gateway architecture should follow AZ-alignment for cost, performance, and resilience. This tests understanding of NAT Gateway scaling and multi-AZ design patterns."
+        },
+        {
+          "question": "A data analytics team uses a Redshift cluster and enables concurrency scaling to handle query spikes. Their monthly Redshift bill increases 300% despite the cluster size remaining constant. What's the MOST likely cause?",
+          "options": [
+            "Concurrency scaling is billed separately from the cluster and they're incurring significant concurrency scaling charges",
+            "Redshift automatically upgraded their cluster size due to concurrency scaling being enabled",
+            "Cross-region data transfer costs increased due to concurrency scaling queries",
+            "Concurrency scaling requires additional storage which is being billed"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Redshift concurrency scaling automatically adds cluster capacity to handle bursts in query load. While this provides great performance for users, it incurs separate charges based on the seconds of usage. Concurrency scaling charges accumulate when queries are routed to concurrency scaling clusters. AWS provides one hour of free concurrency scaling credits per day per cluster, but beyond that, charges apply. If the team has sustained high query concurrency or long-running queries, they could easily consume far more than the free tier, resulting in significant costs. Option B is false - concurrency scaling doesn't change the base cluster size. Option C is unlikely - concurrency scaling doesn't inherently cause cross-region transfer. Option D is incorrect - concurrency scaling doesn't require additional storage. The solution is to monitor concurrency scaling usage in CloudWatch (ConcurrencyScalingSeconds metric), optimize queries to reduce duration, implement workload management queues to control concurrency, or disable concurrency scaling if the cost isn't justified. This tests understanding of Redshift concurrency scaling billing model and its potential cost impact."
+        }
+      ]
+    },
+    {
+      "filename": "advanced-scenarios-batch-4.json",
+      "domain": "Domain 4: Accelerate Workload Migration and Modernization",
+      "task": "Advanced Scenarios - Migration Strategies, Modernization, Tools",
+      "question_count": 15,
+      "questions": [
+        {
+          "question": "A company uses AWS DMS to migrate an Oracle database to Aurora PostgreSQL with ongoing replication (CDC). After the initial full load completes successfully, CDC replication starts but only captures changes from some tables. DMS task logs show 'table has no primary key' warnings for tables that aren't replicating. What's the issue?",
+          "options": [
+            "DMS CDC requires all tables to have primary keys; add primary keys to the missing tables or use table-level transformations",
+            "Oracle supplemental logging is not enabled at the database level for tables without primary keys",
+            "Aurora PostgreSQL doesn't support CDC for tables without primary keys; add unique indexes instead",
+            "DMS task configuration must explicitly enable CDC for tables without primary keys in the table mappings"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS DMS Change Data Capture (CDC) from Oracle requires supplemental logging to be enabled. For tables WITH primary keys, minimal supplemental logging at the database level is sufficient. However, for tables WITHOUT primary keys, you must enable supplemental logging at the table level or use database-level supplemental logging with ALL COLUMNS. The warning 'table has no primary key' indicates DMS cannot properly track changes because it doesn't have enough information from Oracle redo logs to identify which row changed. The solution is to enable supplemental logging: ALTER TABLE schema.table ADD SUPPLEMENTAL LOG DATA (ALL) COLUMNS; or enable it database-wide. Option A is incorrect - while primary keys help, DMS can handle tables without them if supplemental logging is configured. Option C is false - Aurora PostgreSQL support isn't the issue; Oracle configuration is. Option D is incorrect - table mappings don't have a CDC enable/disable per table based on primary keys. This tests understanding of Oracle-specific DMS requirements for CDC."
+        },
+        {
+          "question": "During an application migration using AWS MGN, the source server shows 'Replication lag: 6 hours' despite having a stable network connection and the replication server running. The source disk has 80% free space. What is the MOST likely cause?",
+          "options": [
+            "The source server is experiencing high disk write activity that exceeds the replication bandwidth",
+            "The replication server instance type is too small to handle the replication workload",
+            "MGN replication lag is normal and will catch up after cutover",
+            "The source server's MGN agent is not properly configured for continuous replication"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS MGN (Application Migration Service, formerly CloudEndure) performs continuous block-level replication. Replication lag occurs when changes on the source are generated faster than they can be replicated to AWS. High disk write activity (database updates, log files, temporary files, etc.) creates change rate that exceeds available bandwidth or replication throughput. Even with sufficient network bandwidth, the replication process must read changed blocks, compress them, transmit, and write to staging disks. If the source has sustained high I/O (e.g., busy database), lag accumulates. Solutions: (1) Increase bandwidth, (2) Reduce source write activity during migration, (3) Exclude high-churn non-essential files from replication, or (4) Schedule cutover during low-activity periods to allow lag to catch up. Option B is possible but less common - MGN auto-sizes replication servers. Option C is dangerous - significant lag means the target is hours behind the source. Option D is unlikely if replication is working, just lagging. This tests understanding of MGN replication dynamics and troubleshooting lag issues."
+        },
+        {
+          "question": "A DMS task migrates a PostgreSQL database containing tables with BYTEA (binary) columns storing images averaging 5 MB each. The task uses 'Full LOB mode' but runs extremely slowly. Switching to 'Limited LOB mode' with 100 KB lob_max_size causes data truncation errors. What's the BEST solution?",
+          "options": [
+            "Use 'Limited LOB mode' with lob_max_size set to 10 MB to accommodate the largest LOBs",
+            "Use 'Inline LOB mode' which handles LOBs more efficiently than Full or Limited modes",
+            "Split tables with LOBs into separate DMS tasks using parallel processing",
+            "Migrate the table structure with DMS, then use S3 and custom scripts for LOB data migration"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS DMS has three LOB handling modes: (1) Full LOB mode - migrates LOBs of any size but very slow (fetches each LOB separately), (2) Limited LOB mode - faster, loads LOBs inline up to lob_max_size, truncates larger ones, (3) Inline LOB mode - treats all LOBs as limited with a default size. For LOBs averaging 5 MB, Limited LOB mode with lob_max_size of 10 MB (to handle variability) provides the best performance without truncation. Full LOB mode's performance issue is that it requires extra round trips to fetch each LOB. Limited LOB mode with appropriate max size gives near-inline performance. Option B is incorrect - Inline LOB is essentially Limited LOB with a fixed default. Option C adds complexity without addressing the fundamental LOB handling issue. Option D is overly complex when DMS can handle it with proper configuration. The key is choosing the right LOB mode and sizing: use Limited LOB with max size set to slightly larger than your largest expected LOB for optimal migration performance. This tests understanding of DMS LOB migration modes and performance tuning."
+        },
+        {
+          "question": "A company uses AWS Migration Hub Strategy Recommendations to analyze their application portfolio. The tool recommends 'Rehost' for a .NET Framework 4.5 application currently running on Windows Server 2012. However, the application team knows the application could easily be containerized. Why might the tool recommend Rehost over Replatform?",
+          "options": [
+            "Migration Hub only analyzes technical dependencies, not code quality or containerization readiness",
+            "The tool prioritizes low-risk migrations and recommends Rehost as the safest option by default",
+            "Migration Hub Strategy Recommendations requires application source code access for Replatform recommendations",
+            "The tool detected dependencies on Windows-specific features that would complicate containerization"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS Migration Hub Strategy Recommendations uses automated analysis (runtime data, dependencies, resource utilization) to provide migration strategy suggestions. It follows the 7 Rs framework: Retire, Retain, Rehost, Relocate, Repurchase, Replatform, Refactor. The tool tends toward conservative recommendations - it suggests Rehost (lift-and-shift) as the default lowest-risk option unless it identifies clear opportunities for other strategies. Just because an application CAN be containerized doesn't mean the tool will recommend it. The tool looks for specific patterns like: stateless applications, modern frameworks, microservices architecture, etc. A .NET Framework 4.5 app on Windows Server 2012 might not show strong signals for containerization in the automated analysis. The recommendations are a starting point - you should apply business and technical judgment to choose the optimal strategy. Option A is partially true but doesn't explain the Rehost recommendation. Option C is false - the tool doesn't require source code. Option D is possible but not the primary reason. This tests understanding that migration tools provide guidance, not prescriptive decisions, and tend toward conservative recommendations."
+        },
+        {
+          "question": "A company needs to migrate 500 VMs from VMware to AWS with minimal downtime (under 30 minutes). They're choosing between AWS SMS and AWS MGN. The VMs include database servers with continuous write activity. What should they choose and why?",
+          "options": [
+            "AWS SMS because it's specifically designed for VMware migrations with lower cutover time",
+            "AWS MGN because it provides continuous block-level replication and supports minimal downtime cutover",
+            "AWS SMS because MGN doesn't support VMware source environments",
+            "Either service is equally appropriate; the choice depends on licensing preference"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS MGN (Application Migration Service) has largely replaced AWS SMS (Server Migration Service) as the recommended migration tool. Key differences: (1) SMS does scheduled snapshot-based replication (incremental after initial), suitable for low-change workloads, longer cutover windows acceptable. (2) MGN does continuous block-level replication, suitable for high-change workloads (like databases), minimal downtime cutover (minutes). For the scenario with database servers requiring under 30 minutes downtime, MGN is appropriate because it continuously replicates changes, keeping the target very close to source (minimal lag), allowing quick cutover. SMS would require a final snapshot replication before cutover, which could take significant time for active databases. Option A is incorrect - SMS has longer cutover times. Option C is false - MGN supports VMware, Physical, and Azure sources. Option D is incorrect - MGN is technically superior for this use case. Note: AWS has announced SMS will reach end of support, making MGN the strategic choice. This tests understanding of migration service selection based on downtime requirements and workload characteristics."
+        },
+        {
+          "question": "A DMS task migrates a 2 TB MySQL database with 200 tables to Aurora MySQL. The task uses a dms.c5.4xlarge replication instance but throughput is only 50 MB/s. CloudWatch shows the replication instance CPU at 25% and network at 30%. What optimization would MOST likely improve throughput?",
+          "options": [
+            "Increase MaxFullLoadSubTasks to parallelize loading more tables simultaneously",
+            "Increase ParallelLoadThreads for each table to use multiple threads per table",
+            "Upgrade to a larger replication instance class for more CPU and network capacity",
+            "Enable Multi-AZ for the replication instance to distribute load across availability zones"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS DMS full load performance can be tuned using two key parameters: (1) MaxFullLoadSubTasks - number of tables loaded in parallel (default 8), (2) ParallelLoadThreads - number of threads used per table for partitioned loads. With 200 tables and low resource utilization (25% CPU, 30% network), the bottleneck is not hardware but parallelism. Increasing MaxFullLoadSubTasks from the default 8 to 16 or 32 allows more tables to be migrated simultaneously, better utilizing the replication instance. The c5.4xlarge has 16 vCPUs, so it can easily handle more parallel tasks. Option B (ParallelLoadThreads) helps when you have a few very large tables, but requires LOB columns or partitioning configuration. With 200 tables, table-level parallelism (MaxFullLoadSubTasks) is more impactful. Option C is premature - the existing instance is underutilized. Option D is incorrect - Multi-AZ is for high availability, not performance. The key insight: DMS performance tuning starts with parallelism settings before hardware scaling. This tests understanding of DMS performance tuning parameters."
+        },
+        {
+          "question": "A company has a 50 TB on-premises file server that needs low-latency access to frequently used files (10 TB) while maintaining access to all data. They have 100 Mbps internet connectivity. Which Storage Gateway configuration is MOST appropriate?",
+          "options": [
+            "File Gateway with S3 bucket, using caching for frequently accessed files",
+            "Volume Gateway in Cached mode with 10 TB local cache",
+            "Volume Gateway in Stored mode with all data stored locally and backed up to S3",
+            "Tape Gateway for cost-effective long-term storage of infrequently accessed files"
+          ],
+          "correctAnswer": 0,
+          "explanation": "The scenario describes a file server use case with tier-based access patterns (hot 10 TB, total 50 TB). AWS Storage Gateway File Gateway is designed for this: it presents SMB/NFS shares backed by S3, with local cache for frequently accessed files. The cache (sized based on your local hardware) stores hot data for low-latency access, while all data resides in S3. Metadata is cached locally for fast file listing. This is ideal for file servers, backups, content repositories. Volume Gateway (Options B & C) is for block-level storage (iSCSI volumes), typically used for application volumes, not file shares. Cached Volume Gateway keeps primary data in S3 with local cache, but it's block-level, not file-level. Stored Volume Gateway keeps all data locally (need 50 TB local storage) and asynchronously backs up to S3. Option D (Tape Gateway) is for backup applications using VTL, not primary file access. The key distinction: File Gateway = file access (NFS/SMB), Volume Gateway = block access (iSCSI), Tape Gateway = backup (VTL). This tests understanding of Storage Gateway types and their use cases."
+        },
+        {
+          "question": "An organization uses AWS DataSync to transfer 100 TB from on-premises NAS to S3. They schedule transfers during off-hours (8 PM - 6 AM) to avoid impacting business. However, users still complain about slow network during transfers. DataSync bandwidth is configured to 'unlimited.' What should they do?",
+          "options": [
+            "Configure DataSync bandwidth limit to a specific value (e.g., 500 Mbps) to leave headroom for other traffic",
+            "Use AWS Direct Connect instead of internet for DataSync transfers",
+            "Schedule DataSync tasks to run in smaller batches spread throughout the night",
+            "Enable DataSync network optimizations in the task settings to reduce bandwidth usage"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS DataSync, when configured with unlimited bandwidth, will use all available network capacity to maximize transfer speed. This can saturate the internet connection, affecting other traffic even during off-hours (monitoring, backups, remote access, global operations). Configuring a bandwidth limit on the DataSync task (e.g., 500 Mbps on a 1 Gbps link) ensures DataSync doesn't monopolize the connection. You can adjust based on your network capacity and other traffic needs. Option B (Direct Connect) helps by providing dedicated bandwidth but is a much larger architectural change and may not be justified for a one-time 100 TB transfer. Option C (smaller batches) doesn't solve bandwidth saturation during each batch's execution. Option D is incorrect - there's no 'network optimization' setting that reduces bandwidth usage; DataSync is already optimized for efficient transfers. The key learning: DataSync bandwidth configuration is critical for managing network impact. Use bandwidth limits to balance transfer speed with network availability for other services. This tests understanding of DataSync bandwidth management."
+        },
+        {
+          "question": "A company configures AWS Transfer Family SFTP server with a VPC endpoint to allow partners to upload files. Partners report they cannot connect to the SFTP server from the internet. The Transfer Family server is configured with a public endpoint type. What's the issue?",
+          "options": [
+            "VPC endpoint type is for internal access only; use PUBLIC endpoint type for internet-accessible SFTP",
+            "The server's VPC endpoint doesn't have Elastic IPs attached for internet accessibility",
+            "Security groups associated with the VPC endpoint are blocking inbound SFTP traffic on port 22",
+            "PUBLIC endpoint type and VPC endpoint are mutually exclusive; the configuration is invalid"
+          ],
+          "correctAnswer": 2,
+          "explanation": "AWS Transfer Family supports three endpoint types: (1) PUBLIC - internet-accessible via AWS-managed endpoint, (2) VPC - private access within VPC using VPC endpoint, (3) VPC_ENDPOINT with Elastic IPs - internet-accessible via VPC endpoint with Elastic IPs attached to endpoint's ENIs. The scenario states 'VPC endpoint' and 'public endpoint type,' which is contradictory in the question, but the actual issue in practice is typically security group configuration. When using VPC or VPC_ENDPOINT types, the VPC endpoint has associated security groups that must allow inbound traffic on port 22 (SFTP) from the internet (0.0.0.0/0 for public access, or specific partner IPs for restricted access). Many architects configure the Transfer Family server but forget to update security groups on the VPC endpoint. Option A is partially correct but doesn't address the security group issue. Option B is partially correct - VPC_ENDPOINT type needs EIPs for internet access, but the question is about connectivity being blocked. Option D is incorrect - you can have internet-accessible VPC endpoints with EIPs. This tests understanding of Transfer Family endpoint types and network access control."
+        },
+        {
+          "question": "A company wants to run VMware workloads with strict latency requirements (under 2 ms) to on-premises databases. They're evaluating VMware Cloud on AWS and AWS Outposts. Their data center has limited rack space (4U available). Which solution is MORE appropriate?",
+          "options": [
+            "VMware Cloud on AWS because it provides native VMware vSphere with lower operational overhead",
+            "AWS Outposts because it runs in the customer data center, ensuring ultra-low latency to on-premises systems",
+            "VMware Cloud on AWS because Outposts requires minimum 42U rack space, which exceeds availability",
+            "Neither solution works; use AWS Wavelength for low-latency edge computing instead"
+          ],
+          "correctAnswer": 2,
+          "explanation": "AWS Outposts comes in two form factors: (1) Outposts racks - minimum 42U rack, provides full AWS infrastructure in customer data center, (2) Outposts servers - 1U or 2U form factors with limited capacity (introduced later). VMware Cloud on AWS runs in AWS data centers, not on-premises, providing VMware-native environment but with typical AWS-to-on-premises latency (not sub-2ms). For sub-2ms latency requirements, the workload needs to run on-premises, making Outposts the logical choice. However, with only 4U rack space available, a standard Outposts rack won't fit. The customer would need to either: (1) Allocate more rack space for Outposts rack, (2) Use Outposts servers (1U/2U) if capacity meets needs, or (3) Reconsider architecture. Option A doesn't meet latency requirements. Option B is technically correct about latency but ignores the rack space constraint. Option D is incorrect - Wavelength is for 5G edge, not data center latency. This tests understanding of hybrid deployment options and their physical and latency constraints."
+        },
+        {
+          "question": "A company uses AWS SCT to migrate from Oracle to Aurora PostgreSQL. SCT's assessment report shows many database objects marked as 'action required' with conversion complexity HIGH. What does this indicate and what should they do?",
+          "options": [
+            "These objects cannot be automatically converted; manual rewriting in PostgreSQL-compatible syntax is required",
+            "SCT requires additional licenses to convert complex objects; purchase SCT Professional edition",
+            "The source Oracle database has unsupported features; upgrade to a newer Oracle version first",
+            "Run SCT in 'force conversion' mode to automatically convert all objects regardless of complexity"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS Schema Conversion Tool (SCT) analyzes source database schemas and provides an assessment report with traffic light indicators: (1) GREEN - automatic conversion, (2) YELLOW - mostly automatic with minor manual fixes, (3) RED/'Action Required' - cannot be automatically converted, requires manual effort. Objects marked HIGH complexity typically include: proprietary Oracle features (DBMS_* packages not available in PostgreSQL), complex PL/SQL that doesn't map to PL/pgSQL, hierarchical queries, certain data types, etc. The solution is to manually rewrite these objects or refactor the application to avoid them. SCT provides recommendations and equivalent PostgreSQL patterns. Option B is false - SCT is free; there's no 'Professional edition.' Option C may help in some cases but doesn't solve fundamental Oracle-to-PostgreSQL incompatibilities. Option D is incorrect - there's no 'force conversion' mode; SCT won't convert what it can't. The key insight: heterogeneous migrations (different database engines) require careful assessment and often significant manual conversion effort. SCT automates what it can but architects must budget for manual work on complex objects. This tests understanding of SCT limitations and migration effort estimation."
+        },
+        {
+          "question": "A DMS task successfully completes full load and begins CDC. Initially, CDC lag is under 1 second. After several days, CDC lag grows to 10+ minutes and continues increasing. The source database write rate hasn't increased. What's the MOST likely cause?",
+          "options": [
+            "The target Aurora database is experiencing write throttling due to too many concurrent transactions",
+            "The DMS replication instance is running out of disk space for transaction logs and change data",
+            "Network bandwidth between source and target has degraded over time",
+            "The source database's transaction log is not being archived properly, causing DMS to re-read old transactions"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS DMS replication instances have local storage used for task logs, cached transactions, and swap space. During CDC, if the target cannot keep up with applying changes (due to write contention, latency, or throttling), DMS queues transactions on the replication instance's disk. Over time, if the apply rate is consistently slower than the capture rate, disk space fills up, slowing DMS performance further. Eventually, disk exhaustion causes severe lag or task failure. This is progressive degradation - starts well, degrades over days. Solutions: (1) Monitor replication instance disk metrics (FreeStorageSpace), (2) Increase storage or instance size, (3) Optimize target database write performance (add indexes, increase IOPS), (4) Tune DMS task settings (BatchApplyEnabled, parallel apply). Option A is possible but would likely show constant lag, not progressive. Option C is unlikely to degrade progressively. Option D is incorrect - archive log issues would prevent CDC from reading new changes. The key insight: DMS replication instances need adequate storage for sustained CDC workloads, especially when target apply performance varies. This tests understanding of DMS operational monitoring and troubleshooting."
+        },
+        {
+          "question": "A company wants to inventory their 5,000 on-premises servers for migration planning. Some servers are physical, some virtual, across multiple data centers. They want to collect detailed dependency information (network connections between servers). What's the BEST discovery approach?",
+          "options": [
+            "Deploy AWS Application Discovery Service Agents on all servers for detailed dependency and performance data",
+            "Use Application Discovery Service Agentless Discovery (vCenter integration) for VMware VMs only",
+            "Import server inventory from existing CMDB using Migration Hub import templates",
+            "Use a combination of agents for critical servers and agentless for VMs, importing physical server data from CMDB"
+          ],
+          "correctAnswer": 3,
+          "explanation": "AWS provides multiple discovery mechanisms: (1) Application Discovery Service Agent-based - installed on servers (VM or physical), collects detailed data including network connections, processes, performance metrics; works across all platforms but requires installation on each server. (2) Agentless Discovery - integrates with VMware vCenter, collects configuration and utilization data for VMs; no installation required but limited to VMware and less detailed. (3) Migration Hub import - upload CSV files from existing tools/CMDBs; quick but static snapshot. For 5,000 servers across physical and virtual, a hybrid approach is most practical: deploy agents on critical servers where detailed dependency mapping is crucial, use agentless for VMware VMs (easier at scale), and import physical server inventory from existing CMDB. This balances detail with operational feasibility. Option A (agents everywhere) is ideal but operationally challenging for 5,000 servers. Option B misses physical servers. Option C lacks dependency information. The key insight: large-scale discovery requires pragmatic hybrid approaches. This tests understanding of discovery tool selection and trade-offs."
+        },
+        {
+          "question": "A company uses AWS Elastic Disaster Recovery (DRS, formerly CloudEndure DR) for business-critical servers. Their RTO requirement is 1 hour, RPO requirement is 15 minutes. During a DR test, they fail over and discover the recovered server's data is 45 minutes old. What's the issue?",
+          "options": [
+            "DRS replication lag exceeded 15 minutes due to high change rate on source servers",
+            "DRS cannot achieve 15-minute RPO; minimum RPO is 1 hour for block-level replication",
+            "The DR drill initiated failover before replication caught up to the current point in time",
+            "DRS was configured in 'scheduled snapshot' mode instead of 'continuous replication' mode"
+          ],
+          "correctAnswer": 0,
+          "explanation": "AWS Elastic Disaster Recovery (DRS) provides continuous block-level replication with typical RPO of seconds to minutes, depending on change rate and network conditions. However, if the source server has a high change rate (disk writes) that exceeds the replication throughput, lag accumulates, increasing RPO. The scenario's 45-minute lag suggests replication cannot keep up with source changes. Solutions: (1) Increase bandwidth between source and AWS, (2) Reduce source change rate (pause non-critical writes during DR prep), (3) Exclude high-churn non-critical volumes from replication, (4) Optimize network path. Option B is false - DRS can achieve sub-minute RPO under normal conditions. Option C is possible but the scenario says they 'fail over,' not that they initiated failover prematurely; lag is the root cause. Option D is incorrect - DRS doesn't have 'snapshot mode'; it's continuous replication. The key learning: DR tools provide technical capability for low RPO, but actual RPO depends on workload characteristics (change rate) and infrastructure (bandwidth). Always test DR with realistic workload conditions. This tests understanding of replication-based DR limitations."
+        },
+        {
+          "question": "A company evaluates AWS Mainframe Modernization service for migrating COBOL applications. The service's automated refactoring option promises to convert COBOL to Java. After analysis, what should they expect regarding the automated conversion?",
+          "options": [
+            "Fully automated conversion with no manual coding required; applications run immediately after conversion",
+            "Automated conversion handles 60-80% of code; business logic requires manual review and potential refactoring",
+            "Automated conversion only works for COBOL programs under 10,000 lines of code",
+            "Conversion is automated but requires rewriting all database access layers and transaction logic"
+          ],
+          "correctAnswer": 1,
+          "explanation": "AWS Mainframe Modernization provides two migration patterns: (1) Replatform - lift-and-shift mainframe applications to managed mainframe runtime on AWS (Micro Focus or Blu Age runtime), minimal code changes; (2) Refactor - automated conversion of COBOL to Java with business logic preserved, runs on modern stack. The automated refactoring is sophisticated but not 100% automated. Typically, the conversion handles 60-80% of code automatically, converting COBOL syntax to Java. However, business logic, complex data transformations, and integration points require review and potential manual refactoring. Additionally, mainframe-specific concepts (like CICS transactions, VSAM files, JCL) need mapping to modern equivalents (microservices, databases, orchestration). Option A is unrealistic - no automated conversion is perfect. Option C is false - there's no such line-of-code limit. Option D overstates the manual work - data access can often be converted, though it needs validation. The key insight: automated mainframe modernization significantly reduces effort but requires experienced developers to review, test, and refine converted code. It's a tool to accelerate migration, not a magic button. This tests realistic expectations of modernization tools."
+        }
+      ]
+    },
+    {
+      "filename": "advanced-scenarios-multi-select.json",
+      "domain": "Mixed Domains: Advanced Multi-Select Scenarios",
+      "task": "Advanced Scenario-Based Multi-Select Questions",
+      "question_count": 15,
+      "questions": [
+        {
+          "question": "A financial services company is implementing a defense-in-depth security strategy for their public-facing web application hosted on AWS. The application serves customers globally and must protect against DDoS attacks, SQL injection, and credential stuffing while maintaining low latency. The security team requires visibility into all blocked requests and automatic threat intelligence updates. Which THREE AWS services should be implemented as part of this multi-layered security architecture? (Select THREE)",
+          "options": [
+            "AWS Shield Advanced with AWS WAF integration for DDoS protection and layer 7 filtering",
+            "Amazon CloudFront with geo-restriction and custom SSL certificates",
+            "AWS Network Firewall with IDS/IPS rules for deep packet inspection",
+            "AWS WAF with managed rule groups including Bot Control and ATP (Account Takeover Prevention)",
+            "AWS Firewall Manager to centrally manage WAF rules across accounts",
+            "VPC Flow Logs with Amazon Athena for traffic analysis"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            0,
+            1,
+            3
+          ],
+          "explanation": "For a comprehensive defense-in-depth security architecture for a public-facing web application, the correct combination is: (1) AWS Shield Advanced provides DDoS protection at layers 3, 4, and 7, and includes 24/7 access to the DDoS Response Team (DRT). When integrated with WAF, it provides enhanced detection and automatic mitigation. (2) Amazon CloudFront acts as the first layer of defense, distributing content globally with low latency, and enables geographic restrictions. CloudFront also integrates tightly with Shield and WAF, allowing security policies to be enforced at edge locations before traffic reaches origin servers. (3) AWS WAF with managed rule groups is essential for protecting against OWASP Top 10 vulnerabilities including SQL injection. The Bot Control managed rule group protects against automated threats, and ATP (Account Takeover Prevention) specifically addresses credential stuffing attacks. These managed rule groups automatically receive threat intelligence updates from AWS Threat Research team. Option C (Network Firewall) operates at the VPC level and is designed for east-west and north-south traffic inspection within VPCs, not for protecting public web applications at the edge - it would add unnecessary latency and cost for this use case. Option E (Firewall Manager) is useful for multi-account management but isn't a security service itself; it's a management layer. In a single-account scenario or where centralized management isn't the primary concern, it's not essential. Option F (VPC Flow Logs) provides network traffic logging but doesn't actively protect against attacks; it's a visibility tool, not a security control. The key insight is that effective defense-in-depth for public web applications requires edge-based protection (CloudFront), DDoS mitigation (Shield Advanced), and application-layer filtering (WAF with managed rules)."
+        },
+        {
+          "question": "An enterprise is designing a hybrid DNS architecture to support 500 VPCs across 4 AWS regions and 3 on-premises data centers. They need bidirectional DNS resolution where AWS resources can resolve on-premises domain names and on-premises systems can resolve private Route 53 hosted zones. They want centralized management and minimal operational overhead. Which THREE components are required for this architecture? (Select THREE)",
+          "options": [
+            "Route 53 Resolver inbound endpoints in a central networking VPC in each region",
+            "Route 53 Resolver outbound endpoints in every VPC that needs to resolve on-premises names",
+            "Route 53 Resolver rules shared via AWS RAM to all accounts and associated with VPCs",
+            "AWS Transit Gateway with DNS resolution support enabled on VPC attachments",
+            "Route 53 private hosted zones associated with all VPCs",
+            "VPN connections from each VPC to each on-premises data center for DNS traffic"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            0,
+            2,
+            3
+          ],
+          "explanation": "For a scalable hybrid DNS architecture, the correct components are: (1) Route 53 Resolver inbound endpoints in a central VPC allow on-premises DNS servers to forward queries for AWS private hosted zones to Route 53 Resolver. These endpoints should be deployed in a central networking VPC with redundancy across multiple AZs. On-premises DNS servers configure conditional forwarders pointing to these inbound endpoint IP addresses. (2) Route 53 Resolver rules define which domains should be forwarded to on-premises DNS servers. These rules are created in the central networking account and shared via AWS RAM (Resource Access Manager) to all member accounts. Once shared, each account must associate the rules with their VPCs. This centralized approach eliminates the need to create duplicate rules in every account. The rules point to outbound endpoints for forwarding queries. (3) AWS Transit Gateway with DNS support enabled on VPC attachments is crucial for this architecture. When you enable DNS support on TGW VPC attachments, DNS queries from VPCs can route through the Transit Gateway to reach the central VPC containing the Resolver endpoints. This eliminates the need for VPC peering mesh or redundant endpoint deployments. Option B is incorrect because outbound endpoints should be deployed centrally in the networking VPC, not in every VPC - this is the whole point of the centralized architecture. Resolver rules (shared via RAM) reference the central outbound endpoints. Option E, while private hosted zones are part of the solution, they're not a specific 'component to implement' for the hybrid DNS architecture itself; they're the resources being resolved. Option F (VPN from every VPC) is the opposite of centralized architecture and creates massive operational overhead. The key learning is that Route 53 Resolver with Transit Gateway integration enables hub-and-spoke DNS architecture at scale, and RAM sharing of resolver rules eliminates rule duplication across hundreds of accounts."
+        },
+        {
+          "question": "A global SaaS company is implementing a multi-region disaster recovery strategy for their critical database workload currently running on Amazon Aurora PostgreSQL in us-east-1. The RTO is 15 minutes and RPO is 5 minutes. They require the ability to promote a secondary region to primary with minimal data loss and automatic failover capability. The solution must support read scalability in the DR region during normal operations. Which THREE components should be implemented? (Select THREE)",
+          "options": [
+            "Aurora Global Database with a secondary region in eu-west-1",
+            "Aurora Cross-Region Read Replica with manual promotion process",
+            "Amazon RDS Proxy in both regions for connection management and failover",
+            "Route 53 health checks with failover routing policy for application endpoints",
+            "AWS Backup with cross-region backup copy for point-in-time recovery",
+            "Aurora Multi-AZ deployment in the primary region"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            0,
+            2,
+            3
+          ],
+          "explanation": "To meet the RTO of 15 minutes and RPO of 5 minutes with multi-region DR, the correct architecture includes: (1) Aurora Global Database provides the best solution for multi-region disaster recovery. It uses dedicated infrastructure for replicating data to secondary regions with typical lag under 1 second (far better than the 5-minute RPO requirement). Global Database supports managed planned failover (RPO of 0) and unplanned failover (RPO typically less than 1 second). The failover process to promote a secondary region can complete in under 1 minute for the database itself, helping meet the 15-minute RTO. Additionally, the secondary region supports up to 16 read replicas that can serve read traffic during normal operations, meeting the read scalability requirement. (2) Amazon RDS Proxy in both regions is crucial for meeting the 15-minute RTO. RDS Proxy pools and shares database connections, and when an Aurora failover occurs, RDS Proxy maintains connections and automatically directs them to the new primary instance, significantly reducing connection storm issues and application recovery time. Deploying RDS Proxy in both regions ensures applications in each region can connect efficiently to whichever region is currently primary. (3) Route 53 health checks with failover routing policy enable automated DNS-level failover for the application tier. Health checks monitor the application endpoints in the primary region, and when failures are detected, Route 53 automatically updates DNS to point to the DR region endpoint. This provides end-to-end automated failover capability at the application level, complementing the database failover. Option B (cross-region read replica) has a manual promotion process and doesn't meet the automated failover requirement, plus the replication lag is typically higher than Global Database. Option E (AWS Backup with cross-region copy) provides point-in-time recovery but cannot meet a 15-minute RTO as restoring a database from backup takes much longer. It's suitable for backup/archival but not for the primary DR strategy with these aggressive RTO/RPO requirements. Option F (Multi-AZ in primary region) protects against AZ failures within a region but doesn't provide multi-region DR capability. The combination of Aurora Global Database, RDS Proxy in both regions, and Route 53 failover routing provides automated, fast failover with minimal data loss while also enabling read scalability in the DR region."
+        },
+        {
+          "question": "A large organization with 800 AWS accounts needs to implement centralized security monitoring and compliance automation. They require automated security assessments, continuous compliance monitoring against CIS AWS Foundations Benchmark, vulnerability scanning of EC2 instances and container images, and a unified dashboard for the security team. Which THREE AWS services should be configured with delegated administrator architecture? (Select THREE)",
+          "options": [
+            "AWS Security Hub with delegated administrator in a central security account",
+            "Amazon GuardDuty with delegated administrator and automatic member enablement",
+            "AWS Config with conformance packs deployed via CloudFormation StackSets",
+            "Amazon Inspector with delegated administrator for EC2 and ECR scanning",
+            "AWS Systems Manager with OpsCenter for centralized operational insights",
+            "Amazon Detective with cross-account investigation capabilities"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            0,
+            1,
+            3
+          ],
+          "explanation": "For comprehensive centralized security monitoring across 800 accounts, the correct services are: (1) AWS Security Hub with delegated administrator provides a centralized view of security findings and compliance status across all accounts and regions. Security Hub aggregates findings from GuardDuty, Inspector, IAM Access Analyzer, Macie, and third-party security tools into a unified dashboard. It includes built-in compliance standards including CIS AWS Foundations Benchmark, PCI DSS, and AWS Foundational Security Best Practices. The delegated administrator architecture allows a central security account to manage Security Hub across all member accounts without using the management account. Security Hub automatically normalizes findings across services into a standard format (AWS Security Finding Format) for easier analysis. (2) Amazon GuardDuty with delegated administrator provides intelligent threat detection using machine learning to analyze VPC Flow Logs, CloudTrail events, and DNS logs across all accounts. The delegated administrator can automatically enable GuardDuty in new accounts as they join the organization (through auto-enable feature), ensuring comprehensive coverage without manual intervention per account. GuardDuty findings automatically flow into Security Hub for centralized visibility. At 800 accounts, the automated enablement feature is crucial for operational efficiency. (3) Amazon Inspector with delegated administrator provides automated vulnerability management by continuously scanning EC2 instances, container images in ECR, and Lambda functions for software vulnerabilities and network exposure. Inspector automatically discovers resources, scans them, and reports findings. The delegated administrator model allows central management, and Inspector findings also integrate with Security Hub for unified visibility. Inspector is specifically designed for vulnerability scanning, which is a stated requirement. Option C (AWS Config with StackSets) would work for compliance monitoring, but it's more complex to manage at scale compared to Security Hub's built-in compliance standards. Security Hub actually aggregates Config findings, so deploying Config separately via StackSets is an additional operational burden when Security Hub already provides the centralized compliance dashboard. Option E (Systems Manager OpsCenter) is for operational issue management, not security monitoring. Option F (Detective) is for security investigation and forensics, which is valuable but not part of the core requirements for continuous monitoring and compliance assessment. The key architecture insight is that Security Hub acts as the aggregation layer for findings from GuardDuty (threat detection) and Inspector (vulnerability scanning), while also providing compliance monitoring through its security standards feature, making these three services the optimal combination for the stated requirements with minimal operational overhead."
+        },
+        {
+          "question": "A media company is migrating a large-scale video processing application to AWS. The application processes 10 PB of video files stored in an on-premises NFS file system. They need to migrate the data to Amazon S3 with minimal downtime, automatically transition older files to cheaper storage tiers, and implement a lifecycle policy where files older than 90 days move to S3 Glacier, and files older than 2 years are deleted. Which THREE approaches should be combined for this migration and lifecycle management? (Select THREE)",
+          "options": [
+            "AWS DataSync for initial bulk transfer and ongoing synchronization of the 10 PB dataset",
+            "AWS Storage Gateway File Gateway to provide NFS access to S3 during migration",
+            "AWS Snowball Edge devices for offline data transfer of the initial 10 PB",
+            "S3 Lifecycle policies with transitions to S3 Glacier after 90 days and expiration after 2 years",
+            "S3 Intelligent-Tiering for automatic cost optimization based on access patterns",
+            "AWS Transfer Family (SFTP) to enable file uploads from on-premises systems"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            0,
+            2,
+            3
+          ],
+          "explanation": "For migrating 10 PB of data and implementing lifecycle management, the correct approach combines: (1) AWS Snowball Edge devices for the initial bulk transfer. Transferring 10 PB over the network, even with a 10 Gbps connection, would take months (10 PB = 10,000 TB; at 1 Gbps effective throughput = 10,000+ hours = over 400 days). Snowball Edge devices can hold up to 80 TB each, so you'd need around 125 devices, but AWS allows parallel shipments. Each device can transfer data at local network speeds, and once shipped to AWS, the data is loaded into S3. This approach reduces the initial migration time from months to weeks. (2) AWS DataSync for ongoing synchronization after the bulk transfer. While Snowball handles the initial 10 PB, DataSync is perfect for incremental synchronization of changed and new files. DataSync can be deployed on-premises as a VM or hardware appliance, continuously monitors the source NFS share, and efficiently transfers only changed data to S3. This enables a cutover strategy where: Snowball transfers the bulk data, DataSync synchronizes changes made during the Snowball transfer period, and then final cutover happens with DataSync ensuring all recent changes are captured with minimal downtime. DataSync also automatically handles retries, data verification, and can maintain file metadata. (3) S3 Lifecycle policies provide automated, policy-based data lifecycle management. You configure a single lifecycle rule on the S3 bucket that specifies: transition objects to S3 Glacier Deep Archive (or S3 Glacier Flexible Retrieval) 90 days after creation, and permanently delete objects 2 years (730 days) after creation. This is declarative, requires no custom code, and automatically applies to all current and future objects. S3 lifecycle policies are the native, cost-effective way to implement time-based storage tiering and deletion. Option B (Storage Gateway File Gateway) provides NFS access to S3, which could be useful if the on-premises application needs ongoing NFS access to S3, but the scenario describes a migration where files are moving to S3, not an ongoing hybrid storage architecture. It also doesn't help with the 10 PB initial transfer challenge. Option E (S3 Intelligent-Tiering) automatically moves objects between access tiers based on access patterns (not accessed for 30 days → Infrequent Access tier, etc.), but the requirements specify a time-based policy (90 days → Glacier), not an access-pattern-based policy. Intelligent-Tiering also doesn't support automatic deletion based on age. Option F (Transfer Family) is for enabling SFTP/FTPS/FTP access to S3, which isn't relevant for migrating from an NFS file system - the source is NFS, not FTP-based. The architecture combines offline bulk transfer (Snowball) for the initial dataset, online incremental sync (DataSync) for changes and final cutover, and S3-native lifecycle policies for long-term automated tiering and deletion."
+        },
+        {
+          "question": "A startup is building a serverless microservices application on AWS using Amazon ECS with Fargate. The application consists of 15 microservices that need to communicate securely with each other, with service discovery, mutual TLS authentication, and detailed observability into service-to-service communication. The team wants to avoid managing service mesh infrastructure. Which THREE AWS services/features should be implemented? (Select THREE)",
+          "options": [
+            "AWS App Mesh for service mesh capabilities with Envoy proxy sidecars",
+            "AWS Cloud Map for service discovery and health checking",
+            "Amazon ECS Service Connect for simplified service-to-service communication",
+            "Application Load Balancer with host-based routing for each microservice",
+            "AWS X-Ray for distributed tracing across microservices",
+            "Amazon CloudWatch Container Insights for container-level metrics and logs"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            2,
+            4,
+            5
+          ],
+          "explanation": "For a serverless microservices architecture on ECS Fargate with the stated requirements, the optimal combination is: (1) Amazon ECS Service Connect provides service discovery, service-to-service communication, and traffic management specifically designed for ECS workloads. Launched in late 2022, Service Connect simplifies microservices networking by automatically handling service discovery, client-side load balancing, and traffic routing without requiring separate service mesh infrastructure. It deploys a lightweight proxy as a sidecar (based on Envoy) but is fully managed by AWS - you don't operate the control plane. Service Connect integrates with AWS Cloud Map for namespace management but abstracts away the complexity. Importantly, it provides traffic metrics and logs for observability. While it doesn't natively provide mutual TLS in all configurations, it significantly simplifies service-to-service communication compared to manual service mesh operation, aligning with the 'avoid managing infrastructure' requirement. (2) AWS X-Ray provides distributed tracing across the microservices architecture. By instrumenting your application code with the X-Ray SDK, you can trace requests as they flow through the 15 microservices, identifying bottlenecks, latency issues, and errors. X-Ray creates a service map showing dependencies and performance characteristics of each service, provides end-to-end request tracing with detailed timing for each service call, and integrates with ECS/Fargate container metadata. For observability into service-to-service communication patterns and troubleshooting distributed transactions, X-Ray is essential. (3) Amazon CloudWatch Container Insights provides comprehensive monitoring for containerized applications. It automatically collects metrics at the cluster, service, and task level including CPU, memory, disk, and network utilization. Container Insights also aggregates logs from all containers and provides a unified dashboard. For ECS on Fargate, it gives visibility into resource utilization, performance metrics, and helps with troubleshooting. Combined with X-Ray (application-level tracing) and Service Connect (network-level metrics), Container Insights provides infrastructure-level observability, completing the observability stack. Option A (AWS App Mesh) is a full-featured service mesh that provides mutual TLS, advanced traffic management, and observability, but requires managing the App Mesh control plane, configuring Envoy proxies, and more operational overhead. The question specifically states 'avoid managing service mesh infrastructure,' making Service Connect a better fit as it provides managed service mesh capabilities without the operational complexity. If strict mutual TLS is absolutely required, App Mesh would be necessary, but Service Connect meets most requirements with less overhead. Option B (AWS Cloud Map) is used by Service Connect under the hood, but you don't configure it directly when using Service Connect - it's abstracted away. Separately deploying Cloud Map would be needed if you're building a custom service discovery solution, but Service Connect handles this. Option D (Application Load Balancer with host-based routing) provides external-facing load balancing but doesn't provide service discovery, mutual TLS, or service mesh capabilities for service-to-service communication. You'd still need ALB for ingress traffic from the internet, but it's not part of the internal microservices communication architecture. The key insight is that ECS Service Connect is purpose-built for simplifying microservices on ECS/Fargate, X-Ray provides application-level distributed tracing, and Container Insights provides infrastructure monitoring - together they provide comprehensive observability without heavy service mesh operational burden."
+        },
+        {
+          "question": "An e-commerce company running a monolithic application on EC2 instances is planning to modernize to a containerized microservices architecture. They need to minimize refactoring, support both containerized and non-containerized components during migration, enable gradual traffic shifting between old and new versions, and maintain session affinity. Which THREE AWS services/features should be part of the migration strategy? (Select THREE)",
+          "options": [
+            "Amazon ECS with Application Load Balancer target groups for blue/green deployments",
+            "AWS App Runner for automatic container deployment with built-in load balancing",
+            "AWS CodeDeploy with ECS blue/green deployment support for gradual traffic shifting",
+            "Amazon API Gateway with VPC Link for routing traffic to both EC2 and container backends",
+            "AWS Lambda with Application Load Balancer integration for serverless microservices",
+            "Elastic Beanstalk with Docker platform for simplified container deployment"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            0,
+            2,
+            3
+          ],
+          "explanation": "For a migration from monolithic EC2 to containerized microservices with the stated requirements, the optimal combination is: (1) Amazon ECS with Application Load Balancer provides the container orchestration platform and routing capabilities needed. ECS allows you to run containerized microservices on either EC2 or Fargate. ALB target groups can route traffic to ECS tasks (containers) while supporting advanced routing rules (path-based, host-based), and crucially, ALB supports sticky sessions (session affinity) using cookie-based stickiness. You can configure multiple target groups behind a single ALB - some pointing to legacy EC2 instances and others to ECS containers - enabling gradual migration. ALB also integrates with ECS service discovery and health checks. (2) AWS CodeDeploy with ECS blue/green deployment support enables safe, controlled deployments with gradual traffic shifting. CodeDeploy for ECS supports blue/green deployments where a new version of the service (green) is deployed alongside the old version (blue), and traffic is gradually shifted from blue to green using linear or canary strategies (e.g., 10% every 10 minutes). This allows validation and monitoring before full cutover, with automatic rollback if CloudWatch alarms trigger. This is essential for minimizing risk during the microservices migration - each service can be migrated and deployed independently with gradual traffic shifting. (3) Amazon API Gateway with VPC Link provides a unified API front-end that can route requests to both legacy EC2 backends (via VPC Link to NLB/ALB) and new containerized microservices. During the migration, you can use API Gateway to implement the strangler fig pattern: route specific API paths to new containerized microservices while routing other paths to the legacy monolith. API Gateway also provides API management capabilities like throttling, authentication (Cognito, Lambda authorizers), request/response transformation, and caching. VPC Link enables private connectivity from API Gateway to resources in your VPC without internet exposure. This architecture allows gradual decomposition of the monolith where API endpoints are migrated one at a time to new microservices. Option B (AWS App Runner) is a simplified container service but doesn't provide the level of control needed for gradual migration strategies, doesn't support blue/green deployments with traffic shifting, and is designed for simple containerized web apps rather than complex migration scenarios. Option D (Lambda with ALB) could be part of the architecture for some microservices, but the question asks about containerized microservices, not serverless functions. Lambda is valuable for certain use cases but doesn't address the core requirement of container orchestration. Option F (Elastic Beanstalk with Docker) provides simplified container deployment but lacks the advanced deployment strategies (gradual traffic shifting, blue/green) that CodeDeploy offers, and doesn't provide the API management and routing flexibility of API Gateway for managing the migration from monolith to microservices. The architecture uses ECS for container orchestration, CodeDeploy for safe deployments with traffic shifting, and API Gateway as the API management layer that can route to both old and new backends during the migration period, enabling the strangler fig pattern for gradual modernization."
+        },
+        {
+          "question": "A financial institution must implement a multi-account AWS environment with strict compliance requirements including: encryption of all data at rest and in transit, centralized key management with automatic key rotation, audit logging of all key usage, and the ability to disable keys across all accounts immediately in case of a security incident. Which THREE approaches should be implemented? (Select THREE)",
+          "options": [
+            "AWS KMS with customer managed keys (CMKs) created in each account and automatic key rotation enabled",
+            "AWS KMS with a centralized key management account and cross-account key policies for resource access",
+            "AWS CloudTrail with CloudWatch Logs integration for monitoring KMS API calls across all accounts",
+            "AWS Secrets Manager for storing and rotating encryption keys automatically",
+            "AWS Certificate Manager for managing SSL/TLS certificates with automatic renewal",
+            "AWS Security Hub with AWS Config rules to ensure encryption at rest compliance"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            1,
+            2,
+            5
+          ],
+          "explanation": "For enterprise-grade centralized key management with compliance and security requirements, the correct approach includes: (1) AWS KMS with a centralized key management account provides the best architecture for centralized control. In this model, customer managed keys (CMKs) are created in a dedicated security/key management account, and cross-account access is granted through key policies and grants. This allows the security team to maintain central control over keys while application accounts can use them for encryption/decryption. Key policies can specify which accounts and roles can use keys for which operations. Crucially, this architecture enables the security team to immediately disable or delete keys from the central account in case of a security incident, and the effect is instantaneous across all consuming accounts. Automatic key rotation can be enabled on these centralized keys, rotating the backing key material annually while maintaining the same key ID (ensuring no application changes are needed). (2) AWS CloudTrail with CloudWatch Logs integration provides comprehensive audit logging of all KMS API calls. Every KMS operation (Encrypt, Decrypt, GenerateDataKey, etc.) generates a CloudTrail event that includes details about who made the call, from which account, which key was used, and the timestamp. By configuring an organization trail, you capture KMS API calls across all accounts in a centralized S3 bucket. Integrating CloudTrail with CloudWatch Logs enables real-time monitoring and alerting - you can create metric filters and alarms to detect anomalous KMS usage patterns, unauthorized access attempts, or policy violations. This satisfies the audit logging requirement and provides the security team with visibility into how keys are being used across the organization. (3) AWS Security Hub with AWS Config rules ensures continuous compliance monitoring for encryption at rest. AWS Config rules can be deployed organization-wide (via Config Organizational Rules or StackSets) to check that resources like EBS volumes, S3 buckets, RDS databases, and DynamoDB tables are encrypted. Security Hub aggregates findings from these Config rules into a centralized dashboard and maps them to compliance frameworks (PCI DSS, CIS, etc.). This provides automated, continuous compliance assessment rather than manual periodic audits, and Security Hub can trigger automated remediation through EventBridge when encryption violations are detected. Option A (keys in each account) is the opposite of centralized management and makes incident response difficult - you'd need to disable keys in hundreds of accounts individually. It also makes governance and oversight harder. Option C is close, but the question is about CloudTrail with CloudWatch integration, which is covered in Option B - CloudTrail alone provides audit logs but adding CloudWatch enables real-time monitoring and alerting. Option D (Secrets Manager) is for storing secrets like database passwords and API keys, not for encryption key management - that's KMS's role. Secrets Manager actually uses KMS for encryption. Option E (Certificate Manager) manages SSL/TLS certificates for HTTPS/TLS connections, which addresses encryption in transit for web traffic, but doesn't provide centralized key management for data at rest encryption or the ability to disable keys across all accounts. ACM is a component of a complete solution but isn't one of the core three for centralized key management. The architecture combines centralized KMS key creation and management, comprehensive CloudTrail auditing with real-time monitoring via CloudWatch, and continuous compliance monitoring through Security Hub and Config rules, providing defense-in-depth for key management and encryption compliance."
+        },
+        {
+          "question": "A healthcare organization needs to migrate a 50 TB SQL Server database from on-premises to AWS with minimal downtime. The database is subject to HIPAA compliance, has high transaction volume (10,000 transactions/second), and the migration window allows only 4 hours of downtime. Post-migration, they need automated backups, point-in-time recovery, and the ability to create development database clones quickly. Which THREE components should be part of the migration and operational strategy? (Select THREE)",
+          "options": [
+            "AWS Database Migration Service (DMS) with ongoing replication for minimal downtime migration",
+            "AWS Snowball to transfer the initial 50 TB database dump offline",
+            "Amazon RDS for SQL Server with automated backups and Multi-AZ deployment",
+            "AWS Backup for centralized backup management across all database instances",
+            "Amazon Aurora PostgreSQL with Babelfish for SQL Server compatibility",
+            "Amazon RDS read replicas for creating development database clones"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            0,
+            2,
+            3
+          ],
+          "explanation": "For migrating a large, high-transaction SQL Server database with minimal downtime and specific operational requirements, the correct approach is: (1) AWS Database Migration Service (DMS) provides the capability for minimal downtime migration through continuous data replication. The migration strategy would be: perform an initial full load of the database to RDS (which can happen while the source database remains operational), enable ongoing replication/CDC (Change Data Capture) to continuously replicate transactions from the source to target, monitor replication lag until caught up, perform a brief cutover during the 4-hour window to switch applications to the RDS database. DMS supports SQL Server as both source and target, handles schema migration, and can replicate ongoing transactions with low latency. For a 10,000 TPS workload, DMS can be configured with multiple tasks and appropriate instance sizing to handle the throughput. The 50 TB initial load can be expedited using DMS with Snowball Edge (though this adds complexity) or by using a dedicated DMS replication instance with sufficient network bandwidth. (2) Amazon RDS for SQL Server is the managed database service that eliminates operational overhead. RDS provides automated backups with configurable retention (up to 35 days), automatic point-in-time recovery to any second within the retention period, automated patching, Multi-AZ deployment for high availability, and performance monitoring. For HIPAA compliance, RDS supports encryption at rest using KMS and encryption in transit using SSL/TLS. RDS can handle 10,000 TPS with appropriate instance sizing (e.g., db.r6i.8xlarge or larger). The managed nature of RDS means the healthcare organization doesn't need to manage SQL Server licensing, OS patching, or backup infrastructure - AWS handles these operational tasks. (3) AWS Backup provides centralized backup management, which is particularly valuable for HIPAA compliance and governance. While RDS has built-in automated backups, AWS Backup adds a centralized backup policy layer across the organization. You can define backup plans with retention policies, copy backups to other regions for DR, apply backup policies across multiple accounts using AWS Organizations, enforce backup compliance with backup vault lock (preventing deletion of backups for compliance), and generate backup compliance reports for audits. For HIPAA compliance, AWS Backup's vault lock feature is particularly valuable as it enforces WORM (Write Once Read Many) for backups, meeting regulatory requirements. AWS Backup also supports cross-account and cross-region backup copies for additional protection. Option B (Snowball for initial transfer) could work but adds complexity to the migration - you'd need to create a database dump, ship it via Snowball, restore to RDS, then set up DMS for the catch-up replication. For a 50 TB database with good network connectivity (1-10 Gbps), DMS can transfer the initial load over the network in a reasonable timeframe (a few days), and since ongoing replication keeps the databases in sync, the total timeline still fits the minimal downtime requirement. Snowball is more suitable when network bandwidth is severely constrained. Option D (Aurora PostgreSQL with Babelfish) is an alternative to RDS SQL Server where Babelfish provides SQL Server wire protocol compatibility, allowing SQL Server applications to connect to Aurora PostgreSQL. However, Babelfish has limitations and may require application testing and potential code changes for compatibility. Given the high transaction volume and 4-hour cutover window, migrating to RDS SQL Server (same database engine) is lower risk than migrating to a different engine (PostgreSQL), even with Babelfish compatibility. Option E is incorrect - RDS for SQL Server does not support read replicas. Read replicas are available for PostgreSQL, MySQL, and MariaDB, but not for SQL Server. For creating development database clones quickly, RDS supports database snapshots that can be restored to new instances (though this takes time for 50 TB), or you could use RDS Blue/Green deployments for cloning. The optimal strategy uses DMS for minimal-downtime migration with continuous replication, RDS for SQL Server as the managed target platform with built-in HA and PITR, and AWS Backup for centralized, compliant backup management meeting HIPAA requirements."
+        },
+        {
+          "question": "A global media company needs to implement a multi-region content delivery solution that serves 4K video content to users worldwide with low latency, provides real-time analytics on content performance and viewer behavior, and protects video content from unauthorized access and hotlinking. The solution must also reduce origin load by maximizing cache hit ratio. Which THREE AWS services/features should be implemented? (Select THREE)",
+          "options": [
+            "Amazon CloudFront with field-level encryption for protecting sensitive viewer data",
+            "CloudFront signed URLs and signed cookies with custom policies for content access control",
+            "AWS Elemental MediaPackage for video packaging and origin protection",
+            "Amazon CloudWatch with CloudFront standard logs for basic monitoring",
+            "Amazon Kinesis Data Streams with CloudFront real-time logs for detailed analytics",
+            "AWS WAF with rate-based rules to prevent content scraping and DDoS"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            1,
+            2,
+            4
+          ],
+          "explanation": "For a global content delivery solution with access control, analytics, and origin protection, the correct architecture includes: (1) CloudFront signed URLs and signed cookies provide robust content access control, preventing unauthorized access and hotlinking. Signed URLs/cookies use cryptographic signing with a private key (you control the key pair) to authorize access to content. You can create custom policies that specify: who can access content (IP address restrictions), when content can be accessed (time-based expiration), which content can be accessed (URL patterns). This prevents hotlinking because each URL is signed and time-limited, preventing other websites from embedding direct links to your content. The application server generates signed URLs/cookies after authenticating users, and CloudFront validates the signature before serving content. For a media company with premium 4K content, this is essential for access control and monetization. (2) AWS Elemental MediaPackage provides video packaging, origin protection, and improved cache efficiency. MediaPackage acts as a just-in-time video packager and origin for CloudFront, converting video from a single source format into multiple adaptive bitrate (ABR) formats (HLS, DASH, CMAF) dynamically. It includes origin protection features like origin access control, preventing direct access to the origin and ensuring all requests come through CloudFront. MediaPackage also implements time-shifted viewing and DVR-like functionality. Critically, it optimizes cache hit ratio by generating consistent segment URLs and supporting large manifest files, which improves CloudFront caching efficiency. For 4K video delivery at scale, MediaPackage handles the complexity of adaptive bitrate streaming while reducing origin load. (3) Amazon Kinesis Data Streams with CloudFront real-time logs provides detailed, real-time analytics on content performance and viewer behavior. CloudFront real-time logs deliver log data within seconds of a viewer request to Kinesis Data Streams, where you can process them with Kinesis Data Analytics, Lambda, or custom applications. Real-time logs include detailed fields like cache behavior, time to first byte, protocol, country, device type, and more. This enables real-time dashboards showing which content is popular, geographic distribution of viewers, cache hit ratios, error rates, and performance metrics. Compared to standard logs (which have 60-minute delay and are written to S3), real-time logs enable immediate operational insights and can trigger alerts for performance degradation or unusual access patterns. For a media company, real-time analytics on viewer behavior and content performance are critical for content strategy and operations. Option A (field-level encryption) protects specific sensitive fields in POST requests (like credit card numbers) during the request lifecycle, but isn't relevant for protecting video content delivery - signed URLs/cookies are the appropriate mechanism for video access control. Option D (CloudWatch with standard logs) provides basic monitoring but standard CloudFront logs are delivered to S3 with a delay of up to 60 minutes, which doesn't meet the 'real-time analytics' requirement. CloudWatch can provide some metrics, but detailed viewer behavior analytics require the full log data that real-time logs provide to Kinesis. Option F (AWS WAF with rate-based rules) provides security against scraping and DDoS, which is valuable, but the primary requirements are content access control (addressed by signed URLs/cookies) and analytics (addressed by real-time logs). WAF would be a good additional layer but isn't one of the core three components for the stated requirements. The architecture combines signed URLs/cookies for access control and anti-hotlinking, MediaPackage for efficient video packaging and origin protection, and Kinesis with real-time logs for detailed analytics, creating a comprehensive content delivery solution."
+        },
+        {
+          "question": "A financial services company is implementing a cost optimization strategy for their AWS environment with 300 accounts. They need to achieve 30% cost reduction through a combination of right-sizing underutilized resources, implementing automated scheduling for non-production environments, and maximizing commitment-based discounts. They require visibility into cost allocation by business unit and project. Which THREE AWS services/features should be implemented? (Select THREE)",
+          "options": [
+            "AWS Cost Explorer with rightsizing recommendations and reserved instance purchase recommendations",
+            "AWS Compute Optimizer for EC2, Lambda, and EBS volume rightsizing analysis",
+            "AWS Cost Anomaly Detection with automated alerts for unusual spending patterns",
+            "AWS Budgets with budget actions to automatically stop resources exceeding thresholds",
+            "AWS Organizations with consolidated billing and Cost Allocation Tags for business unit tracking",
+            "AWS Savings Plans (Compute and EC2 Instance Savings Plans) for commitment-based discounts"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            1,
+            4,
+            5
+          ],
+          "explanation": "For a comprehensive cost optimization strategy achieving 30% reduction across 300 accounts, the optimal combination is: (1) AWS Compute Optimizer provides machine learning-powered rightsizing recommendations that go beyond simple metrics. Compute Optimizer analyzes historical utilization data (CloudWatch metrics) for EC2 instances, Auto Scaling groups, EBS volumes, and Lambda functions to recommend optimal resource configurations. Unlike Cost Explorer's basic rightsizing (which looks primarily at CPU), Compute Optimizer analyzes CPU, memory, disk I/O, and network patterns to provide more accurate recommendations. It identifies over-provisioned resources and can recommend downsizing instances, changing instance families, or moving to Graviton processors. For Lambda, it recommends optimal memory configurations. At scale across 300 accounts, Compute Optimizer can identify significant savings opportunities - studies show 20-30% average savings from rightsizing alone. Compute Optimizer can be enabled organization-wide and provides recommendations centrally. (2) AWS Organizations with consolidated billing and Cost Allocation Tags provides the foundation for cost visibility and allocation. Consolidated billing across 300 accounts enables: single bill with aggregated usage for volume discounts, shared Reserved Instance and Savings Plans benefits across accounts, centralized payment method, and cost reporting at organization/OU/account levels. Cost Allocation Tags (both AWS-generated and user-defined tags) enable cost tracking by business unit, project, environment, cost center, and application. You can activate tags organization-wide and then use Cost Explorer and AWS Cost and Usage Reports to filter, group, and analyze costs by these dimensions. For a 300-account enterprise, this visibility is essential for chargeback/showback models and identifying which business units or projects are driving costs. Without proper tagging and consolidated billing, achieving organization-wide cost optimization is nearly impossible. (3) AWS Savings Plans (Compute and EC2 Instance Savings Plans) provide commitment-based discounts that can deliver 20-40% savings compared to On-Demand pricing. Savings Plans require committing to a consistent amount of usage (measured in $/hour) for a 1- or 3-year term. Compute Savings Plans (most flexible) apply to EC2, Fargate, and Lambda across any region, instance family, size, OS, or tenancy. EC2 Instance Savings Plans (less flexible but higher discount) apply to a specific instance family in a specific region. For a large organization with steady-state workloads, Savings Plans should be purchased to cover the baseline usage, with On-Demand for variable workloads. Organizations can share Savings Plans benefits across accounts through consolidated billing. Combined with rightsizing (reducing the baseline) and non-production scheduling (reducing hours), Savings Plans on the optimized baseline can contribute 15-25% of the 30% target reduction. Option A (Cost Explorer) is valuable and includes some rightsizing recommendations, but Compute Optimizer provides more comprehensive and accurate ML-powered recommendations across more service types, making it the better choice for the rightsizing component. Cost Explorer is still useful for visualizing costs and RI recommendations, but Option B is more directly aligned with the rightsizing requirement. Option C (Cost Anomaly Detection) helps identify unusual spending but doesn't directly contribute to the 30% cost reduction target - it's more about governance and preventing budget overruns than optimization. Option D (AWS Budgets with budget actions) can automate stopping resources when budgets are exceeded, which helps with cost control but is reactive rather than proactive optimization. The requirement mentions 'automated scheduling for non-production environments,' which would typically be implemented with Instance Scheduler, Lambda functions with EventBridge rules, or Auto Scaling scheduled actions - Budgets with actions is more about emergency cost controls than planned optimization. The architecture uses Compute Optimizer for identifying rightsizing opportunities (targeting 15-20% savings), Organizations with consolidated billing and cost allocation tags for visibility and sharing of discounts, and Savings Plans for commitment-based discounts on the optimized baseline (targeting 10-15% savings), collectively enabling the 30% cost reduction goal while providing business unit cost visibility."
+        },
+        {
+          "question": "A manufacturing company is implementing an IoT solution for 100,000 factory sensors sending telemetry data every 5 seconds. The solution must ingest high-velocity data, perform real-time anomaly detection to identify equipment failures, store time-series data for 7 years for compliance, and visualize metrics on dashboards. The architecture must be cost-effective at scale. Which THREE AWS services should be implemented? (Select THREE)",
+          "options": [
+            "AWS IoT Core for device connectivity with MQTT protocol support",
+            "Amazon Kinesis Data Streams for ingesting high-velocity sensor data",
+            "AWS IoT Analytics for device data processing and analytics",
+            "Amazon Timestream for efficient time-series data storage with automated tiering",
+            "Amazon Kinesis Data Analytics with Apache Flink for real-time anomaly detection",
+            "Amazon QuickSight for creating interactive dashboards and visualizations"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            0,
+            3,
+            4
+          ],
+          "explanation": "For a large-scale IoT telemetry solution with real-time analytics and long-term storage, the optimal architecture includes: (1) AWS IoT Core provides managed device connectivity and messaging for IoT devices at scale. IoT Core supports MQTT (the standard IoT protocol), MQTT over WebSocket, and HTTPS for device communication. It handles device authentication using X.509 certificates or IAM, manages device registry, and supports device shadows for tracking device state. Critically, IoT Core includes a rules engine that can route device data to various AWS services (Kinesis, Lambda, DynamoDB, Timestream, etc.) without writing custom code. For 100,000 sensors sending data every 5 seconds, IoT Core can easily handle the message throughput (100,000 devices × 12 messages/min = 1.2M messages/min = 20,000 messages/sec), and it scales automatically. IoT Core provides the managed infrastructure for device connectivity that would otherwise require custom MQTT brokers and scaling logic. (2) Amazon Timestream is a purpose-built time-series database optimized for IoT telemetry, application metrics, and operational data. For this use case, Timestream offers several advantages: columnar storage optimized for time-series queries, automatic data lifecycle management with memory store (recent data) and magnetic store (historical data), built-in time-series analytics functions, and data compression that reduces storage costs by 90% compared to relational databases. Critically, Timestream can store data for 7 years cost-effectively through automatic tiering - recent data stays in the fast memory store, and older data automatically moves to the lower-cost magnetic store. Timestream integrates directly with IoT Core rules engine, QuickSight for visualization, and other analytics tools. For 100,000 devices × 12 messages/min × 7 years, Timestream's compression and tiering make it far more cost-effective than storing raw data in S3 or a relational database. (3) Amazon Kinesis Data Analytics with Apache Flink provides real-time stream processing for anomaly detection. Kinesis Data Analytics can consume data from IoT Core (via Kinesis Data Streams or directly), apply real-time SQL queries or Flink applications to detect anomalies, and send alerts when anomalies are detected (via Lambda, SNS, or directly to operational systems). Flink supports sophisticated anomaly detection algorithms including statistical methods, machine learning models, and pattern matching. The managed service handles scaling automatically based on data throughput. For equipment failure prediction, you can implement algorithms that detect when sensor values deviate from normal ranges, when patterns change suddenly, or when correlations between sensors indicate impending failures. Kinesis Data Analytics can write anomaly detection results back to Timestream, S3, or trigger alerts via SNS/Lambda. Option B (Kinesis Data Streams) could be part of the architecture if IoT Core rules route data to Kinesis Data Streams first, but IoT Core can route data directly to Timestream and Kinesis Data Analytics, making a separate Data Streams component optional unless you need the buffer for processing flexibility. The question asks for the three core components, and IoT Core + Timestream + Kinesis Data Analytics provides a more complete answer. Option C (AWS IoT Analytics) provides pre-built data processing pipeline for IoT data including cleansing, filtering, enrichment, and analysis. However, it overlaps significantly with Timestream (for storage) and Kinesis Data Analytics (for real-time processing). IoT Analytics is valuable when you need its specific features like data set versioning and Jupyter notebooks for data science, but for this use case, Timestream (optimized time-series database with 7-year retention) + Kinesis Data Analytics (real-time anomaly detection) provides better cost and performance characteristics. Option F (QuickSight) is the right choice for visualization and dashboards, but when limited to three core services, the ingestion (IoT Core), storage (Timestream), and real-time analytics (Kinesis Data Analytics) are more fundamental. QuickSight would be the fourth component - it integrates directly with Timestream for building time-series dashboards. The architecture uses IoT Core for managed device connectivity at scale, Timestream for cost-effective long-term time-series storage with automatic tiering, and Kinesis Data Analytics for real-time anomaly detection, providing a complete IoT analytics solution."
+        },
+        {
+          "question": "A SaaS company serving enterprise customers needs to implement a tenant isolation strategy for their multi-tenant application. Each tenant's data must be logically isolated, tenant-specific encryption keys must be used, and they need detailed audit logs showing which tenant accessed what data. The solution must scale to 10,000 tenants without significant operational overhead. Which THREE approaches should be implemented? (Select THREE)",
+          "options": [
+            "Amazon DynamoDB with tenant ID as partition key and fine-grained access control using IAM policies",
+            "Separate AWS accounts for each tenant using AWS Control Tower for account provisioning",
+            "Amazon S3 with bucket per tenant and S3 Bucket Keys for tenant-specific encryption",
+            "AWS KMS with tenant-specific customer managed keys (CMKs) and key policies for tenant isolation",
+            "Amazon Cognito with user pools per tenant for authentication and tenant context",
+            "AWS CloudTrail with S3 object-level logging for detailed tenant data access auditing"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            0,
+            3,
+            5
+          ],
+          "explanation": "For a scalable multi-tenant SaaS architecture with data isolation, tenant-specific encryption, and audit logging for 10,000 tenants, the correct approach is: (1) Amazon DynamoDB with tenant ID as partition key and fine-grained access control provides efficient data isolation at scale. In this pattern, the tenant ID is part of the partition key (e.g., 'TENANT#12345#USERID#67890'), ensuring tenant data is logically separated. DynamoDB's fine-grained access control using IAM policies with conditions enables you to restrict users to only access data for their tenant. For example, IAM policies can use DynamoDB condition keys to ensure users can only query items where the partition key contains their tenant ID. This is called the 'pool model' where all tenants share the same tables but data is logically partitioned. This approach scales to thousands of tenants without operational overhead of managing separate tables/databases per tenant. DynamoDB's scalability and performance characteristics make it ideal for multi-tenant SaaS applications. (2) AWS KMS with tenant-specific customer managed keys (CMKs) provides the tenant-specific encryption required for isolation. In this architecture, each tenant has a dedicated KMS CMK. Application code uses the tenant's specific key for encrypting/decrypting their data using envelope encryption. KMS key policies can restrict which IAM roles can use which keys, and key usage is logged in CloudTrail, providing an audit trail of encryption operations per tenant. While managing 10,000 KMS keys requires careful architecture (you can programmatically create and manage keys via API/CloudFormation), it's feasible and provides strong tenant isolation - even if there's a data breach or misconfiguration, data encrypted with Tenant A's key cannot be decrypted by Tenant B. This is critical for enterprise SaaS where tenants demand cryptographic isolation. Some SaaS providers use a key-per-tenant model stored in a centralized key table, but the question specifically asks for tenant-specific encryption keys, making KMS CMKs per tenant the appropriate choice. (3) AWS CloudTrail with S3 object-level logging provides detailed audit logs for data access. CloudTrail logs all API calls including DynamoDB and KMS operations. For DynamoDB, enabling CloudTrail data events captures read/write operations with details about which user/role accessed which items. For S3 (if used for tenant file storage), object-level logging captures GetObject, PutObject, and DeleteObject calls. For KMS, CloudTrail automatically logs all key usage including Encrypt, Decrypt, and GenerateDataKey operations, showing which tenant's key was used for which operation. These logs can be analyzed to create tenant-specific audit reports showing exactly what data was accessed, when, by whom, and for which tenant. For enterprise SaaS customers (especially in regulated industries), this audit capability is a requirement. CloudTrail logs can be centralized, analyzed with Athena, and retained for compliance periods. Option B (separate accounts per tenant) provides the strongest isolation (known as the 'silo model') but creates massive operational overhead at 10,000 tenants. Managing 10,000 AWS accounts, even with Control Tower automation, involves significant complexity in billing, cross-account access, resource deployment, updates, and monitoring. This approach is typically used for high-tier enterprise customers (tens to hundreds), not for scaling to thousands of tenants. Option C (S3 bucket per tenant) faces similar challenges - while S3 Bucket Keys improve encryption performance and reduce KMS costs, managing 10,000 S3 buckets creates operational overhead (bucket policies, lifecycle policies, versioning configuration, etc.). A more scalable approach is using a shared bucket with prefixes per tenant (TENANT#12345/files/) combined with IAM policies restricting access to specific prefixes and using tenant-specific KMS keys for encryption. Option D (Cognito user pools per tenant) provides tenant-specific authentication but creates operational overhead at 10,000 tenants. A more scalable approach is a single Cognito user pool with custom attributes indicating tenant ID, or using a centralized IdP (like Auth0, Okta) with tenant context. While Cognito per tenant provides isolation, it's not necessary for the stated requirements and complicates user management at scale. The architecture uses DynamoDB with partition key-based data isolation (pool model), tenant-specific KMS CMKs for cryptographic separation, and CloudTrail for comprehensive audit logging, providing tenant isolation that scales to thousands of tenants with manageable operational overhead."
+        },
+        {
+          "question": "A global e-commerce company needs to migrate 5,000 on-premises Windows and Linux servers to AWS over a 12-month period. They require automated discovery of server dependencies, application grouping for wave-based migration planning, and continuous tracking of migration progress. The migration will use a combination of rehosting and replatforming strategies. Which THREE AWS services should be used for discovery, planning, and migration execution? (Select THREE)",
+          "options": [
+            "AWS Migration Hub for centralized migration tracking and progress monitoring",
+            "AWS Application Discovery Service for automated discovery of server inventory and dependencies",
+            "AWS Migration Evaluator (formerly TSO Logic) for total cost of ownership analysis",
+            "AWS Application Migration Service (MGN) for lift-and-shift rehosting of servers",
+            "AWS Server Migration Service (SMS) for incremental replication-based migration",
+            "AWS Database Migration Service (DMS) for database replatforming"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            0,
+            1,
+            3
+          ],
+          "explanation": "For a large-scale server migration with automated discovery, planning, and execution, the correct combination is: (1) AWS Migration Hub provides centralized tracking and visibility across the entire migration. Migration Hub acts as the command center where you can: discover existing servers using Application Discovery Service, group servers into applications for wave planning, track the status of migrations across multiple tools (MGN, DMS, etc.), view migration progress in a unified dashboard, and integrate with AWS migration partners. For a 5,000-server migration over 12 months, Migration Hub is essential for program management, stakeholder reporting, and ensuring nothing falls through the cracks. It provides the single pane of glass across the migration program. (2) AWS Application Discovery Service automates the discovery process for on-premises infrastructure. Discovery Service has two modes: Agentless Discovery (via VMware vCenter) collects configuration and utilization data, and Agent-based Discovery (via lightweight agents installed on servers) collects detailed data including server specs, performance metrics, network connections, and running processes. Critically, agent-based discovery maps server dependencies by observing network connections, identifying which servers communicate with each other. This dependency mapping is essential for application grouping and wave planning - you can't migrate a web server without also migrating its database and cache servers. Discovery Service exports data to Migration Hub and can generate server dependency maps showing application architectures, enabling intelligent wave planning that respects dependencies. For 5,000 servers, automated discovery is the only scalable approach; manual discovery is error-prone and time-consuming. (3) AWS Application Migration Service (MGN) is AWS's primary tool for rehosting (lift-and-shift) migrations. MGN has replaced SMS as the recommended solution. MGN performs continuous, block-level replication of source servers to AWS, creates low-cost staging instances for testing, enables non-disruptive testing of migrated servers, and performs final cutover with minimal downtime (typically minutes). MGN supports both Windows and Linux, works with physical, virtual, and cloud servers, and is agentless from the AWS perspective (you install a lightweight replication agent on source servers). For rehosting strategy at scale, MGN is the current best practice - it's simpler than SMS, supports more source types, and provides better testing capabilities. MGN integrates with Migration Hub for tracking. Option C (Migration Evaluator) provides business case development and TCO analysis, which is valuable for justifying the migration and rightsizing targets, but isn't part of the core 'discovery, planning, and execution' workflow described in the question. Migration Evaluator would typically be used before the migration program starts to build the business case. Option E (SMS) has been superseded by MGN (Application Migration Service) as AWS's recommended rehosting solution. While SMS still works, AWS is directing new customers to MGN. If this were an older exam question, SMS would be correct, but for current best practices, MGN is the answer. Option F (DMS) is for database migration and replatforming (e.g., Oracle to Aurora, SQL Server to RDS), which may be part of the overall program, but the question specifically asks about discovery, planning, and migration of servers (compute workloads). While DMS might be used for some databases, it's not one of the core three for the server migration program - MGN handles the server rehosting including application databases on those servers, and DMS would be a supplementary tool for database-specific replatforming scenarios. The architecture uses Application Discovery Service for automated server inventory and dependency mapping, Migration Hub for centralized tracking and wave planning across the program, and Application Migration Service (MGN) for executing the rehosting migrations, providing end-to-end capabilities for a large-scale server migration program."
+        },
+        {
+          "question": "A healthcare provider is migrating a legacy on-premises application to AWS that processes Protected Health Information (PHI). The application must comply with HIPAA regulations, including encryption of data at rest and in transit, audit logging of all access to PHI, network isolation, and automatic security patching. They need to minimize operational overhead while maintaining compliance. Which THREE AWS services/features should be implemented as part of the compliance architecture? (Select THREE)",
+          "options": [
+            "AWS Systems Manager Patch Manager for automated patch management of EC2 instances",
+            "Amazon Macie for automated discovery and protection of PHI stored in S3",
+            "AWS Config with HIPAA-specific conformance packs for continuous compliance monitoring",
+            "AWS Artifact for accessing HIPAA compliance documentation and BAA agreements",
+            "AWS Shield Standard for DDoS protection of healthcare applications",
+            "Amazon GuardDuty for threat detection and continuous security monitoring"
+          ],
+          "type": "multiple",
+          "correctAnswer": [
+            0,
+            1,
+            2
+          ],
+          "explanation": "For HIPAA-compliant migration with automated security and compliance, the correct services are: (1) AWS Systems Manager Patch Manager automates the patching process for EC2 instances running Windows and Linux. Patch Manager enables you to define patch baselines (which patches to apply), create maintenance windows (when patching occurs), scan instances for missing patches, automatically apply patches, and generate compliance reports showing patch status across all instances. For HIPAA compliance, automatic security patching is critical to prevent vulnerabilities that could lead to PHI breaches. Patch Manager integrates with AWS Config to report compliance status and can be configured to automatically patch instances on a schedule (e.g., weekly), meeting the 'minimize operational overhead' requirement. For a healthcare provider migrating from on-premises, automating patch management removes significant operational burden while improving security posture. (2) Amazon Macie provides automated discovery and protection of sensitive data including PHI. Macie uses machine learning and pattern matching to automatically discover PHI stored in S3 buckets (e.g., patient names, medical record numbers, health insurance information). Macie continuously monitors S3 for sensitive data, evaluates bucket policies and access controls for security risks, detects overly permissive access to sensitive data, generates findings when sensitive data is discovered or security risks are identified, and integrates with Security Hub and EventBridge for alerting. For HIPAA compliance, knowing where PHI is stored and ensuring it's properly protected is fundamental. Macie automates this discovery process, which would otherwise require manual data classification - with potentially thousands of S3 buckets, automated discovery is the only scalable approach. (3) AWS Config with HIPAA-specific conformance packs provides continuous compliance monitoring against HIPAA requirements. AWS Config conformance packs are pre-built collections of Config rules that map to compliance frameworks. The Operational Best Practices for HIPAA Security conformance pack includes rules that check: encryption at rest for EBS, S3, RDS; encryption in transit with HTTPS/TLS; CloudTrail logging enabled; VPC flow logs enabled; MFA enabled for root account; security groups don't allow unrestricted access; and many other HIPAA-related security controls. Config continuously evaluates resources against these rules and reports non-compliant resources, enabling you to remediate issues before they become audit findings. For the stated requirements (encryption, audit logging, network isolation), Config conformance packs provide automated, continuous verification that these controls are in place, reducing compliance risk and audit preparation effort. Option D (AWS Artifact) provides access to AWS compliance reports, HIPAA attestations, and the Business Associate Addendum (BAA) required for HIPAA compliance. While signing a BAA with AWS is a prerequisite for hosting PHI, Artifact is a documentation portal, not an active compliance service that enforces security controls or provides automated compliance capabilities. It's a necessary step during setup but not part of the ongoing compliance architecture. Option E (AWS Shield Standard) provides DDoS protection and is automatically enabled for all AWS customers at no additional cost. While DDoS protection contributes to availability (which is important for healthcare applications), Shield Standard doesn't specifically address the HIPAA requirements listed (encryption, audit logging, patching, network isolation). Shield Advanced (not Standard) would provide enhanced DDoS protection and 24/7 support, but neither Shield Standard nor Advanced are among the core services for this HIPAA compliance architecture focused on data protection and compliance monitoring. Option F (GuardDuty) provides threat detection by analyzing VPC Flow Logs, CloudTrail logs, and DNS logs to identify malicious or unauthorized activity. GuardDuty is valuable for security monitoring and can detect threats like cryptocurrency mining, communication with known malicious IPs, or compromised instances. However, when limited to three core services for the stated requirements, Patch Manager (addresses 'automatic security patching'), Macie (addresses 'PHI discovery and protection'), and Config with HIPAA conformance pack (addresses 'encryption, audit logging, network isolation' through continuous compliance checking) provide more direct alignment with the specific HIPAA requirements listed. GuardDuty would be an excellent fourth service for defense-in-depth threat detection. The architecture uses Systems Manager Patch Manager for automated security patching, Macie for PHI discovery and data protection monitoring, and Config with HIPAA conformance packs for continuous compliance validation, collectively addressing HIPAA requirements with minimal operational overhead."
+        }
+      ]
+    },
     {
       "filename": "domain-1-task-1.1-network-connectivity.json",
       "domain": "Domain 1: Organizational Complexity",
