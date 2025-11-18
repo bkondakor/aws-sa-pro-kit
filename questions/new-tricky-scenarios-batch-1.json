@@ -1,0 +1,187 @@
+{
+  "domain": "Mixed Domains - Advanced Scenarios",
+  "task": "Batch 1: Advanced Networking & Hybrid Connectivity",
+  "question_count": 15,
+  "questions": [
+    {
+      "id": "NEW-Q1",
+      "question": "A media company has a 100 Gbps Direct Connect connection to AWS with a private VIF attached to a Transit Gateway. They need to route traffic from 50 VPCs to their on-premises data center, but are experiencing inconsistent latency. CloudWatch shows the Transit Gateway is processing 25 Gbps but the Direct Connect connection shows only 15 Gbps throughput. What is the MOST likely cause?",
+      "options": [
+        "The Transit Gateway has a bandwidth limit of 50 Gbps per VPC attachment",
+        "The private VIF has a default bandwidth limit of 1 Gbps per BGP session and needs multiple VIFs",
+        "The Transit Gateway attachment to Direct Connect gateway uses a Virtual Private Gateway which limits throughput to 1.25 Gbps per tunnel",
+        "ECMP (Equal Cost Multi-Path) is not enabled on the Transit Gateway, causing single-path routing"
+      ],
+      "correctAnswer": 3,
+      "explanation": "The issue is that ECMP is not enabled on the Transit Gateway. By default, Transit Gateway uses a single path for routing even when multiple paths are available. With ECMP disabled, traffic flows through a single BGP session, which can create a bottleneck. When ECMP is enabled, Transit Gateway can distribute traffic across multiple paths to the Direct Connect connection, utilizing the full bandwidth. The Transit Gateway itself supports up to 50 Gbps per VPC attachment (option A is true but not the cause), private VIFs don't have a 1 Gbps limit per BGP session (option B is incorrect), and when using Transit Gateway with Direct Connect, you use a Direct Connect Gateway, not a VGW (option C is incorrect). Enabling ECMP allows the Transit Gateway to use multiple paths and achieve higher aggregate throughput."
+    },
+    {
+      "id": "NEW-Q2",
+      "question": "A financial institution requires all data transfer between AWS and their data center to be encrypted and need to maintain consistent network performance with latency under 10ms. They have a 10 Gbps Direct Connect connection in us-east-1. The security team mandates encryption but performance testing shows MACsec-encrypted traffic only achieves 7 Gbps. What should the solutions architect recommend?",
+      "options": [
+        "Replace the 10 Gbps connection with a 100 Gbps Direct Connect connection which supports higher MACsec throughput",
+        "Use a Site-to-Site VPN connection over the Direct Connect public VIF instead of MACsec",
+        "Implement IPsec encryption in transit using EC2 instances as VPN endpoints over the private VIF",
+        "Configure MACsec on a 100 Gbps Direct Connect connection or use multiple 10 Gbps connections with MACsec"
+      ],
+      "correctAnswer": 3,
+      "explanation": "MACsec on 10 Gbps Direct Connect connections has a throughput limitation due to encryption overhead. The most effective solution is to either upgrade to a 100 Gbps Direct Connect connection which supports MACsec at higher speeds, or use multiple 10 Gbps connections with MACsec and configure ECMP to distribute traffic across them. Option A is partially correct but doesn't mention the alternative of multiple connections. Option B (Site-to-Site VPN) would add significant latency overhead due to the public internet routing and wouldn't meet the 10ms latency requirement. Option C (IPsec on EC2) would also add latency for packet processing and create a bottleneck at the EC2 instances. Option D provides the complete solution: either upgrade to 100 Gbps (which supports higher MACsec throughput) or use multiple 10 Gbps connections aggregated with ECMP to achieve the required encrypted throughput while maintaining low latency."
+    },
+    {
+      "id": "NEW-Q3",
+      "question": "A global enterprise has VPCs in 15 AWS regions with full mesh connectivity requirements between all VPCs. Each region has 3-5 VPCs. The current Transit Gateway peering solution is becoming difficult to manage with 105 peering connections. Inter-region traffic costs are $400,000 monthly. What is the MOST cost-effective solution to reduce both complexity and costs?",
+      "options": [
+        "Implement AWS Cloud WAN with a global network and segment-based routing to replace Transit Gateway peering",
+        "Deploy a central Transit Gateway in us-east-1 and use VPC peering from all regions to this central hub",
+        "Use VPC peering exclusively with a hub-and-spoke model in each region and inter-region VPC peering for regional hubs",
+        "Implement AWS PrivateLink endpoints in each VPC and use inter-region VPC peering only where necessary"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS Cloud WAN is specifically designed for this scenario - managing global networks with complex connectivity requirements. Cloud WAN provides centralized management, automatic routing policy enforcement, and built-in network segmentation. It can significantly reduce the number of managed connections compared to full-mesh Transit Gateway peering. Additionally, Cloud WAN optimizes routing paths and can reduce data transfer costs by using AWS's global network more efficiently. Option B (central TGW hub) would create a bottleneck and actually increase costs due to all inter-region traffic routing through us-east-1. Option C (VPC peering hub-and-spoke) doesn't scale well and still requires significant management overhead with 15 regional hubs. Option D (PrivateLink) is designed for service endpoints, not full VPC-to-VPC connectivity, and wouldn't provide the required mesh connectivity. Cloud WAN also provides better visibility, monitoring, and can reduce data transfer costs through optimized routing, making it the most cost-effective solution for this scale."
+    },
+    {
+      "id": "NEW-Q4",
+      "question": "A healthcare company needs to share services from a central VPC with 200 consumer VPCs across multiple AWS accounts. The services must be highly available, support TCP traffic on ports 443 and 8443, and the consumer VPCs should not be able to initiate connections to each other. Monthly data transfer is 500 TB. The current VPC peering solution requires managing 200 peering connections. What is the MOST operationally efficient and cost-effective solution?",
+      "options": [
+        "Implement AWS PrivateLink with a Network Load Balancer in the provider VPC and VPC endpoints in consumer VPCs",
+        "Use a Transit Gateway with route table associations to prevent consumer VPC intercommunication",
+        "Deploy a proxy fleet using EC2 instances behind an NLB and allow consumers to connect via VPC peering",
+        "Implement AWS Transit Gateway with AWS Resource Access Manager (RAM) sharing and centralized routing"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS PrivateLink is the best solution for this use case. It provides a highly scalable, secure way to share services with many consumer VPCs without requiring peering connections between them. With PrivateLink, the provider VPC exposes services through a Network Load Balancer, and consumer VPCs create VPC endpoints to access these services. PrivateLink inherently prevents consumer-to-consumer communication since traffic flows only from endpoints to the service. It's operationally simpler than managing 200 connections, highly available across AZs, and more cost-effective for this one-to-many pattern ($0.01/GB for data transfer vs Transit Gateway's $0.02/GB per attachment). Option B (Transit Gateway) would work but is more expensive with 200 attachments ($0.05/hour each = $7,200/month just for attachments) plus higher data processing costs. Option C (proxy fleet) adds operational complexity and potential bottlenecks. Option D is similar to B with additional complexity. PrivateLink is purpose-built for this many-to-one service sharing pattern and provides the best combination of security, operational efficiency, and cost."
+    },
+    {
+      "id": "NEW-Q5",
+      "question": "A SaaS company has microservices running in ECS Fargate tasks across 3 VPCs. Services need to communicate using private IPs, and new services are frequently added. The current solution uses VPC peering and Application Load Balancers, but managing security groups across VPCs for 50+ services is complex. Services need service discovery and traffic should be encrypted in transit. What solution reduces operational overhead?",
+      "options": [
+        "Implement AWS App Mesh with Virtual Nodes and Virtual Services, using Envoy proxy sidecars and TLS encryption",
+        "Deploy AWS Cloud Map for service discovery with PrivateLink endpoints for inter-VPC communication",
+        "Use Transit Gateway with centralized route tables and AWS Systems Manager Parameter Store for service discovery",
+        "Implement Amazon ECS Service Connect with AWS Cloud Map and configure service-to-service TLS"
+      ],
+      "correctAnswer": 3,
+      "explanation": "Amazon ECS Service Connect is the most operationally efficient solution for this scenario. It provides built-in service discovery using AWS Cloud Map, service-to-service networking, and can enforce TLS encryption between services. Service Connect simplifies the networking configuration by automatically handling service endpoints, load balancing, and health checks without requiring ALBs for each service. It works seamlessly across VPCs when combined with Transit Gateway or VPC peering, and integrates directly with ECS tasks. Option A (App Mesh) is a valid solution and provides similar capabilities but requires more configuration overhead with Envoy sidecars, virtual nodes, and virtual routers for each service. Option B (Cloud Map + PrivateLink) would require creating PrivateLink endpoints for each service, which is operationally complex for 50+ services. Option C (Transit Gateway + Parameter Store) doesn't provide native service discovery or service mesh capabilities. ECS Service Connect provides the right balance of service discovery, traffic management, encryption, and operational simplicity for ECS Fargate microservices architectures."
+    },
+    {
+      "id": "NEW-Q6",
+      "question": "An international company has AWS workloads in 8 regions with strict requirements that certain data must not transit through specific countries due to data sovereignty regulations. They use Transit Gateway peering between regions. Traffic from eu-west-1 to ap-southeast-1 must not transit through us-east-1. How can they ensure compliance while maintaining connectivity?",
+      "options": [
+        "Use AWS Cloud WAN with network segments and routing policies to control traffic paths and ensure data sovereignty compliance",
+        "Implement custom route tables in Transit Gateway to explicitly define allowed paths and monitor with VPC Flow Logs",
+        "Deploy VPN connections over Direct Connect between regions with BGP communities to control routing paths",
+        "Use AWS Global Accelerator with custom routing to direct traffic through specific AWS regions"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS Cloud WAN is the best solution for ensuring data sovereignty compliance with complex routing requirements. Cloud WAN allows you to define network segments (like 'EU-Segment' and 'APAC-Segment') and create routing policies that explicitly control which regions can communicate and through which paths. You can configure attachment policies that prevent traffic from routing through unauthorized regions. Cloud WAN provides built-in visualization and monitoring to verify compliance. Option B (TGW custom route tables) doesn't provide guarantees about transit paths between peered Transit Gateways - AWS controls the underlying routing path for TGW peering connections, and you cannot specify that traffic must not transit certain regions. Option C (VPN over DX) adds unnecessary complexity and doesn't inherently solve the routing path control problem. Option D (Global Accelerator) is for improving application performance and availability, not for controlling inter-region network routing paths. Cloud WAN's policy-based routing and segment isolation provide the required controls for data sovereignty compliance."
+    },
+    {
+      "id": "NEW-Q7",
+      "question": "A company has 1000 AWS accounts in AWS Organizations. They need to allow outbound internet access from all VPCs (2000+ VPCs across accounts) while centralizing egress traffic for inspection, logging, and applying consistent URL filtering. The solution must minimize operational overhead and support 50 Gbps aggregate throughput. What architecture should they implement?",
+      "options": [
+        "Deploy NAT Gateways in each VPC with VPC Flow Logs and use AWS Network Firewall in each account",
+        "Implement a centralized egress VPC with AWS Network Firewall and NAT Gateways, using Transit Gateway to route all egress traffic",
+        "Use AWS Firewall Manager with Network Firewall policies deployed to all VPCs and route internet traffic through Internet Gateways",
+        "Deploy a fleet of proxy servers in a centralized VPC using Auto Scaling and route traffic through Transit Gateway"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The centralized egress VPC architecture with AWS Network Firewall and NAT Gateways connected via Transit Gateway is the most scalable and operationally efficient solution. This design routes all outbound internet traffic from spoke VPCs through the Transit Gateway to a centralized egress VPC where AWS Network Firewall performs inspection and URL filtering, and NAT Gateways provide internet access. Network Firewall can scale to 100 Gbps (exceeding the 50 Gbps requirement), supports stateful filtering and domain-based rules for URL filtering, and provides centralized logging. Option A (NAT Gateways in each VPC) creates management overhead with 2000+ instances of Network Firewall and doesn't centralize egress. Option C (Firewall Manager with IGWs) doesn't centralize egress traffic and makes it harder to enforce consistent policies. Option D (proxy fleet) requires significant operational overhead for managing EC2 instances, auto-scaling, and doesn't provide the same level of integration and scalability as Network Firewall. The centralized egress pattern is an AWS best practice for multi-account environments."
+    },
+    {
+      "id": "NEW-Q8",
+      "question": "A company uses AWS Direct Connect with a 10 Gbps connection and BGP for routing. They have a private VIF to access VPCs and a public VIF for S3 and DynamoDB. During a recent incident, the Direct Connect connection failed, and the automatic failover to VPN took 15 minutes, violating their 5-minute RTO. What configuration would ensure sub-5-minute failover?",
+      "options": [
+        "Configure BGP using AS_PATH prepending on the VPN connection and adjust BGP timers to detect failures faster",
+        "Implement AWS Transit Gateway with both Direct Connect and VPN attachments, enabling ECMP to use both paths simultaneously",
+        "Deploy two Direct Connect connections with active/passive configuration and BGP-based automatic failover",
+        "Use Route 53 health checks to monitor the Direct Connect connection and update route tables via Lambda when failure is detected"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Implementing Transit Gateway with both Direct Connect and VPN attachments using ECMP provides the fastest failover because both paths are active simultaneously. With ECMP enabled, Transit Gateway distributes traffic across both connections. When the Direct Connect connection fails, traffic immediately shifts to the VPN without waiting for BGP convergence or route table updates, achieving near-instantaneous failover (typically under 1 minute). Option A (faster BGP timers) can reduce failover time but rarely achieves sub-5-minute consistently, and AS_PATH prepending ensures preference, but BGP reconvergence still takes time. Option C (two DX connections) is good for redundancy but doesn't meet the requirement if both DX connections could share fate, and it's more expensive than DX + VPN. Option D (Route 53 health checks + Lambda) introduces additional latency for health check detection, Lambda execution, and route table propagation, making it difficult to achieve sub-5-minute failover. The Transit Gateway ECMP approach is the most reliable way to achieve fast failover by eliminating the failover detection and reconvergence delay."
+    },
+    {
+      "id": "NEW-Q9",
+      "question": "A company has containers running in ECS across multiple VPCs that need to access an Aurora PostgreSQL database in a central VPC. The database has 200 TB of data and serves 5000 queries per second. The security team requires that database credentials are never embedded in container images or environment variables, credentials should rotate automatically, and network traffic must remain private. What is the MOST secure solution?",
+      "options": [
+        "Use AWS Secrets Manager with automatic rotation, store connection strings as secrets, and access Aurora via VPC peering with IAM database authentication",
+        "Implement AWS PrivateLink to access the Aurora cluster, use IAM database authentication, and retrieve credentials from AWS Systems Manager Parameter Store",
+        "Store credentials in AWS Secrets Manager with rotation, use PrivateLink for database access, and configure ECS tasks with IAM roles to retrieve secrets",
+        "Use AWS Certificate Manager Private CA for mTLS authentication, implement VPC peering for connectivity, and store certificates in AWS Secrets Manager"
+      ],
+      "correctAnswer": 2,
+      "explanation": "The most secure solution combines AWS Secrets Manager for credential storage and automatic rotation, AWS PrivateLink for private network connectivity, and IAM roles for ECS tasks to retrieve secrets. This approach ensures: (1) credentials are never in container images or environment variables, (2) Secrets Manager provides automatic credential rotation, (3) PrivateLink keeps database traffic private without requiring VPC peering routes, and (4) IAM roles provide temporary credentials for accessing secrets. Option A mentions IAM database authentication which is good, but VPC peering is less secure than PrivateLink for this use case since it requires broader network routing. Option B uses Parameter Store instead of Secrets Manager - while Parameter Store can store secrets, Secrets Manager is purpose-built for this use case with native database credential rotation and better integration with RDS/Aurora. Option D (mTLS with ACM Private CA) adds complexity and doesn't address credential management as comprehensively. The combination in option C provides defense in depth: network isolation via PrivateLink, IAM-based access control for secrets, and automatic credential rotation."
+    },
+    {
+      "id": "NEW-Q10",
+      "question": "A media streaming company has video processing workloads that communicate between EC2 instances and S3 in the same region (us-east-1). They transfer 2 PB monthly to S3 and currently use NAT Gateways for the private subnet instances to access S3. Their monthly NAT Gateway costs are $45,000 ($0.045/GB processed). What is the MOST cost-effective solution?",
+      "options": [
+        "Deploy S3 Gateway VPC Endpoints in each VPC to eliminate NAT Gateway data processing charges for S3 traffic",
+        "Move EC2 instances to public subnets with Elastic IPs to access S3 directly without NAT Gateway",
+        "Implement S3 Transfer Acceleration to reduce data transfer time and costs",
+        "Use AWS Direct Connect for S3 access to reduce data transfer costs"
+      ],
+      "correctAnswer": 0,
+      "explanation": "S3 Gateway VPC Endpoints are the most cost-effective solution. Gateway endpoints for S3 are free (no hourly charges or data processing fees) and allow EC2 instances in private subnets to access S3 directly through the AWS network without using NAT Gateways. This eliminates the $0.045/GB NAT Gateway processing fee. For 2 PB (2,048 TB = 2,097,152 GB) monthly, this saves approximately $94,372/month in NAT Gateway processing fees (2,097,152 GB × $0.045). The gateway endpoint is a route table entry that routes S3 traffic through the AWS network. Option B (public subnets with EIPs) eliminates NAT Gateway costs but exposes instances to the internet, creating security risks and still incurring $0.005/GB data transfer costs to S3. Option C (Transfer Acceleration) is designed to speed up uploads to S3 from distant locations, not reduce costs - it actually adds $0.04-$0.08/GB in costs. Option D (Direct Connect) is for connecting on-premises to AWS, not for intra-region AWS service access. S3 Gateway Endpoints provide the best cost savings with no additional charges and maintaining security."
+    },
+    {
+      "id": "NEW-Q11",
+      "question": "A gaming company has real-time multiplayer game servers on EC2 instances across 3 regions (us-east-1, eu-west-1, ap-southeast-1). Players need to connect to the lowest latency server, and connections must be sticky to the same instance for session duration. Traffic is UDP-based on port 7777. The current Route 53 geolocation routing causes 30% of players to connect to suboptimal servers. What solution provides the best player experience?",
+      "options": [
+        "Implement AWS Global Accelerator with endpoint groups in each region and client affinity for sticky sessions",
+        "Use Route 53 latency-based routing with health checks and configure connection draining on EC2 instances",
+        "Deploy Application Load Balancers in each region and use Route 53 geoproximity routing with bias adjustments",
+        "Implement CloudFront with custom origins pointing to game servers and use CloudFront's edge locations for routing"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS Global Accelerator is the optimal solution for this gaming workload. Global Accelerator provides anycast static IP addresses that route users to the optimal AWS endpoint based on the lowest latency path through the AWS global network. It supports UDP traffic (unlike ALB which only supports HTTP/HTTPS), provides client affinity to ensure sticky sessions to the same endpoint, and continuously monitors endpoint health. Global Accelerator's performance is superior to DNS-based routing because it: (1) uses AWS's global network instead of public internet, reducing latency by up to 60%, (2) makes routing decisions in real-time based on actual network conditions rather than geographic rules, and (3) maintains session stickiness even during endpoint changes. Option B (Route 53 latency routing) is better than geolocation but still relies on DNS caching which can cause stale routing decisions, and doesn't support true session affinity. Option C (ALB) doesn't support UDP traffic, which is critical for gaming. Option D (CloudFront) is designed for content delivery, not for bidirectional UDP gaming traffic. Global Accelerator is purpose-built for improving global application performance and availability."
+    },
+    {
+      "id": "NEW-Q12",
+      "question": "A company has a hub-and-spoke network architecture with a Transit Gateway in us-east-1 connecting 80 VPCs. They need to implement centralized packet inspection for all traffic between VPCs in different security zones (production, development, shared services). The inspection solution must support 20 Gbps throughput and provide deep packet inspection with IDS/IPS capabilities. What is the MOST cost-effective and scalable solution?",
+      "options": [
+        "Deploy AWS Network Firewall in the Transit Gateway attachment VPC with a dedicated inspection VPC and route tables",
+        "Implement third-party firewall appliances from AWS Marketplace in an inspection VPC using Gateway Load Balancer",
+        "Configure VPC Traffic Mirroring to send all traffic to IDS/IPS sensors in a dedicated security VPC",
+        "Use AWS WAF with AWS Firewall Manager to deploy protection across all VPCs and inspect traffic"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS Network Firewall deployed in a dedicated inspection VPC connected to Transit Gateway is the most cost-effective and scalable solution. This architecture (called 'centralized inspection VPC' or 'inspection VPC pattern') routes inter-VPC traffic through Transit Gateway to the inspection VPC where Network Firewall performs stateful deep packet inspection, IDS/IPS using Suricata rules, and domain-based filtering. Network Firewall scales automatically to 100 Gbps (exceeding the 20 Gbps requirement) and provides AWS-native IDS/IPS capabilities. The Transit Gateway route tables can be configured to route traffic between different security zones through the inspection VPC. Option B (third-party appliances with GWLB) can work but is more expensive due to licensing costs, requires more operational management, and may not scale as easily. Option C (Traffic Mirroring) is for monitoring and analysis, not inline inspection - it mirrors traffic to sensors but doesn't block malicious traffic. Option D (WAF) is for Layer 7 HTTP/HTTPS protection, not network-layer inspection of all protocols. AWS Network Firewall provides the right balance of cost, performance, and AWS-native integration for centralized inspection."
+    },
+    {
+      "id": "NEW-Q13",
+      "question": "A financial services company has applications in a VPC that must access multiple AWS services (S3, DynamoDB, SNS, SQS) without traversing the internet. The compliance team requires all API calls to these services to be logged and monitored, and network traffic must never leave AWS's private network. Current NAT Gateway costs are $30,000/month for service API calls. What solution meets compliance requirements while reducing costs?",
+      "options": [
+        "Deploy VPC Interface Endpoints for all required services, enable private DNS, and use VPC Flow Logs and CloudTrail for monitoring",
+        "Use VPC Gateway Endpoints for S3 and DynamoDB, NAT Gateway for SNS/SQS, and enable VPC Flow Logs",
+        "Configure AWS PrivateLink for all services with dedicated Network Load Balancers and enable detailed monitoring",
+        "Deploy Interface Endpoints for all services, disable private DNS, and update application code to use endpoint-specific DNS names"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Deploying VPC Interface Endpoints (powered by AWS PrivateLink) for all required services with private DNS enabled is the best solution. Interface endpoints create elastic network interfaces in your VPC subnets that route traffic to AWS services through AWS's private network. With private DNS enabled, applications can use standard AWS service DNS names (like sns.us-east-1.amazonaws.com) without code changes. VPC Flow Logs capture network traffic metadata, and CloudTrail logs all API calls to AWS services, providing comprehensive audit trails for compliance. This eliminates NAT Gateway costs (Interface Endpoints cost ~$7.20/month per endpoint + $0.01/GB, significantly less than NAT Gateway's $0.045/GB). Option B suggests continuing to use NAT Gateway for SNS/SQS, which doesn't meet the requirement that traffic never leaves the private network and doesn't maximize cost savings. Option C mentions NLBs, which aren't required for standard VPC endpoints - Interface Endpoints are automatically created. Option D disabling private DNS would require application code changes to use endpoint-specific DNS names (like vpce-xxx.sns.us-east-1.vpce.amazonaws.com), adding operational overhead. Option A provides the right balance of compliance, cost optimization, and operational simplicity."
+    },
+    {
+      "id": "NEW-Q14",
+      "question": "A multi-national corporation has a hybrid cloud architecture with on-premises VMware infrastructure connected to AWS via Direct Connect. They need to extend their on-premises network segments (VLANs) to AWS for a phased migration of 500 VMs. The solution must maintain existing IP addresses, support live migration, and provide Layer 2 connectivity between on-premises and AWS. What AWS service should they use?",
+      "options": [
+        "Deploy AWS Direct Connect with a transit VIF and extend VLANs using VXLAN tunneling over the connection",
+        "Implement VMware Cloud on AWS which provides Layer 2 VPN for extending on-premises networks to AWS",
+        "Use AWS Site-to-Site VPN with BGP and configure static routes to maintain IP addresses",
+        "Deploy AWS Outposts with local compute and use Direct Connect for hybrid connectivity"
+      ],
+      "correctAnswer": 1,
+      "explanation": "VMware Cloud on AWS is the correct solution for this scenario. It provides native VMware infrastructure running on AWS and includes Layer 2 VPN capabilities that can extend on-premises VLANs to the VMware Cloud on AWS environment. This allows VMs to maintain their IP addresses during migration and supports VMware vMotion for live migration without downtime. The service integrates with Direct Connect for high-bandwidth, low-latency connectivity. Option A (VXLAN over Direct Connect) is technically possible but would require significant custom configuration and isn't a native AWS service offering. Option C (Site-to-Site VPN) provides Layer 3 connectivity only, not Layer 2, so you can't extend VLANs or maintain IP addresses seamlessly. Option D (Outposts) brings AWS infrastructure on-premises, which is the opposite direction of what's needed - they want to extend on-premises networks to AWS. VMware Cloud on AWS is specifically designed for hybrid cloud scenarios with VMware workloads and supports the exact requirements: Layer 2 connectivity, IP preservation, and live migration using VMware tools."
+    },
+    {
+      "id": "NEW-Q15",
+      "question": "A company has containerized applications running in EKS clusters across 5 VPCs. Pods in these clusters need to communicate with each other across VPCs using private IPs. The current solution uses VPC peering with 10 peering connections, but managing security groups and NACLs is complex. Pods are frequently added/removed, and the security team wants microsegmentation at the pod level. What solution provides the best security and operational efficiency?",
+      "options": [
+        "Implement AWS App Mesh with mutual TLS between services and use virtual nodes to represent each microservice",
+        "Deploy a Transit Gateway to replace VPC peering and use Kubernetes Network Policies for pod-level security",
+        "Use Amazon VPC CNI plugin with security groups for pods (SG per pod) and implement Transit Gateway for connectivity",
+        "Configure Calico network policies on EKS clusters and use AWS PrivateLink for cross-VPC communication"
+      ],
+      "correctAnswer": 2,
+      "explanation": "The best solution is to use the Amazon VPC CNI plugin's 'Security Groups for Pods' feature combined with Transit Gateway for cross-VPC connectivity. Security Groups for Pods allows you to assign EC2 security groups directly to individual pods (not just to nodes), providing true microsegmentation at the pod level using native AWS security controls. This integrates with AWS security tooling and provides consistent policy enforcement. Transit Gateway simplifies the network topology by replacing 10 VPC peering connections with 5 TGW attachments and provides centralized routing. Option A (App Mesh) provides service mesh capabilities and mTLS but doesn't solve the network connectivity complexity and requires additional infrastructure. Option B (Kubernetes Network Policies) work within a cluster but don't provide AWS-native security integration or replace the need for VPC-level security controls. Option D (Calico) is a good network policy engine but adds operational complexity of managing a separate CNI and doesn't integrate as well with AWS security services; PrivateLink is also not designed for general pod-to-pod communication. The VPC CNI with SG per pod feature provides the best integration with AWS networking and security services while Transit Gateway simplifies the multi-VPC topology."
+    }
+  ]
+}
