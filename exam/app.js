@@ -1,13 +1,16 @@
-// Exam Application
+// Exam Application with State Persistence
 class ExamApp {
     constructor() {
+        this.questionLoader = new QuestionLoader();
         this.questions = [];
         this.currentQuestionIndex = 0;
         this.userAnswers = [];
         this.flaggedQuestions = new Set();
         this.startTime = null;
         this.timerInterval = null;
+        this.currentExamId = null;
         this.screens = {
+            examSelection: document.getElementById('examSelectionScreen'),
             welcome: document.getElementById('welcomeScreen'),
             exam: document.getElementById('examScreen'),
             results: document.getElementById('resultsScreen'),
@@ -17,26 +20,176 @@ class ExamApp {
     }
 
     async init() {
-        await this.loadQuestions();
-        this.setupEventListeners();
-        this.updateTotalQuestions();
+        try {
+            await this.questionLoader.loadAllQuestions();
+            this.setupEventListeners();
+            this.checkForSavedExam();
+            this.renderExamTemplates();
+        } catch (error) {
+            console.error('Failed to initialize exam app:', error);
+            alert('Failed to load exam questions. Please refresh the page.');
+        }
     }
 
-    async loadQuestions() {
-        try {
-            const response = await fetch('questions.json');
-            const data = await response.json();
-            this.questions = data.questions;
+    setupEventListeners() {
+        // Exam selection
+        document.getElementById('examTemplateContainer')?.addEventListener('click', (e) => {
+            const card = e.target.closest('.exam-template-card');
+            if (card) {
+                const examId = card.dataset.examId;
+                this.selectExam(examId);
+            }
+        });
 
-            // Shuffle questions for randomization
-            this.shuffleArray(this.questions);
+        // Welcome screen
+        document.getElementById('startBtn')?.addEventListener('click', () => this.startExam());
+        document.getElementById('backToSelectionBtn')?.addEventListener('click', () => this.showScreen('examSelection'));
 
-            // Initialize user answers array
-            this.userAnswers = new Array(this.questions.length).fill(null);
-        } catch (error) {
-            console.error('Error loading questions:', error);
-            alert('Failed to load questions. Please ensure questions.json is available.');
+        // Exam navigation
+        document.getElementById('nextBtn')?.addEventListener('click', () => this.nextQuestion());
+        document.getElementById('prevBtn')?.addEventListener('click', () => this.prevQuestion());
+        document.getElementById('flagBtn')?.addEventListener('click', () => this.toggleFlag());
+        document.getElementById('submitBtn')?.addEventListener('click', () => this.submitExam());
+
+        // Results and review
+        document.getElementById('reviewBtn')?.addEventListener('click', () => this.showReview());
+        document.getElementById('retakeBtn')?.addEventListener('click', () => this.retakeExam());
+        document.getElementById('backToResultsBtn')?.addEventListener('click', () => this.showResults());
+        document.getElementById('newExamBtn')?.addEventListener('click', () => this.startNewExam());
+
+        // Resume exam button
+        document.getElementById('resumeExamBtn')?.addEventListener('click', () => this.resumeExam());
+        document.getElementById('dismissResumeBtn')?.addEventListener('click', () => this.dismissResume());
+    }
+
+    renderExamTemplates() {
+        const container = document.getElementById('examTemplateContainer');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        Object.values(EXAM_TEMPLATES).forEach(template => {
+            const card = document.createElement('div');
+            card.className = 'exam-template-card';
+            card.dataset.examId = template.id;
+
+            const icon = document.createElement('div');
+            icon.className = 'exam-icon';
+            icon.textContent = template.icon;
+
+            const name = document.createElement('h3');
+            name.className = 'exam-name';
+            name.textContent = template.name;
+
+            const description = document.createElement('p');
+            description.className = 'exam-description';
+            description.textContent = template.description;
+
+            const questionCount = document.createElement('div');
+            questionCount.className = 'exam-question-count';
+
+            // Calculate actual question count
+            let count;
+            if (template.questionCount === 'all') {
+                count = this.questionLoader.getAllQuestions().length;
+            } else if (typeof template.questionCount === 'number') {
+                count = template.questionCount;
+            } else {
+                const questions = template.getQuestions(this.questionLoader);
+                count = questions.length;
+            }
+
+            questionCount.textContent = `${count} Questions`;
+
+            card.appendChild(icon);
+            card.appendChild(name);
+            card.appendChild(description);
+            card.appendChild(questionCount);
+
+            container.appendChild(card);
+        });
+    }
+
+    selectExam(examId) {
+        const template = EXAM_TEMPLATES[examId];
+        if (!template) {
+            console.error('Invalid exam template:', examId);
+            return;
         }
+
+        this.currentExamId = examId;
+        this.questions = template.getQuestions(this.questionLoader);
+
+        // Shuffle questions for random exams
+        if (template.type === 'random') {
+            this.shuffleArray(this.questions);
+        }
+
+        this.updateWelcomeScreen(template);
+        this.showScreen('welcome');
+    }
+
+    updateWelcomeScreen(template) {
+        const welcomeTitle = document.getElementById('welcomeExamName');
+        const welcomeDesc = document.getElementById('welcomeExamDesc');
+        const totalQuestions = document.getElementById('totalQuestions');
+
+        if (welcomeTitle) welcomeTitle.textContent = template.name;
+        if (welcomeDesc) welcomeDesc.textContent = template.description;
+        if (totalQuestions) totalQuestions.textContent = this.questions.length;
+    }
+
+    checkForSavedExam() {
+        const savedState = this.loadExamState();
+        const resumeBanner = document.getElementById('resumeBanner');
+
+        if (savedState && resumeBanner) {
+            const examName = EXAM_TEMPLATES[savedState.examId]?.name || 'Previous Exam';
+            const progress = savedState.currentQuestionIndex + 1;
+            const total = savedState.questions.length;
+
+            document.getElementById('resumeExamName').textContent = examName;
+            document.getElementById('resumeProgress').textContent =
+                `Question ${progress} of ${total}`;
+
+            resumeBanner.style.display = 'block';
+        } else if (resumeBanner) {
+            resumeBanner.style.display = 'none';
+        }
+    }
+
+    resumeExam() {
+        const savedState = this.loadExamState();
+        if (!savedState) {
+            alert('No saved exam found.');
+            return;
+        }
+
+        this.currentExamId = savedState.examId;
+        this.questions = savedState.questions;
+        this.currentQuestionIndex = savedState.currentQuestionIndex;
+        this.userAnswers = savedState.userAnswers;
+        this.flaggedQuestions = new Set(savedState.flaggedQuestions);
+        this.startTime = Date.now() - savedState.elapsedTime;
+
+        this.startTimer();
+        this.showScreen('exam');
+        this.renderQuestion();
+        this.renderQuestionPalette();
+
+        const resumeBanner = document.getElementById('resumeBanner');
+        if (resumeBanner) resumeBanner.style.display = 'none';
+    }
+
+    dismissResume() {
+        this.clearExamState();
+        const resumeBanner = document.getElementById('resumeBanner');
+        if (resumeBanner) resumeBanner.style.display = 'none';
+    }
+
+    startNewExam() {
+        this.clearExamState();
+        this.showScreen('examSelection');
     }
 
     shuffleArray(array) {
@@ -46,24 +199,13 @@ class ExamApp {
         }
     }
 
-    setupEventListeners() {
-        document.getElementById('startBtn').addEventListener('click', () => this.startExam());
-        document.getElementById('nextBtn').addEventListener('click', () => this.nextQuestion());
-        document.getElementById('prevBtn').addEventListener('click', () => this.prevQuestion());
-        document.getElementById('flagBtn').addEventListener('click', () => this.toggleFlag());
-        document.getElementById('submitBtn').addEventListener('click', () => this.submitExam());
-        document.getElementById('reviewBtn').addEventListener('click', () => this.showReview());
-        document.getElementById('retakeBtn').addEventListener('click', () => this.retakeExam());
-        document.getElementById('backToResultsBtn').addEventListener('click', () => this.showResults());
-    }
-
-    updateTotalQuestions() {
-        document.getElementById('totalQuestions').textContent = this.questions.length;
-    }
-
     showScreen(screenName) {
-        Object.values(this.screens).forEach(screen => screen.classList.remove('active'));
-        this.screens[screenName].classList.add('active');
+        Object.values(this.screens).forEach(screen => {
+            if (screen) screen.classList.remove('active');
+        });
+        if (this.screens[screenName]) {
+            this.screens[screenName].classList.add('active');
+        }
     }
 
     startExam() {
@@ -75,6 +217,7 @@ class ExamApp {
         this.showScreen('exam');
         this.renderQuestion();
         this.renderQuestionPalette();
+        this.saveExamState();
     }
 
     startTimer() {
@@ -82,8 +225,10 @@ class ExamApp {
             const elapsed = Date.now() - this.startTime;
             const minutes = Math.floor(elapsed / 60000);
             const seconds = Math.floor((elapsed % 60000) / 1000);
-            document.getElementById('timer').textContent =
-                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            const timerEl = document.getElementById('timer');
+            if (timerEl) {
+                timerEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
         }, 1000);
     }
 
@@ -99,104 +244,122 @@ class ExamApp {
 
         // Update question counter and progress
         const questionNum = this.currentQuestionIndex + 1;
-        document.getElementById('currentQuestionNum').textContent = questionNum;
-        document.getElementById('questionCounter').textContent =
-            `Question ${questionNum} of ${this.questions.length}`;
+        const currentQuestionNumEl = document.getElementById('currentQuestionNum');
+        const questionCounterEl = document.getElementById('questionCounter');
+        const progressFillEl = document.getElementById('progressFill');
+
+        if (currentQuestionNumEl) currentQuestionNumEl.textContent = questionNum;
+        if (questionCounterEl) {
+            questionCounterEl.textContent = `Question ${questionNum} of ${this.questions.length}`;
+        }
 
         // Update progress bar
         const progress = (questionNum / this.questions.length) * 100;
-        document.getElementById('progressFill').style.width = `${progress}%`;
+        if (progressFillEl) progressFillEl.style.width = `${progress}%`;
 
         // Render question text with type indicator
         const questionTextEl = document.getElementById('questionText');
-        questionTextEl.innerHTML = '';
+        if (questionTextEl) {
+            questionTextEl.innerHTML = '';
 
-        if (isMultipleChoice) {
-            const badge = document.createElement('span');
-            badge.style.cssText = 'background: #146EB4; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-right: 10px;';
-            badge.textContent = 'Select ALL that apply';
-            questionTextEl.appendChild(badge);
+            if (isMultipleChoice) {
+                const badge = document.createElement('span');
+                badge.style.cssText = 'background: #146EB4; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-right: 10px;';
+                badge.textContent = 'Select ALL that apply';
+                questionTextEl.appendChild(badge);
+            }
+
+            const questionText = document.createTextNode(question.question);
+            questionTextEl.appendChild(questionText);
         }
-
-        const questionText = document.createTextNode(question.question);
-        questionTextEl.appendChild(questionText);
 
         // Render options
         const optionsContainer = document.getElementById('optionsContainer');
-        optionsContainer.innerHTML = '';
+        if (optionsContainer) {
+            optionsContainer.innerHTML = '';
 
-        question.options.forEach((option, index) => {
-            const optionDiv = document.createElement('div');
-            optionDiv.className = 'option';
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
 
-            const input = document.createElement('input');
-            input.type = isMultipleChoice ? 'checkbox' : 'radio';
-            input.name = 'answer';
-            input.value = index;
-            input.id = `option${index}`;
+                const input = document.createElement('input');
+                input.type = isMultipleChoice ? 'checkbox' : 'radio';
+                input.name = 'answer';
+                input.value = index;
+                input.id = `option${index}`;
 
-            // Check if this option was previously selected
-            const currentAnswer = this.userAnswers[this.currentQuestionIndex];
-            if (isMultipleChoice && Array.isArray(currentAnswer)) {
-                if (currentAnswer.includes(index)) {
+                // Check if this option was previously selected
+                const currentAnswer = this.userAnswers[this.currentQuestionIndex];
+                if (isMultipleChoice && Array.isArray(currentAnswer)) {
+                    if (currentAnswer.includes(index)) {
+                        input.checked = true;
+                        optionDiv.classList.add('selected');
+                    }
+                } else if (!isMultipleChoice && currentAnswer === index) {
                     input.checked = true;
                     optionDiv.classList.add('selected');
                 }
-            } else if (!isMultipleChoice && currentAnswer === index) {
-                input.checked = true;
-                optionDiv.classList.add('selected');
-            }
 
-            input.addEventListener('change', (e) => {
-                if (isMultipleChoice) {
-                    this.toggleMultipleAnswer(parseInt(e.target.value));
-                } else {
-                    this.selectAnswer(parseInt(e.target.value));
-                }
-            });
-
-            const label = document.createElement('label');
-            label.htmlFor = `option${index}`;
-            label.className = 'option-text';
-            label.textContent = option;
-            label.style.cursor = 'pointer';
-
-            optionDiv.appendChild(input);
-            optionDiv.appendChild(label);
-            optionDiv.addEventListener('click', (e) => {
-                if (e.target !== input) {
+                input.addEventListener('change', (e) => {
                     if (isMultipleChoice) {
-                        input.checked = !input.checked;
-                        this.toggleMultipleAnswer(index);
+                        this.toggleMultipleAnswer(parseInt(e.target.value));
                     } else {
-                        input.checked = true;
-                        this.selectAnswer(index);
+                        this.selectAnswer(parseInt(e.target.value));
                     }
-                }
-            });
+                });
 
-            optionsContainer.appendChild(optionDiv);
-        });
+                const label = document.createElement('label');
+                label.htmlFor = `option${index}`;
+                label.className = 'option-text';
+                label.textContent = option;
+                label.style.cursor = 'pointer';
+
+                optionDiv.appendChild(input);
+                optionDiv.appendChild(label);
+                optionDiv.addEventListener('click', (e) => {
+                    if (e.target !== input) {
+                        if (isMultipleChoice) {
+                            input.checked = !input.checked;
+                            this.toggleMultipleAnswer(index);
+                        } else {
+                            input.checked = true;
+                            this.selectAnswer(index);
+                        }
+                    }
+                });
+
+                optionsContainer.appendChild(optionDiv);
+            });
+        }
 
         // Update navigation buttons
-        document.getElementById('prevBtn').disabled = this.currentQuestionIndex === 0;
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (prevBtn) prevBtn.disabled = this.currentQuestionIndex === 0;
 
         const isLastQuestion = this.currentQuestionIndex === this.questions.length - 1;
-        document.getElementById('nextBtn').style.display = isLastQuestion ? 'none' : 'inline-block';
-        document.getElementById('submitBtn').style.display = isLastQuestion ? 'inline-block' : 'none';
+        if (nextBtn) nextBtn.style.display = isLastQuestion ? 'none' : 'inline-block';
+        if (submitBtn) submitBtn.style.display = isLastQuestion ? 'inline-block' : 'none';
 
         // Update flag button
         const flagBtn = document.getElementById('flagBtn');
-        if (this.flaggedQuestions.has(this.currentQuestionIndex)) {
-            flagBtn.classList.add('flagged');
-            flagBtn.textContent = '🚩 Flagged';
-        } else {
-            flagBtn.classList.remove('flagged');
-            flagBtn.textContent = '🚩 Flag for Review';
+        if (flagBtn) {
+            if (this.flaggedQuestions.has(this.currentQuestionIndex)) {
+                flagBtn.classList.add('flagged');
+                flagBtn.textContent = '🚩 Flagged';
+            } else {
+                flagBtn.classList.remove('flagged');
+                flagBtn.textContent = '🚩 Flag for Review';
+            }
         }
 
         // Update question palette
         this.renderQuestionPalette();
+
+        // Save state after rendering
+        this.saveExamState();
     }
 
     selectAnswer(optionIndex) {
@@ -212,6 +375,7 @@ class ExamApp {
         });
 
         this.renderQuestionPalette();
+        this.saveExamState();
     }
 
     toggleMultipleAnswer(optionIndex) {
@@ -243,6 +407,7 @@ class ExamApp {
         });
 
         this.renderQuestionPalette();
+        this.saveExamState();
     }
 
     toggleFlag() {
@@ -252,6 +417,7 @@ class ExamApp {
             this.flaggedQuestions.add(this.currentQuestionIndex);
         }
         this.renderQuestion();
+        this.saveExamState();
     }
 
     nextQuestion() {
@@ -275,6 +441,8 @@ class ExamApp {
 
     renderQuestionPalette() {
         const palette = document.getElementById('questionPalette');
+        if (!palette) return;
+
         palette.innerHTML = '';
 
         this.questions.forEach((_, index) => {
@@ -310,6 +478,7 @@ class ExamApp {
         this.stopTimer();
         this.calculateResults();
         this.showResults();
+        this.clearExamState(); // Clear saved state after submission
     }
 
     calculateResults() {
@@ -349,36 +518,47 @@ class ExamApp {
     showResults() {
         this.showScreen('results');
 
+        const scoreCircle = document.getElementById('scoreCircle');
+        const scorePercentage = document.getElementById('scorePercentage');
+        const passStatus = document.getElementById('passStatus');
+        const correctCount = document.getElementById('correctCount');
+        const incorrectCount = document.getElementById('incorrectCount');
+        const totalTime = document.getElementById('totalTime');
+
         // Animate score circle
         const percentage = this.results.percentage;
         const circumference = 2 * Math.PI * 90;
         const offset = circumference - (percentage / 100) * circumference;
 
-        setTimeout(() => {
-            document.getElementById('scoreCircle').style.strokeDashoffset = offset;
-        }, 100);
+        if (scoreCircle) {
+            setTimeout(() => {
+                scoreCircle.style.strokeDashoffset = offset;
+            }, 100);
+        }
 
         // Update score text
-        document.getElementById('scorePercentage').textContent = `${percentage}%`;
+        if (scorePercentage) scorePercentage.textContent = `${percentage}%`;
 
         // Update pass/fail status
-        const passStatus = document.getElementById('passStatus');
-        if (this.results.passed) {
-            passStatus.textContent = '✅ Passed';
-            passStatus.className = 'pass-status passed';
-        } else {
-            passStatus.textContent = '❌ Failed';
-            passStatus.className = 'pass-status failed';
+        if (passStatus) {
+            if (this.results.passed) {
+                passStatus.textContent = '✅ Passed';
+                passStatus.className = 'pass-status passed';
+            } else {
+                passStatus.textContent = '❌ Failed';
+                passStatus.className = 'pass-status failed';
+            }
         }
 
         // Update stats
-        document.getElementById('correctCount').textContent = this.results.correct;
-        document.getElementById('incorrectCount').textContent = this.results.incorrect;
+        if (correctCount) correctCount.textContent = this.results.correct;
+        if (incorrectCount) incorrectCount.textContent = this.results.incorrect;
 
         const minutes = Math.floor(this.results.timeTaken / 60000);
         const seconds = Math.floor((this.results.timeTaken % 60000) / 1000);
-        document.getElementById('totalTime').textContent =
-            `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        if (totalTime) {
+            totalTime.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
     }
 
     showReview() {
@@ -388,6 +568,8 @@ class ExamApp {
 
     renderReview() {
         const reviewContent = document.getElementById('reviewContent');
+        if (!reviewContent) return;
+
         reviewContent.innerHTML = '';
 
         this.questions.forEach((question, index) => {
@@ -506,9 +688,67 @@ class ExamApp {
     }
 
     retakeExam() {
-        // Shuffle questions again for a new experience
-        this.shuffleArray(this.questions);
+        // Clear state and restart the same exam
+        this.clearExamState();
+
+        if (this.currentExamId) {
+            const template = EXAM_TEMPLATES[this.currentExamId];
+            if (template && template.type === 'random') {
+                // For random exams, get new random questions
+                this.questions = template.getQuestions(this.questionLoader);
+                this.shuffleArray(this.questions);
+            }
+        }
+
         this.showScreen('welcome');
+    }
+
+    // State Persistence Methods
+    saveExamState() {
+        const state = {
+            examId: this.currentExamId,
+            questions: this.questions,
+            currentQuestionIndex: this.currentQuestionIndex,
+            userAnswers: this.userAnswers,
+            flaggedQuestions: Array.from(this.flaggedQuestions),
+            elapsedTime: Date.now() - this.startTime,
+            timestamp: Date.now()
+        };
+
+        try {
+            localStorage.setItem('awsSapExamState', JSON.stringify(state));
+        } catch (error) {
+            console.error('Failed to save exam state:', error);
+        }
+    }
+
+    loadExamState() {
+        try {
+            const stateJson = localStorage.getItem('awsSapExamState');
+            if (!stateJson) return null;
+
+            const state = JSON.parse(stateJson);
+
+            // Check if state is not too old (24 hours)
+            const maxAge = 24 * 60 * 60 * 1000;
+            if (Date.now() - state.timestamp > maxAge) {
+                this.clearExamState();
+                return null;
+            }
+
+            return state;
+        } catch (error) {
+            console.error('Failed to load exam state:', error);
+            return null;
+        }
+    }
+
+    clearExamState() {
+        try {
+            localStorage.removeItem('awsSapExamState');
+        } catch (error) {
+            console.error('Failed to clear exam state:', error);
+        }
     }
 }
 
@@ -521,13 +761,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // Dark Mode Functionality
 function initDarkMode() {
     const darkModeToggle = document.getElementById('darkModeToggle');
+    if (!darkModeToggle) return;
+
     const icon = darkModeToggle.querySelector('.icon');
 
     // Check for saved theme preference or default to light mode
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
-        icon.textContent = '☀️';
+        if (icon) icon.textContent = '☀️';
     }
 
     // Toggle dark mode
@@ -536,10 +778,10 @@ function initDarkMode() {
 
         // Update icon and save preference
         if (document.body.classList.contains('dark-mode')) {
-            icon.textContent = '☀️';
+            if (icon) icon.textContent = '☀️';
             localStorage.setItem('theme', 'dark');
         } else {
-            icon.textContent = '🌙';
+            if (icon) icon.textContent = '🌙';
             localStorage.setItem('theme', 'light');
         }
     });

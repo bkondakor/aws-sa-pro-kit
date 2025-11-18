@@ -11,13 +11,44 @@
         <span class="icon">🌙</span>
     </button>
 
+    <!-- Resume Banner -->
+    <div id="resumeBanner" class="resume-banner" style="display: none;">
+        <div class="resume-content">
+            <div class="resume-icon">🔄</div>
+            <div class="resume-text">
+                <h3>Continue Previous Exam</h3>
+                <p><strong id="resumeExamName">Practice Exam</strong></p>
+                <p id="resumeProgress">Question 1 of 75</p>
+            </div>
+            <div class="resume-actions">
+                <button id="resumeExamBtn" class="btn btn-primary btn-sm">Resume</button>
+                <button id="dismissResumeBtn" class="btn btn-secondary btn-sm">Start Fresh</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
-        <!-- Welcome Screen -->
-        <div id="welcomeScreen" class="screen active">
-            <div class="welcome-content">
+        <!-- Exam Selection Screen -->
+        <div id="examSelectionScreen" class="screen active">
+            <div class="exam-selection-content">
                 <h1>AWS Solutions Architect Professional</h1>
                 <h2>Practice Exam</h2>
-                <p class="subtitle">Test your knowledge and prepare for the exam</p>
+                <p class="subtitle">Choose your exam mode</p>
+
+                <div id="examTemplateContainer" class="exam-template-grid"></div>
+
+                <div class="back-link">
+                    <a href="../index.html" class="btn btn-secondary">← Back to Home</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="screen">
+            <div class="welcome-content">
+                <h1 id="welcomeExamName">AWS Solutions Architect Professional</h1>
+                <h2>Practice Exam</h2>
+                <p class="subtitle" id="welcomeExamDesc">Test your knowledge and prepare for the exam</p>
                 <div class="exam-info">
                     <div class="info-card">
                         <div class="info-icon">📝</div>
@@ -41,7 +72,10 @@
                         </div>
                     </div>
                 </div>
-                <button id="startBtn" class="btn btn-primary">Start Exam</button>
+                <div class="welcome-actions">
+                    <button id="startBtn" class="btn btn-primary btn-lg">Start Exam</button>
+                    <button id="backToSelectionBtn" class="btn btn-secondary">← Back to Selection</button>
+                </div>
             </div>
         </div>
 
@@ -114,6 +148,7 @@
                 <div class="results-actions">
                     <button id="reviewBtn" class="btn btn-primary">Review Answers</button>
                     <button id="retakeBtn" class="btn btn-secondary">Retake Exam</button>
+                    <button id="newExamBtn" class="btn btn-secondary">Choose Different Exam</button>
                 </div>
             </div>
         </div>
@@ -131,6 +166,7 @@
         </div>
     </div>
 
+    <script src="questions-loader.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
