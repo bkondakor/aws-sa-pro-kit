@@ -1,0 +1,217 @@
+{
+  "domain": "Domain 2: Design for New Solutions",
+  "task": "Task 2.3: Security Controls",
+  "question_count": 16,
+  "questions": [
+    {
+      "id": "D2-T2.3-Q1",
+      "question": "A web application behind an ALB experiences bot attacks that bypass traditional rate limiting. The security team needs protection against sophisticated bots using machine learning detection while allowing legitimate search engine crawlers. Which AWS WAF configuration provides the BEST protection?",
+      "options": [
+        "AWS WAF Bot Control Common level (detects self-identifying bots only)",
+        "AWS WAF Bot Control Targeted Protection level with ML-based detection and search engine allow rules",
+        "AWS WAF rate-based rule blocking requests exceeding 2000 per 5 minutes",
+        "AWS Shield Advanced with DDoS protection"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS WAF Bot Control Targeted Protection level provides comprehensive bot protection using: (1) Machine learning analysis (rules starting with TGT_ML_) that detect anomalous behavior indicative of distributed bot activity, (2) Browser interrogation and fingerprinting for sophisticated bots that don't self-identify, (3) Built-in rules to allow legitimate bots like search engines (GoogleBot, BingBot). The ML model analyzes traffic statistics including timestamps, browser characteristics, and behavioral patterns. Option A (Common level) only detects self-identifying bots using static analysis, missing sophisticated attacks. Option C (rate-based rules) is easily bypassed by distributed bots. Option D (Shield Advanced) protects against DDoS but doesn't provide granular bot detection. Bot Control also includes Token Reuse Detection (2025 enhancement) identifying token reuse across different ASNs and geographic locations with adjustable sensitivity."
+    },
+    {
+      "id": "D2-T2.3-Q2",
+      "question": "A financial application requires encryption of data at rest and in transit. Database credentials must be rotated every 30 days automatically. The application runs on ECS Fargate and connects to RDS PostgreSQL. Which combination provides the MOST secure and automated solution? (Select TWO)",
+      "options": [
+        "Store credentials in AWS Secrets Manager with automatic rotation enabled using Lambda rotation function",
+        "Use IAM database authentication for RDS eliminating the need for passwords",
+        "Store credentials in Systems Manager Parameter Store with manual rotation",
+        "Enable RDS encryption at rest with AWS-managed KMS keys",
+        "Use application-managed credential rotation with credentials in environment variables",
+        "Enable SSL/TLS for RDS connections with certificate verification"
+      ],
+      "type": "multiple",
+      "correctAnswer": [0, 1],
+      "explanation": "The optimal combination is: (1) Secrets Manager with automatic rotation - provides automated credential rotation every 30 days using AWS-provided or custom Lambda functions. ECS tasks retrieve credentials at runtime, getting the latest rotated values. (2) IAM database authentication eliminates passwords entirely - ECS task role generates authentication tokens valid for 15 minutes, providing better security than password-based auth. While both can be used, IAM auth is more secure (no secrets to rotate). Options D and F are important but address encryption, not the credential rotation requirement. Option C (Parameter Store) doesn't provide automatic rotation like Secrets Manager. Option E (environment variables) is insecure - credentials are visible in task definitions. Best practice: Use IAM database authentication where possible; for applications requiring traditional passwords, use Secrets Manager with automatic rotation."
+    },
+    {
+      "id": "D2-T2.3-Q3",
+      "question": "A company uses AWS KMS customer-managed keys (CMKs) to encrypt S3 buckets, EBS volumes, and RDS databases across 50 AWS accounts. They need centralized key management and the ability to immediately disable access to all encrypted data in case of a security incident. What is the MOST operationally efficient approach?",
+      "options": [
+        "Create separate CMKs in each account and manually disable them during incidents",
+        "Create a CMK in a central security account, share it across accounts using key policies, and disable the CMK to revoke all access",
+        "Use AWS-managed keys which can be centrally controlled through Organizations",
+        "Create CMKs in each account but use AWS Config to automate disabling via Lambda"
+      ],
+      "correctAnswer": 1,
+      "explanation": "A centralized CMK in a security account with cross-account sharing provides: (1) Single point of management - one key policy controls access from all accounts, (2) Immediate revocation - disabling the CMK instantly revokes decrypt access across all accounts and resources, (3) Centralized audit trail - all key usage logged to one CloudTrail. The key policy grants usage permissions to IAM roles in other accounts. During a security incident, disabling the CMK immediately prevents decryption of any data encrypted with it. Option A lacks centralization and requires 50 manual operations. Option C is incorrect - AWS-managed keys cannot be disabled or centrally controlled. Option D adds unnecessary complexity. Important: Key policies can limit which services and principals can use the key. For multi-account architectures, a centralized KMS key in a security account following least privilege is a best practice. Note: Disabled keys prevent decryption but don't delete data; re-enabling restores access."
+    },
+    {
+      "id": "D2-T2.3-Q4",
+      "question": "An API Gateway REST API exposes sensitive financial data. The security team requires: (1) Authentication via corporate Active Directory, (2) Authorization based on user groups, (3) Request throttling per user. Which API Gateway configuration meets all requirements?",
+      "options": [
+        "Use API Gateway Lambda authorizer validating AD credentials and returning user context with throttling limits",
+        "Integrate with Amazon Cognito User Pools federated with AD via SAML, use Cognito groups for authorization, implement usage plans with API keys",
+        "Use IAM authorization with IAM roles mapped to AD groups via federation",
+        "Implement AWS WAF with rate-based rules for throttling and custom Lambda for AD authentication"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Cognito User Pools with AD federation provides the complete solution: (1) Federation with AD via SAML 2.0 - users authenticate against corporate AD, (2) Cognito groups mapped to AD groups - API Gateway can authorize based on groups in the JWT token, (3) Usage plans with API keys - API Gateway natively supports per-user throttling using usage plans. The flow: User authenticates via AD → Cognito issues JWT with groups → API Gateway validates JWT and checks groups → Usage plan enforces throttling. Option A (Lambda authorizer) can work but requires custom implementation of all logic. Option C (IAM) doesn't integrate well with per-user throttling and requires AWS credentials. Option D (WAF) doesn't provide authentication or per-user throttling granularity. API Gateway usage plans can set throttle and quota limits per API key. Best practice: Use Cognito User Pools for user management and API Gateway authorizers for validation."
+    },
+    {
+      "id": "D2-T2.3-Q5",
+      "question": "A container application uses AWS Secrets Manager to retrieve database passwords. Security audit reveals that containers running for days still have the initial password even after Secrets Manager rotation. How should the application be updated to use rotated credentials?",
+      "options": [
+        "Restart containers every 30 days to force credential refresh",
+        "Implement application code to periodically call Secrets Manager GetSecretValue API to retrieve current credentials",
+        "Use Secrets Manager rotation Lambda function to update environment variables in running containers",
+        "Enable Secrets Manager automatic credential injection into containers"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Applications must actively retrieve secrets from Secrets Manager to get rotated values. Best practices: (1) Retrieve secrets at runtime on each database connection (or cache for short duration like 5 minutes), (2) Implement retry logic with exponential backoff if connection fails due to rotation in progress, (3) Use Secrets Manager caching libraries (AWS provides caching clients for multiple languages) to reduce API calls while ensuring freshness. Option A (restart containers) causes downtime and doesn't scale. Option C doesn't exist - rotation Lambda rotates secrets in Secrets Manager and the database, not container environment variables. Option D doesn't exist as an automatic feature. Common mistake: Retrieving secrets once at startup and caching indefinitely. Correct approach: Periodic retrieval or event-driven (using CloudWatch Events when rotation completes). For containers, sidecar pattern can handle secret retrieval and provide to application via localhost."
+    },
+    {
+      "id": "D2-T2.3-Q6",
+      "question": "A company runs a public web application that must pass PCI DSS compliance. They use Application Load Balancer with EC2 instances. Which security controls are REQUIRED for PCI DSS? (Select THREE)",
+      "options": [
+        "Use AWS WAF to protect against OWASP Top 10 vulnerabilities",
+        "Implement encryption in transit using TLS 1.2 or higher on the ALB",
+        "Enable AWS Shield Standard (automatically included) for DDoS protection",
+        "Enable VPC Flow Logs to capture network traffic for audit",
+        "Use Security Groups to restrict inbound traffic to only necessary ports (443 for HTTPS)",
+        "Enable AWS Config to monitor security group configuration compliance"
+      ],
+      "type": "multiple",
+      "correctAnswer": [1, 3, 4],
+      "explanation": "PCI DSS requirements for AWS applications include: (1) Encryption in transit - TLS 1.2+ is required for transmitting cardholder data (PCI DSS requirement 4.1), (2) Network traffic logging - VPC Flow Logs provide audit trails of network access (PCI DSS requirement 10), (3) Network segmentation and access control - Security Groups implementing least privilege access (PCI DSS requirement 1). Option A (WAF) is highly recommended but not strictly required by PCI DSS, though it helps with several requirements. Option C (Shield Standard) is included automatically but isn't a PCI DSS requirement. Option F (Config) is recommended for compliance monitoring but not a core requirement. Other PCI DSS requirements include: encryption at rest, access controls, regular security testing, intrusion detection (GuardDuty), and centralized logging (CloudTrail). Use AWS PCI DSS compliance documentation and AWS Config conformance packs for PCI DSS to ensure all controls are implemented."
+    },
+    {
+      "id": "D2-T2.3-Q7",
+      "question": "A healthcare application on ECS Fargate must comply with HIPAA. Container images are stored in ECR. Which security measures ensure HIPAA compliance for container images? (Select TWO)",
+      "options": [
+        "Enable ECR image scanning to detect vulnerabilities in container images",
+        "Use ECR lifecycle policies to retain images for 6 years for compliance",
+        "Enable encryption at rest for ECR repositories using AWS KMS customer-managed keys",
+        "Implement ECR cross-region replication for disaster recovery",
+        "Use ECR pull-through cache for frequently accessed images",
+        "Enable ECR tag immutability to prevent image tag overwrites"
+      ],
+      "type": "multiple",
+      "correctAnswer": [0, 2],
+      "explanation": "HIPAA compliance for container images requires: (1) Image scanning - ECR image scanning (basic or enhanced with Inspector) detects vulnerabilities in images. HIPAA requires systems to be free from known vulnerabilities. Scanning on push and continuous scanning help maintain compliance. (2) Encryption at rest - HIPAA requires encryption of ePHI (electronic Protected Health Information). ECR supports encryption with KMS CMKs, providing audit trails of key usage. Option B (6-year retention) is excessive for images; HIPAA requires audit logs and data retention but not necessarily container images for 6 years. Option D (replication) supports business continuity but isn't a HIPAA requirement. Option E (pull-through cache) is for performance. Option F (tag immutability) is good practice but not a HIPAA requirement. Additional HIPAA requirements: access controls (IAM policies), audit logging (CloudTrail), network isolation (VPC), encryption in transit. AWS provides HIPAA-eligible services including ECR, ECS, and Fargate."
+    },
+    {
+      "id": "D2-T2.3-Q8",
+      "question": "A serverless application uses API Gateway with Lambda backend processing sensitive customer data. The security team requires request/response logging for audit while ensuring sensitive data in logs is not exposed. What is the MOST secure logging configuration?",
+      "options": [
+        "Enable API Gateway CloudWatch Logs with full request/response body logging",
+        "Enable API Gateway CloudWatch Logs with INFO level logging (metadata only, no request/response bodies)",
+        "Disable API Gateway logging and implement custom logging in Lambda functions only",
+        "Enable API Gateway access logs to S3 with server-side encryption"
+      ],
+      "correctAnswer": 1,
+      "explanation": "API Gateway CloudWatch Logs with INFO level provides: (1) Request metadata (timestamp, source IP, method, path, status codes) for audit, (2) No request/response bodies preventing sensitive data exposure in logs, (3) Integration with CloudWatch Insights for analysis. This balances audit requirements with data protection. Option A (full logging) risks exposing sensitive data (PII, passwords, tokens) in CloudWatch Logs. Even with encryption, principle of least privilege suggests not logging sensitive data. Option C (no API Gateway logs) loses valuable audit information about API access patterns, error rates, and request metadata. Option D (access logs to S3) provides similar information to INFO level but CloudWatch Logs offers better querying and alerting. Best practice: INFO level logging + custom application logging for business logic (without sensitive data) + AWS WAF logging for security events. Use CloudWatch Logs data protection to redact sensitive patterns if full logging is required."
+    },
+    {
+      "id": "D2-T2.3-Q9",
+      "question": "A company must implement defense in depth for their three-tier web application (ALB → EC2 → RDS). Which security architecture provides multiple layers of protection? (Select THREE)",
+      "options": [
+        "AWS WAF on ALB with managed rules for SQL injection and XSS protection",
+        "Network ACLs allowing only return traffic and explicit allow rules",
+        "Security Groups: ALB allows 443 from internet, EC2 allows traffic only from ALB security group, RDS allows traffic only from EC2 security group",
+        "GuardDuty for threat detection analyzing VPC Flow Logs and CloudTrail",
+        "AWS Firewall Manager to centrally manage security groups",
+        "VPC endpoint for S3 to prevent internet access"
+      ],
+      "type": "multiple",
+      "correctAnswer": [0, 2, 3],
+      "explanation": "Defense in depth requires multiple security layers: (1) WAF at application layer - protects against OWASP Top 10 (SQL injection, XSS, etc.) before requests reach the application, (2) Security Groups as micro-segmentation - each tier only accepts traffic from the tier above (ALB ← Internet, EC2 ← ALB only, RDS ← EC2 only), preventing lateral movement, (3) GuardDuty for threat detection - analyzes logs to detect compromises, unusual API calls, and malicious activity. Option B (NACLs) can add value but is less critical than the selected options; Security Groups are stateful and more manageable. Option E (Firewall Manager) is for centralized management, not an additional security layer. Option F (VPC endpoint) is good practice but doesn't directly protect the three-tier app. Additional layers: CloudTrail for API audit, AWS Config for configuration compliance, Systems Manager for patch management, Inspector for vulnerability scanning."
+    },
+    {
+      "id": "D2-T2.3-Q10",
+      "question": "An application uses client-side encryption before uploading objects to S3. The security team wants to ensure that any object uploaded to the bucket without client-side encryption is automatically rejected. How can this be enforced?",
+      "options": [
+        "Enable S3 default encryption with SSE-S3",
+        "Create S3 bucket policy denying PutObject unless x-amz-server-side-encryption header is present",
+        "Create S3 bucket policy denying PutObject unless x-amz-meta-client-encrypted metadata is present",
+        "Use S3 Object Lock to prevent unencrypted uploads"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Client-side encryption means data is encrypted before reaching AWS. To enforce this, the application must indicate encryption using custom metadata. S3 bucket policy denying uploads without the custom metadata (e.g., x-amz-meta-client-encrypted=true) enforces the requirement: Policy condition: 'StringNotEquals': {'s3:x-amz-meta-client-encrypted': 'true'}. Option A (default encryption) is server-side encryption, doesn't validate client-side encryption. Option B checks for server-side encryption headers, not client-side. Option D (Object Lock) prevents deletion/modification, not related to encryption enforcement. Important: Client-side encryption provides strongest security (AWS never sees unencrypted data) but requires proper key management. Options: AWS Encryption SDK, S3 encryption client libraries. The application encrypts with a key (stored in KMS, locally, etc.) before upload. S3 bucket policy enforces the workflow but doesn't perform encryption."
+    },
+    {
+      "id": "D2-T2.3-Q11",
+      "question": "A company runs microservices on EKS and needs to implement mutual TLS (mTLS) authentication between services for zero-trust security. Which AWS service provides the MOST automated solution for certificate management and mTLS?",
+      "options": [
+        "Use AWS Certificate Manager (ACM) to issue certificates and manually distribute to pods",
+        "Implement AWS App Mesh with TLS encryption and AWS Certificate Manager Private CA for automatic certificate rotation",
+        "Use cert-manager on Kubernetes with Let's Encrypt for certificate issuance",
+        "Manually generate certificates with OpenSSL and mount as Kubernetes secrets"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS App Mesh with ACM Private CA provides automated mTLS for microservices: (1) App Mesh Envoy proxies handle TLS termination/origination transparently, (2) ACM Private CA issues certificates for each service, (3) Automatic certificate rotation before expiry (no application downtime), (4) Centralized policy management for which services can communicate. App Mesh implements service mesh pattern with automatic mTLS enforcement. Option A (ACM) doesn't support automatic distribution to EKS pods; ACM is for load balancers. Option C (cert-manager + Let's Encrypt) works but requires more operational overhead and Let's Encrypt is for public certificates, not ideal for internal mTLS. Option D (manual OpenSSL) is operationally intensive with manual rotation. App Mesh also provides: observability (metrics, traces), traffic management (canary deployments), and circuit breaking. Alternative: Istio service mesh also supports mTLS but requires self-management vs App Mesh's AWS-managed control plane."
+    },
+    {
+      "id": "D2-T2.3-Q12",
+      "question": "A financial application requires that all S3 buckets have versioning enabled, access logging enabled, and default encryption. They want to prevent creation of non-compliant buckets across 100 AWS accounts. Which preventive control is MOST effective?",
+      "options": [
+        "AWS Config rules that detect non-compliant buckets and trigger automatic remediation",
+        "Service Control Policy (SCP) denying s3:CreateBucket unless versioning, logging, and encryption are enabled",
+        "CloudFormation StackSets deploying compliant bucket templates to all accounts",
+        "AWS Security Hub with CIS AWS Foundations Benchmark checks"
+      ],
+      "correctAnswer": 1,
+      "explanation": "SCP provides true preventive control stopping non-compliant bucket creation at the organization level. The SCP denies s3:CreateBucket API calls unless the request includes versioning, logging, and encryption configurations. This prevents human error and ensures compliance from creation. With September 2025 SCP enhancements supporting full IAM policy language, you can write: Deny s3:CreateBucket unless conditions check for s3:x-amz-server-side-encryption, versioning, and logging configurations. Option A (Config rules) is detective, not preventive - buckets are created first, then detected as non-compliant. Option C (StackSets) ensures compliant buckets but doesn't prevent manual creation of non-compliant ones. Option D (Security Hub) aggregates findings but doesn't prevent actions. Important: Combine preventive (SCPs) with detective (Config) controls. SCPs prevent violations; Config detects configuration drift if SCPs are bypassed (e.g., changes after creation)."
+    },
+    {
+      "id": "D2-T2.3-Q13",
+      "question": "A company uses Amazon Cognito User Pools for their mobile app authentication. They need to implement step-up authentication requiring MFA for sensitive operations (money transfer) but not for viewing account balance. How should this be implemented?",
+      "options": [
+        "Enable MFA required for all users in Cognito User Pool settings",
+        "Use Cognito User Pool Lambda triggers to challenge users for MFA based on the operation",
+        "Implement custom application logic checking for MFA in ID tokens, requesting MFA challenge when needed",
+        "Create separate Cognito User Pools for high-security and low-security operations"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Step-up authentication requires application-level logic: (1) Cognito issues ID tokens containing authentication_time and amr (authentication methods reference) claims, (2) For sensitive operations, application checks if MFA was used recently (amr contains 'mfa'), (3) If not, application calls Cognito's GetSession or InitiateAuth with required MFA, challenging the user, (4) After successful MFA, new tokens include MFA claim. This allows operation-specific security. Option A (always require MFA) forces MFA for all operations, poor UX. Option B (Lambda triggers) can customize auth flows but doesn't specifically support operation-based MFA challenges; triggers are for auth flow customization, not post-auth operation validation. Option D (separate pools) is overly complex. Implementation: Check ID token amr and auth_time claims. If MFA wasn't used or auth_time is too old, call InitiateAuth with AUTH_FLOW: 'CUSTOM_AUTH' or use Cognito API to request MFA. This pattern is common in financial apps: basic operations with password only, sensitive operations require recent MFA."
+    },
+    {
+      "id": "D2-T2.3-Q14",
+      "question": "A company migrates to AWS and must implement data sovereignty requirements ensuring EU customer data never leaves EU regions. They use S3 for storage and Lambda for processing. What controls ensure compliance? (Select THREE)",
+      "options": [
+        "Use S3 Block Public Access to prevent data exfiltration",
+        "Implement S3 bucket policies restricting replication and actions to EU regions only",
+        "Use SCP denying operations in non-EU regions for accounts handling EU data",
+        "Enable S3 Object Lock for data protection",
+        "Configure Lambda functions with VPC endpoints in EU regions",
+        "Use AWS Organizations to create an OU for EU accounts with geographical restrictions"
+      ],
+      "type": "multiple",
+      "correctAnswer": [1, 2, 5],
+      "explanation": "Data sovereignty requires multi-layer geographical restrictions: (1) S3 bucket policies restricting cross-region replication and denying PutObject/GetObject from non-EU regions using aws:RequestedRegion condition, (2) SCPs at organization level denying API calls to non-EU regions for accounts handling EU data - prevents accidental or intentional data movement, (3) Organizational structure with dedicated OU for EU accounts enabling policy-based enforcement and clear data boundaries. Option A (Block Public Access) prevents public internet access but doesn't enforce regional restrictions. Option D (Object Lock) prevents deletion/modification, not regional restrictions. Option E (VPC endpoints) are for private connectivity, not data sovereignty. Additional controls: IAM policies restricting S3 GetObject to EU IPs, CloudTrail monitoring for non-EU API calls, Config rules validating all resources in EU regions. Example SCP condition: 'StringNotEquals': {'aws:RequestedRegion': ['eu-west-1', 'eu-central-1']}."
+    },
+    {
+      "id": "D2-T2.3-Q15",
+      "question": "An application uses AWS Secrets Manager to store API keys for third-party services. The security team discovers that IAM users are retrieving secrets using GetSecretValue and exfiltrating them. Which additional security control prevents unauthorized secret retrieval?",
+      "options": [
+        "Enable CloudTrail logging for Secrets Manager API calls",
+        "Implement resource-based policy on secrets restricting access to specific IAM roles used by applications, not users",
+        "Enable Secrets Manager automatic rotation to invalidate exfiltrated secrets",
+        "Use AWS CloudWatch Alarms to detect unusual GetSecretValue API calls"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Resource-based policies on secrets provide least privilege access control: Only allow GetSecretValue from specific IAM roles (e.g., ECS task roles, Lambda execution roles), explicitly deny IAM users. Policy example: {'Effect': 'Deny', 'Principal': {'AWS': '*'}, 'Action': 'secretsmanager:GetSecretValue', 'Condition': {'StringNotLike': {'aws:PrincipalArn': 'arn:aws:iam::*:role/AllowedAppRoles*'}}}. This prevents direct user access while allowing application roles. Option A (CloudTrail) is detective, not preventive - logs the access but doesn't stop it. Option C (rotation) helps limit damage but doesn't prevent retrieval. Option D (CloudWatch Alarms) is also detective. Best practice: Applications should use IAM roles, not users. Secrets Manager permissions should be granted only to application roles. Use session tags and ABAC for fine-grained control. Monitor CloudTrail for GetSecretValue calls from unexpected principals. Combine preventive (resource policies) with detective (CloudTrail, alarms) controls."
+    },
+    {
+      "id": "D2-T2.3-Q16",
+      "question": "A company runs workloads requiring FIPS 140-2 validated cryptographic modules. Which AWS services and configurations provide FIPS 140-2 compliance? (Select TWO)",
+      "options": [
+        "Use AWS KMS in FIPS endpoints (kms-fips.region.amazonaws.com) for encryption operations",
+        "Configure S3 to use FIPS 140-2 validated encryption modules",
+        "Use CloudHSM which provides FIPS 140-2 Level 3 validated hardware security modules",
+        "Enable FIPS mode in EC2 instances using AWS-provided AMIs",
+        "Use ACM certificates which are automatically FIPS compliant",
+        "Configure RDS encryption which uses FIPS modules automatically"
+      ],
+      "type": "multiple",
+      "correctAnswer": [0, 2],
+      "explanation": "FIPS 140-2 compliance in AWS requires: (1) AWS KMS FIPS endpoints - KMS uses FIPS 140-2 validated cryptographic modules, but applications must connect to FIPS endpoints (kms-fips.region.amazonaws.com) to ensure FIPS mode, (2) CloudHSM - provides FIPS 140-2 Level 3 validated HSMs for customer-exclusive cryptographic operations, suitable for workloads requiring dedicated HSMs. Option B is incorrect - S3 encryption uses KMS or S3-managed keys; you ensure FIPS by using KMS FIPS endpoints. Option D is partially true - you can configure FIPS mode on Linux instances, but this is OS-level, not AWS-provided. Option E is incorrect - ACM uses cryptographic modules but you don't configure FIPS mode for ACM. Option F is incorrect - RDS encryption uses KMS; for FIPS compliance, the application connecting to RDS should use FIPS endpoints and encrypted connections. Many AWS services support FIPS endpoints including S3, DynamoDB, and others. List available at: https://aws.amazon.com/compliance/fips/."
+    }
+  ]
+}
