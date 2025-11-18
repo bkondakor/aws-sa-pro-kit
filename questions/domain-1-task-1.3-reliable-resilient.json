@@ -1,0 +1,120 @@
+{
+  "domain": "Domain 1: Organizational Complexity",
+  "task": "Task 1.3: Reliable and Resilient Architectures",
+  "question_count": 10,
+  "questions": [
+    {
+      "question": "A global gaming company needs to route UDP traffic for their multiplayer game servers to the optimal AWS region with sub-second failover capabilities. They require static IP addresses for allowlisting by enterprise customers. Players are distributed worldwide. Which solution meets these requirements?",
+      "options": [
+        "Amazon CloudFront with custom origins pointing to game servers in multiple regions",
+        "AWS Global Accelerator with endpoints in multiple regions and health checks configured",
+        "Application Load Balancer with cross-zone load balancing in multiple regions",
+        "Route 53 latency-based routing with health checks to game server endpoints"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS Global Accelerator is the correct choice for this scenario. It provides: (1) Support for non-HTTP protocols including UDP (required for gaming), (2) Two static anycast IP addresses that don't change, making them ideal for allowlisting, (3) Sub-30-second failover to healthy endpoints when health checks fail, (4) Routing through AWS's private global network for lower latency and better performance. CloudFront (Option A) is for HTTP/HTTPS only and caches content - not suitable for real-time game traffic. ALB (Option C) is regional and only supports HTTP/HTTPS/gRPC. Route 53 (Option D) can route UDP but doesn't provide static IPs (DNS returns different IPs) and failover is slower (depends on DNS TTL). Global Accelerator continually monitors endpoint health and redirects traffic to healthy endpoints in less than 30 seconds, making it ideal for high-availability gaming workloads."
+    },
+    {
+      "question": "An e-commerce company operates in US, EU, and Asia regions using Aurora PostgreSQL. They need an RPO of 1 second and RTO of under 5 minutes for regional failures. The application must automatically failover to the nearest healthy region. However, during planned maintenance, they need zero data loss. Which Aurora deployment strategy meets ALL requirements?",
+      "options": [
+        "Aurora Multi-AZ deployment in each region with Route 53 health checks for cross-region failover",
+        "Aurora Global Database with managed planned switchover for maintenance and manual failover for disasters",
+        "Aurora Multi-AZ with read replicas promoted manually during regional failures",
+        "Aurora Global Database with automated cross-region failover using Route 53 Application Recovery Controller"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Aurora Global Database with both managed planned switchover and manual failover capabilities is the correct answer. Aurora Global Database provides: (1) RPO of ~1 second for unplanned outages (replication lag typically < 1 second), (2) RTO of approximately 1-5 minutes for manual cross-region failover, (3) Most importantly, managed planned switchover provides RPO of 0 (zero data loss) for planned maintenance by synchronizing secondary DB clusters with the primary before failover. Option A (Multi-AZ) only protects against AZ failures, not regional failures. Option C doesn't meet the RPO requirement and requires significant manual effort. Option D doesn't exist - Aurora Global Database doesn't have automated cross-region failover; failover must be manually initiated (though Route 53 ARC can help orchestrate it). The key insight: the question requires BOTH low RPO/RTO for disasters AND zero data loss for planned maintenance - only Aurora Global Database's managed switchover provides RPO=0 for planned events."
+    },
+    {
+      "question": "A financial services company requires cross-region replication for their DynamoDB application with an RPO of 0 (zero data loss) and the ability to read the most recent data from any region after a write. As of 2025, which DynamoDB configuration supports these requirements?",
+      "options": [
+        "DynamoDB Global Tables with Multi-Region Eventual Consistency (MREC) and strongly consistent reads",
+        "DynamoDB Global Tables with Multi-Region Strong Consistency (MRSC) deployed across exactly 3 regions",
+        "DynamoDB with DynamoDB Streams and Lambda for custom cross-region replication",
+        "DynamoDB Global Tables cannot achieve RPO of 0; the minimum RPO is 1 second with eventual consistency"
+      ],
+      "correctAnswer": 1,
+      "explanation": "As of June 2025, DynamoDB Global Tables supports Multi-Region Strong Consistency (MRSC), which provides: (1) RPO of zero - writes are synchronously replicated to at least one other region before returning success, (2) Strongly consistent reads always return the latest version from any replica. However, MRSC has specific constraints: must be deployed in exactly 3 regions, does not support transaction APIs, and has higher latencies for writes and strongly consistent reads. Option A is incorrect - MREC (default mode) provides asynchronous replication with sub-second RPO but not zero RPO. Option C (custom replication) is overly complex and difficult to achieve true zero RPO. Option D was true before June 2025 but is now incorrect with the introduction of MRSC. Important: You cannot change a global table's consistency mode after creation, so this must be chosen at table creation time."
+    },
+    {
+      "question": "A media streaming company uses S3 Cross-Region Replication (CRR) for disaster recovery. They need to ensure that metadata changes and deletions are replicated, and they want to replicate existing objects that were present before CRR was enabled. What configuration is required? (Select TWO)",
+      "options": [
+        "Enable Delete Marker Replication in the CRR configuration",
+        "Enable S3 Versioning on both source and destination buckets",
+        "Use S3 Batch Replication to replicate existing objects",
+        "Enable S3 Lifecycle policies to move objects to the destination bucket",
+        "Configure S3 Event Notifications to trigger Lambda for object replication",
+        "Enable S3 Inventory for tracking replicated objects"
+      ],
+      "type": "multiple",
+      "correctAnswer": [1, 2],
+      "explanation": "The required configurations are: (1) S3 Versioning must be enabled on both source and destination buckets - this is a prerequisite for CRR, and (2) S3 Batch Replication is needed to replicate existing objects because CRR only replicates new objects uploaded after CRR is enabled. For delete markers, you'd also enable Delete Marker Replication (Option A), but the question specifically asks about metadata and existing objects. Option D (Lifecycle policies) doesn't replicate objects; it transitions or expires them. Option E (custom Lambda replication) is unnecessary complexity when CRR is available. Option F (S3 Inventory) is for reporting, not replication. Key points: CRR requires versioning, only replicates NEW objects by default (objects uploaded after enabling CRR), and S3 Batch Replication is the AWS-native solution for replicating existing objects. Note: S3 Replication Time Control (RTC) can provide SLA of 99.99% for replication within 15 minutes."
+    },
+    {
+      "question": "An enterprise is implementing chaos engineering using AWS Fault Injection Simulator (FIS) to test their multi-AZ RDS deployment resilience. They want to simulate an AZ failure but prevent any real impact to production databases. What is the SAFEST approach?",
+      "options": [
+        "Run FIS experiments directly in production during low-traffic hours with rollback actions configured",
+        "Create a production-like staging environment with identical architecture and run FIS experiments there first",
+        "Use FIS stop conditions with CloudWatch Alarms to automatically stop the experiment if RTO exceeds 5 minutes",
+        "Enable RDS automated backups before running FIS experiments in production"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Using FIS stop conditions with CloudWatch Alarms is the safest approach for production chaos engineering. Stop conditions continuously monitor specified CloudWatch Alarms during the experiment and automatically stop the experiment if the alarm breaches, preventing cascading failures or extended outages. You might configure alarms for: database connection errors exceeding threshold, query latency exceeding SLA, or CPU reaching critical levels. This allows you to safely test in production while having guardrails. Option A (running without stop conditions) risks real production impact. Option B (staging only) is safer but doesn't validate real production behavior, including actual traffic patterns, data volumes, and dependencies. Option D (backups) provides recovery but doesn't prevent the outage. The key principle: chaos engineering in production requires automated stop conditions to limit blast radius. FIS integrates with CloudWatch Alarms, AWS CloudWatch Evidently, and other monitoring tools for this purpose."
+    },
+    {
+      "question": "A SaaS company needs to implement disaster recovery for their application spanning multiple AWS services: EC2 instances, RDS databases, DynamoDB tables, and S3 buckets. They need point-in-time recovery within the last 35 days with automated backup policies. Which AWS service should they use for centralized backup management?",
+      "options": [
+        "AWS Backup with backup plans defining retention policies and schedules for all supported resources",
+        "AWS CloudFormation with backup and restore scripts in Lambda functions",
+        "Native service-specific backups (RDS snapshots, DynamoDB backups, S3 versioning) managed separately",
+        "AWS Systems Manager Automation Documents to orchestrate backups across services"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS Backup is the purpose-built, centralized backup service that supports EC2, EBS, RDS, DynamoDB, EFS, S3, and many other services. Key benefits: (1) Centralized backup policies and scheduling, (2) Cross-region backup copy for disaster recovery, (3) Point-in-time recovery support for supported services, (4) Compliance reporting and backup lifecycle management, (5) Tag-based backup policies allowing automatic backup of resources based on tags. For 35-day retention, you'd create a backup plan with appropriate retention rules. Option B (CloudFormation with Lambda) is overly complex and you'd be building what AWS Backup already provides. Option C (native backups) works but lacks centralized management, cross-service consistency, and unified compliance reporting. Option D (Systems Manager) can orchestrate tasks but isn't designed for comprehensive backup management. AWS Backup also supports AWS Organizations integration, allowing centralized backup policies across accounts."
+    },
+    {
+      "question": "A video processing company uses Route 53 for DNS with health checks on their application endpoints in three regions: us-east-1, eu-west-1, and ap-southeast-1. They want traffic to go to the geographically nearest healthy region, but if all regions fail, they want to serve a static maintenance page from S3. How should they configure this?",
+      "options": [
+        "Use Route 53 geolocation routing with health checks, and configure evaluate target health on each record set",
+        "Use Route 53 latency-based routing with health checks on application endpoints, and create a failover record pointing to S3 as secondary",
+        "Configure Route 53 geoproximity routing with health checks and bias settings for each region",
+        "Use Route 53 multivalue answer routing returning all healthy endpoints and letting the client choose"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The correct configuration is latency-based routing with a failover record as backup. Here's how: Create latency-based routing records for each region's endpoint with health checks. Then create a Route 53 failover routing policy as the parent, with the latency-based records as PRIMARY and an S3 static website as SECONDARY. When all health checks fail, Route 53 automatically fails over to the S3 maintenance page. Option A (geolocation) routes based on user geographic location but not network latency, which can be suboptimal. Option C (geoproximity) requires manual bias configuration and doesn't inherently route to the lowest latency endpoint. Option D (multivalue) returns multiple IP addresses but leaves the client to choose, not providing true failover to S3. The key: combining routing policies (latency for performance + failover for disaster scenario) provides both optimal performance and graceful degradation."
+    },
+    {
+      "question": "A global financial application requires active-active deployment across two regions with automatic synchronization of user sessions. The application uses Application Load Balancer, ECS Fargate containers, and needs session persistence. Which architecture provides BOTH active-active capability AND session persistence?",
+      "options": [
+        "Use ALB sticky sessions with DynamoDB Global Tables (MREC) for session storage, replicated across both regions",
+        "Store sessions in ElastiCache Redis with Redis Global Datastore for cross-region replication",
+        "Use ALB sticky sessions at the cookie level; sessions remain in the region where they originated",
+        "Store sessions in Aurora Global Database with write forwarding enabled from both regions"
+      ],
+      "correctAnswer": 1,
+      "explanation": "ElastiCache for Redis with Redis Global Datastore is the optimal solution for active-active session management. Redis Global Datastore provides: (1) Cross-region replication with sub-second replication latency, (2) Active-active topology where both regions can serve reads and writes, (3) Automatic failover and promotion, (4) Low-latency session access from containers in both regions. Users can be served from either region and their sessions remain available. Option A (DynamoDB Global Tables) works but has higher latency than ElastiCache for session access. Option C (ALB sticky sessions alone) doesn't sync sessions across regions - if a region fails, users lose sessions. Option D (Aurora with write forwarding) works but is overengineered for session storage and has higher latency than in-memory Redis. For active-active deployments, sessions must be replicated in near-real-time, making Redis Global Datastore ideal with its sub-second replication and in-memory performance."
+    },
+    {
+      "question": "An IoT company processes sensor data through Amazon Kinesis Data Streams, which feeds into multiple Lambda functions for processing. They need to ensure that if Lambda processing fails, data is not lost and can be reprocessed. What configuration ensures maximum reliability?",
+      "options": [
+        "Increase Kinesis stream retention period to 365 days and configure Lambda retry attempts to 0",
+        "Configure Lambda with an on-failure destination pointing to an SQS Dead Letter Queue (DLQ), and set maximum retry attempts to 2",
+        "Enable Kinesis Data Streams Enhanced Fan-Out and configure Lambda event source mapping with bisect on function error and maximum record age",
+        "Use Kinesis Data Firehose instead of Lambda for processing to ensure reliable delivery"
+      ],
+      "correctAnswer": 2,
+      "explanation": "The correct configuration uses Lambda event source mapping advanced features: (1) Bisect on function error - when Lambda fails to process a batch, Kinesis splits the batch in half and retries each half separately, isolating the problematic record(s), (2) Maximum record age - prevents repeatedly processing very old records that might be causing issues, (3) Enhanced Fan-Out - provides dedicated throughput for each consumer, preventing slow processing from affecting others. Additionally, you should configure on-failure destination to capture records that exceed retry attempts. Option A with 0 retries means failures immediately lose data. Option B's configuration is incomplete without bisect batch on error for stream-based sources. Option D (Kinesis Firehose) is for delivery to destinations like S3/Redshift, not custom Lambda processing. The key: stream-based event sources (Kinesis, DynamoDB Streams) have different failure handling than queue-based sources; bisect on error is critical for isolating bad records while continuing to process good ones."
+    },
+    {
+      "question": "A company wants to implement automated DR testing for their multi-tier application without impacting production. They use Infrastructure as Code (CloudFormation) and want to validate that they can recover from region failure within their 4-hour RTO. What is the MOST effective testing strategy?",
+      "options": [
+        "Manually promote RDS read replicas and fail over to the DR region once per quarter",
+        "Use AWS Backup to restore resources in the DR region and test application functionality, then delete the DR resources",
+        "Implement continuous DR environment in the DR region, periodically swap production traffic using Route 53 weighted routing (20% DR, 80% primary) for validation",
+        "Create a scheduled Systems Manager Automation Document that deploys the full stack in DR region, runs synthetic tests, validates RTO, and tears down resources"
+      ],
+      "correctAnswer": 3,
+      "explanation": "Option D provides true automated DR testing without production impact. Systems Manager Automation can: (1) Deploy the full CloudFormation stack in DR region, (2) Restore latest data from backups or replicas, (3) Execute synthetic transaction tests to validate functionality, (4) Measure and validate that RTO is met, (5) Automatically tear down test resources to minimize cost. This can run on a schedule (monthly/quarterly) ensuring DR readiness. Option A (manual quarterly) doesn't validate RTO effectively and is error-prone. Option B (AWS Backup restore) is partially correct but lacks automation and RTO validation. Option C (continuous DR with traffic splitting) incurs high costs running duplicate infrastructure continuously and risks production impact. The key: DR testing should be automated, scheduled, validate both data and application integrity, measure RTO/RPO, and not impact production. Systems Manager Automation integrated with CloudFormation, AWS Backup, and CloudWatch makes this achievable."
+    }
+  ]
+}

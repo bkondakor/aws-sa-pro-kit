@@ -1,0 +1,123 @@
+{
+  "domain": "Domain 1: Organizational Complexity",
+  "task": "Task 1.4: Multi-Account Environment",
+  "question_count": 10,
+  "questions": [
+    {
+      "question": "A company has an AWS Organization with 200+ accounts structured in OUs: Production, Development, Sandbox, and Security. They want to deploy AWS Config rules across all accounts to ensure compliance, with the rules automatically deployed to new accounts created in the future. The deployment should happen from a central compliance account. What is the MOST operationally efficient approach?",
+      "options": [
+        "Create AWS Config rules in each account manually and use AWS Systems Manager to maintain consistency",
+        "Use CloudFormation StackSets with service-managed permissions targeting OUs, enable automatic deployments for new accounts",
+        "Deploy AWS Config Aggregator in the central account and configure each member account to push data",
+        "Use AWS Control Tower guardrails to deploy Config rules across all enrolled accounts"
+      ],
+      "correctAnswer": 1,
+      "explanation": "CloudFormation StackSets with service-managed permissions is the optimal solution. When integrated with AWS Organizations, StackSets: (1) Uses service-managed permissions (no need to create IAM roles manually), (2) Can target entire OUs, deploying to all current accounts in those OUs, (3) Supports automatic deployments - when enabled, new accounts added to targeted OUs automatically receive the stack instances, (4) Centralized management from a single account. The compliance team can create one StackSet containing Config rules and target all OUs. Option A is not scalable for 200+ accounts. Option C (Config Aggregator) aggregates compliance data but doesn't deploy Config rules. Option D (Control Tower) could work if they're using Control Tower, but StackSets provides more flexibility and granular control for this specific use case. StackSets allow parallel deployment control and failure tolerance configuration."
+    },
+    {
+      "question": "An enterprise wants to automate AWS account provisioning for development teams. New accounts should be created with baseline security controls (CloudTrail, GuardDuty, Security Hub), networking (VPC, subnets), and custom applications deployed. The solution should integrate with their existing Terraform workflow. Which approach best meets these requirements?",
+      "options": [
+        "Use AWS Control Tower Account Factory with Account Factory Customization (AFC) blueprints",
+        "Create custom Lambda functions triggered by AWS Service Catalog to provision accounts and resources",
+        "Implement AWS Control Tower Account Factory for Terraform (AFT) with account customization pipelines",
+        "Use AWS Organizations CreateAccount API with CloudFormation StackSets for resource deployment"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Account Factory for Terraform (AFT) is specifically designed for this use case. AFT: (1) Integrates AWS Control Tower's governance with Terraform workflows, (2) Automates account lifecycle management with Terraform-based customizations, (3) Supports account-specific customizations through Git-based pipelines, (4) Handles baseline Control Tower configurations plus custom resources, (5) Enables teams to use familiar Terraform syntax. AFT creates a pipeline that automatically provisions Control Tower accounts and applies Terraform-defined customizations including VPCs, security controls, and applications. Option A (AFC with CloudFormation) works but doesn't integrate with existing Terraform workflow. Option B (custom Lambda) requires building and maintaining complex orchestration. Option D (Organizations API + StackSets) doesn't provide the integrated account vending and customization pipeline that AFT offers. AFT v1.15.0 (2025) added enhanced configuration options."
+    },
+    {
+      "question": "A company has 500 accounts in AWS Organizations. They need to enforce that all accounts must have CloudTrail logging to a central S3 bucket in the security account, with log file validation enabled. An SCP is in place preventing CloudTrail modification. However, 50 older accounts don't have CloudTrail configured yet. What is the MOST efficient remediation?",
+      "options": [
+        "Manually create organization trail from the management account, which automatically applies to all accounts",
+        "Use CloudFormation StackSets with service-managed permissions to deploy CloudTrail in all accounts, with the SCP ensuring configurations can't be modified",
+        "Create an AWS Config rule to detect accounts without CloudTrail and use Systems Manager Automation for remediation",
+        "Use AWS Control Tower to enable CloudTrail baseline on all OUs, automatically enrolling accounts"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Creating an organization trail from the management account is the most efficient solution. An organization trail: (1) Automatically applies to all accounts in the organization, including existing and future accounts, (2) Logs all events from all accounts to a centralized S3 bucket, (3) Cannot be disabled or modified by member accounts (automatically enforced, complementing the SCP), (4) Requires only one trail creation operation. This immediately brings all 500 accounts (including the 50 without CloudTrail) into compliance with a single action. Option B (StackSets) would work but requires 500 stack instances when one organization trail suffices. Option C (Config + remediation) is more complex and slower. Option D (Control Tower) requires all accounts to be enrolled in Control Tower, which may not be the case. Important: Organization trails are created in the management account and automatically replicate to all member accounts, making them ideal for centralized compliance requirements."
+    },
+    {
+      "question": "A financial services company has accounts in AWS Organizations with an OU structure: Root → Production OU → AppTeam-A OU. There are SCPs at each level. The Root OU has an SCP allowing all services. Production OU has an SCP denying s3:DeleteBucket. AppTeam-A OU has an SCP allowing only S3 and EC2 services. What are the effective permissions for accounts in AppTeam-A OU?",
+      "options": [
+        "S3 and EC2 services are allowed because the AppTeam-A SCP explicitly allows them, overriding parent SCPs",
+        "S3 (except DeleteBucket) and EC2 services only, as SCPs are inherited and intersected down the OU hierarchy",
+        "All services are allowed because the Root SCP allows all services and takes precedence",
+        "No services are allowed because the deny in Production OU propagates and blocks all S3 access"
+      ],
+      "correctAnswer": 1,
+      "explanation": "SCPs are inherited and the effective permissions are the intersection (logical AND) of all SCPs from the root to the account. For AppTeam-A accounts: Root SCP allows all services (no restriction). Production OU SCP denies s3:DeleteBucket. AppTeam-A OU SCP allows only S3 and EC2. The intersection is: S3 (minus DeleteBucket) and EC2 only. The AppTeam-A SCP's restriction to S3 and EC2 is the most restrictive, so other services are blocked. Within S3, the Production OU's deny on DeleteBucket further restricts permissions. Important SCP principles: (1) SCPs never grant permissions, they only filter/restrict, (2) Explicit denies cannot be overridden, (3) The most restrictive combination applies, (4) SCPs affect all users and roles in the account, including the root user. Even if an IAM policy grants DynamoDB access, accounts in AppTeam-A cannot use DynamoDB due to the SCP restriction."
+    },
+    {
+      "question": "An organization needs to share a private Application Load Balancer in a central networking account with application accounts. Application teams should be able to register their targets with the ALB but NOT modify the ALB configuration or security groups. Which AWS service enables this capability?",
+      "options": [
+        "AWS Resource Access Manager (RAM) sharing the ALB with target account",
+        "VPC Peering between the networking account and application accounts",
+        "AWS PrivateLink to expose the ALB to other accounts",
+        "Cross-account IAM roles allowing application accounts to access the ALB"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS Resource Access Manager (RAM) supports sharing Application Load Balancers (and Network Load Balancers) across accounts. When you share an ALB: (1) Participant accounts can register their resources (EC2, ECS, Lambda) as targets, (2) The owner account maintains control over ALB configuration, listeners, and security groups, (3) Participants cannot modify ALB settings or delete the ALB. This provides the exact separation of concerns required: central team manages infrastructure (ALB, networking), application teams manage their targets. RAM supports sharing within AWS Organizations or with specific accounts. Option B (VPC Peering) provides network connectivity but doesn't address the permission boundary for ALB management. Option C (PrivateLink) is for exposing services, not for sharing infrastructure resources. Option D (IAM roles) could theoretically work but would require complex policies and doesn't provide the clean separation that RAM offers."
+    },
+    {
+      "question": "A company wants to implement cross-account CloudWatch log aggregation from 100 application accounts to a central logging account for compliance and analysis. The solution should minimize configuration in each application account and automatically include new accounts. What architecture should they implement?",
+      "options": [
+        "Create CloudWatch log groups in each account with subscription filters sending to Kinesis in the central account",
+        "Use CloudFormation StackSets to deploy CloudWatch log groups with cross-account permissions to the central account",
+        "Configure CloudWatch Logs cross-account data sharing with a centralized log data account, using CloudFormation StackSets for automation",
+        "Use AWS Organizations integration with CloudWatch Logs to automatically stream logs from all accounts to a central destination"
+      ],
+      "correctAnswer": 2,
+      "explanation": "CloudWatch Logs cross-account data sharing allows a centralized logging account to access log data from multiple accounts. The architecture: (1) Create a destination in the central logging account that specifies an access policy allowing source accounts, (2) Use CloudFormation StackSets with service-managed permissions and automatic deployments to create subscription filters in all accounts (current and future), (3) Subscription filters in each account send logs to the central destination (typically Kinesis Data Streams or Kinesis Data Firehose). Option A is partially correct but doesn't mention the automation aspect via StackSets. Option D doesn't exist - Organizations doesn't have native CloudWatch Logs integration like it does for CloudTrail. Option B is incomplete - just creating log groups doesn't aggregate logs. The key is combining: (1) CloudWatch Logs destination with cross-account access policy, (2) StackSets for automated subscription filter deployment, (3) Service-managed permissions and auto-deployment for new accounts."
+    },
+    {
+      "question": "An enterprise has implemented AWS Control Tower with automatic account enrollment enabled on production OUs. When they move an account from Development OU to Production OU, what happens to the account's baseline controls and resources?",
+      "options": [
+        "Nothing changes; baseline controls remain from the Development OU until manually updated",
+        "AWS Control Tower automatically applies the Production OU's enabled baseline resources and controls to the account",
+        "The account must be de-enrolled and re-enrolled to receive Production OU controls",
+        "CloudFormation StackSets must be manually updated to change the account's baseline"
+      ],
+      "correctAnswer": 1,
+      "explanation": "As of 2025, AWS Control Tower supports automatic account enrollment and baseline updates when accounts move between OUs. When you move an account to a new OU: (1) Control Tower automatically applies the destination OU's enabled baseline resources and controls, (2) Removes or updates controls that differ from the previous OU, (3) This happens automatically without manual intervention. This feature significantly improves operational efficiency for large organizations reorganizing their account structure. Option A describes pre-2025 behavior. Option C was required in older versions but is no longer necessary. Option D misunderstands the relationship - Control Tower manages baselines, not StackSets directly (though it may use StackSets internally). Important: This requires that the AWSControlTowerBaseline is enabled on the destination OU, which enables automatic enrollment and baseline management."
+    },
+    {
+      "question": "A company needs to implement consolidated billing with detailed cost allocation across 200 accounts organized by business units (BUs). Each BU has multiple projects. They want to enforce mandatory cost allocation tags and generate monthly cost reports by BU and project. Which implementation provides the MOST comprehensive solution? (Select TWO)",
+      "options": [
+        "Enable AWS Organizations consolidated billing and create a cost allocation tag policy requiring 'BusinessUnit' and 'Project' tags",
+        "Activate cost allocation tags in the management account and ensure they're activated in all member accounts",
+        "Use CloudFormation StackSets to deploy AWS Budgets in each account with alerts for cost overruns",
+        "Create AWS Cost and Usage Reports (CUR) with hourly granularity and deliver to S3 with cost allocation tags",
+        "Implement SCPs denying resource creation without required cost allocation tags",
+        "Use AWS Cost Explorer with saved reports filtered by cost allocation tags"
+      ],
+      "type": "multiple",
+      "correctAnswer": [0, 3],
+      "explanation": "The comprehensive solution requires: (1) Tag policy in AWS Organizations to enforce mandatory tags - tag policies define required tags and allowed values across the organization. When applied, resources must have specified tags (BusinessUnit, Project) to be compliant. (2) Cost and Usage Reports (CUR) with cost allocation tags provides detailed billing data with tags for analysis. CUR can be ingested into Athena, QuickSight, or third-party tools for sophisticated cost reporting by BU and project. Option B (activating tags) is a prerequisite but insufficient alone - doesn't enforce tagging. Option C (Budgets) helps with cost control but doesn't solve cost allocation reporting. Option E (SCP to enforce tags) sounds good but SCPs cannot currently enforce tagging at resource creation (they can deny if conditions aren't met, but tag policies are the proper mechanism for tag governance). Option F (Cost Explorer) is useful for visualization but doesn't provide the enforcement or detailed reporting that tag policies + CUR provide."
+    },
+    {
+      "question": "A security team needs to create a cross-account CI/CD pipeline where CodePipeline in Account A deploys to Account B. The pipeline includes CodeBuild, CodeDeploy, and deployment to S3 and ECS in Account B. What is the MINIMUM set of cross-account configurations required?",
+      "options": [
+        "Create an IAM role in Account B that CodePipeline can assume, granting permissions to S3, ECS, and CodeDeploy",
+        "Configure S3 bucket policy in Account B allowing Account A access, create IAM role in Account B for CodePipeline with S3, ECS, and CodeDeploy permissions, and configure KMS key policy for cross-account encryption if using encrypted artifacts",
+        "Use AWS Organizations to enable cross-account service access between accounts",
+        "Create identical IAM users in both accounts with same access keys for authentication"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Cross-account CI/CD requires multiple components: (1) S3 bucket policy in Account B allowing Account A to access artifact buckets (CodePipeline stores artifacts in S3), (2) IAM role in Account B with trust policy allowing Account A's CodePipeline to assume it, with permissions for S3, ECS, and CodeDeploy operations, (3) If using encryption (common practice), KMS key policy in Account B allowing Account A to decrypt/encrypt with the key used for artifacts. Additionally, the CodePipeline service role in Account A needs permission to assume the role in Account B. Option A is incomplete - missing S3 bucket policy and KMS configuration. Option C (Organizations integration) doesn't automatically configure the specific permissions needed. Option D (shared IAM users) violates AWS best practices - never share credentials; use role assumption. The KMS component is frequently overlooked but critical - encrypted S3 artifacts require cross-account KMS key permissions, otherwise pipeline fails during artifact handling."
+    },
+    {
+      "question": "An organization wants to use AWS Organizations to manage 500+ accounts but is concerned about the impact of a compromised management account. Which security best practices should they implement to minimize risk? (Select THREE)",
+      "options": [
+        "Enable MFA delete on the S3 bucket storing CloudTrail logs from the management account",
+        "Delegate administrative capabilities to member accounts using delegated administrator feature for Security Hub, GuardDuty, and other services",
+        "Limit access to the management account to only a few administrators with strong MFA requirements",
+        "Store all application workloads in the management account since it has the highest privileges",
+        "Implement SCPs that prevent the management account from accessing member account resources",
+        "Never use the management account for workloads; use it only for organization management and billing"
+      ],
+      "type": "multiple",
+      "correctAnswer": [1, 2, 5],
+      "explanation": "Management account security best practices include: (1) Delegate administrative functions - AWS allows delegating administrator privileges for services like Security Hub, GuardDuty, CloudFormation StackSets, reducing the need to access the management account, (2) Strictly limit access - only essential personnel should have management account access, with strong MFA and potentially hardware MFA devices, (3) Never run workloads in management account - it should be used exclusively for organizational management, billing, and security functions. Workloads increase attack surface. Option A (MFA delete on S3) is a good practice but not specific to management account protection. Option D directly violates best practices. Option E is incorrect - SCPs don't apply to the management account itself; the management account is exempt from SCPs, which is why protecting it is critical. Additional practices: use AWS Control Tower for guardrails, implement break-glass procedures, monitor with CloudTrail, and use separate accounts for different administrative functions."
+    }
+  ]
+}
