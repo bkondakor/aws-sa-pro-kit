@@ -1,3 +1,17 @@
+---
+title: "Domain 4: Service Comparison Matrix"
+domain: 4
+domain_name: "Accelerate Workload Migration and Modernization"
+weight: "20%"
+file_type: "service-comparisons"
+exam_topics:
+  - service-comparisons
+  - migration-services
+  - modernization-tools
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Domain 4: Service Comparison Matrix
 
 ## Overview

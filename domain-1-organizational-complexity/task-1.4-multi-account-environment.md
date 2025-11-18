@@ -1,4 +1,23 @@
-# Domain 1 - Task 1.4: Design a Multi-Account AWS Environment
+---
+title: "Task 1.4: Design a Multi-Account AWS Environment"
+domain: 1
+domain_name: "Design Solutions for Organizational Complexity"
+task: 1.4
+weight: "26%"
+exam_topics:
+  - organizations
+  - control-tower
+  - multi-account
+  - scp
+  - sso
+  - landing-zone
+  - account-factory
+  - resource-access-manager
+status: complete
+last_updated: "2025-11-18"
+---
+
+# Task 1.4: Design a Multi-Account AWS Environment
 
 ## Overview
 Multi-account strategies are fundamental to enterprise AWS architectures. This task covers designing, implementing, and managing complex multi-account environments using AWS Organizations, Control Tower, and related services for governance, security, and operational excellence.

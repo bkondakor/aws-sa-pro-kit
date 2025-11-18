@@ -1,3 +1,17 @@
+---
+title: "Domain 3: Tricky Scenarios and Edge Cases"
+domain: 3
+domain_name: "Continuous Improvement for Existing Solutions"
+weight: "25%"
+file_type: "practice-scenarios"
+exam_topics:
+  - complex-scenarios
+  - multi-concept-integration
+  - exam-preparation
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Domain 3: Tricky Scenarios and Edge Cases
 
 ## Overview

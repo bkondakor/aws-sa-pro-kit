@@ -1,3 +1,18 @@
+---
+title: "Domain 1: Tricky Scenarios and Exam-Style Questions"
+domain: 1
+domain_name: "Design Solutions for Organizational Complexity"
+weight: "26%"
+file_type: "practice-scenarios"
+exam_topics:
+  - complex-scenarios
+  - multi-concept-integration
+  - real-world-problems
+  - exam-preparation
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Domain 1: Tricky Scenarios and Exam-Style Questions
 
 ## Overview

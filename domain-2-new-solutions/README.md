@@ -1,3 +1,21 @@
+---
+title: "Domain 2: Design for New Solutions"
+domain: 2
+domain_name: "Design for New Solutions"
+weight: "29%"
+exam_questions: "~22 out of 75"
+file_type: "domain-overview"
+exam_topics:
+  - deployment-strategy
+  - business-continuity
+  - security-controls
+  - reliability
+  - performance
+  - cost-optimization
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Domain 2: Design for New Solutions (29%)
 
 ## Overview

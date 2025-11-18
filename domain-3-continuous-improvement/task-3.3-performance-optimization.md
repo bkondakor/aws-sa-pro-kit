@@ -1,3 +1,22 @@
+---
+title: "Task 3.3: Determine a Strategy to Improve Performance"
+domain: 3
+domain_name: "Continuous Improvement for Existing Solutions"
+task: 3.3
+weight: "25%"
+task_weight: "~20% of domain"
+exam_topics:
+  - performance-optimization
+  - caching
+  - cloudfront
+  - elasticache
+  - database-optimization
+  - compute-optimization
+  - network-optimization
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Task 3.3: Determine a Strategy to Improve Performance
 
 ## Overview

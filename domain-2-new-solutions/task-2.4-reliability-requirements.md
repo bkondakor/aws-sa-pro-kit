@@ -1,3 +1,24 @@
+---
+title: "Task 2.4: Design a Strategy to Meet Reliability Requirements"
+domain: 2
+domain_name: "Design for New Solutions"
+task: 2.4
+weight: "29%"
+task_weight: "~17% of domain"
+exam_topics:
+  - reliability
+  - auto-scaling
+  - load-balancing
+  - alb
+  - nlb
+  - health-checks
+  - self-healing
+  - chaos-engineering
+  - distributed-systems
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Task 2.4: Design a Strategy to Meet Reliability Requirements
 
 ## Overview

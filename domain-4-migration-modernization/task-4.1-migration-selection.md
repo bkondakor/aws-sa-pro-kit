@@ -1,3 +1,21 @@
+---
+title: "Task 4.1: Select Existing Workloads and Processes for Potential Migration"
+domain: 4
+domain_name: "Accelerate Workload Migration and Modernization"
+task: 4.1
+weight: "20%"
+task_weight: "~25% of domain"
+exam_topics:
+  - migration-selection
+  - 7rs-framework
+  - portfolio-discovery
+  - migration-readiness
+  - tco-analysis
+  - workload-prioritization
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Task 4.1: Select Existing Workloads and Processes for Potential Migration
 
 ## Overview

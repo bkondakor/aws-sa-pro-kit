@@ -1,4 +1,25 @@
-# Domain 1 - Task 1.2: Prescribe Security Controls
+---
+title: "Task 1.2: Prescribe Security Controls"
+domain: 1
+domain_name: "Design Solutions for Organizational Complexity"
+task: 1.2
+weight: "26%"
+exam_topics:
+  - security
+  - organizations
+  - scp
+  - iam
+  - identity-federation
+  - kms
+  - secrets-manager
+  - guardduty
+  - security-hub
+  - macie
+status: complete
+last_updated: "2025-11-18"
+---
+
+# Task 1.2: Prescribe Security Controls
 
 ## Overview
 Security is a critical pillar of the AWS Well-Architected Framework and represents a significant portion of the Solutions Architect Professional exam. This task focuses on implementing comprehensive security controls across multi-account environments, identity management, encryption, and detective controls.

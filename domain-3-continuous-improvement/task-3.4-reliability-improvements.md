@@ -1,3 +1,21 @@
+---
+title: "Task 3.4: Determine a Strategy to Improve Reliability"
+domain: 3
+domain_name: "Continuous Improvement for Existing Solutions"
+task: 3.4
+weight: "25%"
+task_weight: "~20% of domain"
+exam_topics:
+  - reliability-improvements
+  - chaos-engineering
+  - fault-tolerance
+  - automated-failover
+  - sli-slo
+  - resilience-testing
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Task 3.4: Determine a Strategy to Improve Reliability
 
 ## Overview

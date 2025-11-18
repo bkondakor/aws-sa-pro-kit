@@ -1,4 +1,23 @@
-# Domain 1 - Task 1.5: Determine Cost Optimization and Visibility Strategies
+---
+title: "Task 1.5: Determine Cost Optimization and Visibility Strategies"
+domain: 1
+domain_name: "Design Solutions for Organizational Complexity"
+task: 1.5
+weight: "26%"
+exam_topics:
+  - cost-optimization
+  - cost-explorer
+  - budgets
+  - savings-plans
+  - reserved-instances
+  - spot-instances
+  - cost-allocation-tags
+  - compute-optimizer
+status: complete
+last_updated: "2025-11-18"
+---
+
+# Task 1.5: Determine Cost Optimization and Visibility Strategies
 
 ## Overview
 Cost optimization is one of the six pillars of the AWS Well-Architected Framework and a critical consideration for the Solutions Architect Professional exam. This task covers cost allocation, monitoring, optimization strategies, and financial governance in multi-account environments.

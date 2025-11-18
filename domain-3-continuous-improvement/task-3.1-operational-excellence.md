@@ -1,3 +1,23 @@
+---
+title: "Task 3.1: Determine a Strategy to Improve Overall Operational Excellence"
+domain: 3
+domain_name: "Continuous Improvement for Existing Solutions"
+task: 3.1
+weight: "25%"
+task_weight: "~20% of domain"
+exam_topics:
+  - operational-excellence
+  - observability
+  - cloudwatch
+  - monitoring
+  - logging
+  - automation
+  - systems-manager
+  - x-ray
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Task 3.1: Determine a Strategy to Improve Overall Operational Excellence
 
 ## Overview

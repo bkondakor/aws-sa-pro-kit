@@ -1,3 +1,22 @@
+---
+title: "Task 4.4: Determine Opportunities for Modernization and Enhancements"
+domain: 4
+domain_name: "Accelerate Workload Migration and Modernization"
+task: 4.4
+weight: "20%"
+task_weight: "~20% of domain"
+exam_topics:
+  - modernization
+  - database-modernization
+  - aurora
+  - dynamodb
+  - data-lake
+  - machine-learning
+  - legacy-retirement
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Task 4.4: Determine Opportunities for Modernization and Enhancements
 
 ## Overview

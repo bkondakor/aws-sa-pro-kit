@@ -1,3 +1,21 @@
+---
+title: "Domain 4: Accelerate Workload Migration and Modernization"
+domain: 4
+domain_name: "Accelerate Workload Migration and Modernization"
+weight: "20%"
+exam_questions: "~15 out of 75"
+file_type: "domain-overview"
+exam_topics:
+  - migration
+  - modernization
+  - 7rs-framework
+  - application-migration-service
+  - database-migration
+  - data-transfer
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Domain 4: Accelerate Workload Migration and Modernization (20%)
 
 ## Overview

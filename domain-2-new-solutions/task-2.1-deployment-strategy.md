@@ -1,3 +1,24 @@
+---
+title: "Task 2.1: Design a Deployment Strategy to Meet Business Requirements"
+domain: 2
+domain_name: "Design for New Solutions"
+task: 2.1
+weight: "29%"
+task_weight: "~17% of domain"
+exam_topics:
+  - deployment-strategy
+  - blue-green
+  - canary
+  - rolling-deployment
+  - cicd
+  - codedeploy
+  - ecs
+  - lambda
+  - infrastructure-as-code
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Task 2.1: Design a Deployment Strategy to Meet Business Requirements
 
 ## Overview

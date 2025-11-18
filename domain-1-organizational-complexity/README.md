@@ -1,3 +1,21 @@
+---
+title: "Domain 1: Design Solutions for Organizational Complexity"
+domain: 1
+domain_name: "Design Solutions for Organizational Complexity"
+weight: "26%"
+exam_questions: "~20 out of 75"
+file_type: "domain-overview"
+exam_topics:
+  - organizational-complexity
+  - multi-account
+  - networking
+  - security
+  - resilience
+  - cost-optimization
+status: complete
+last_updated: "2025-11-18"
+---
+
 # Domain 1: Design Solutions for Organizational Complexity
 
 ## Study Guide Overview
