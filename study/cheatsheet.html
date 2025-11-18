@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Cheatsheet - AWS SA Pro Kit</title>
+    <link rel="stylesheet" href="../styles/study.css">
+    <style>
+        .cheatsheet-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .hero-section h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero-section p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        .section {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .section h3 {
+            color: var(--text-color);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .decision-tree {
+            background: var(--code-bg);
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            border-radius: 4px;
+        }
+
+        .pitfall-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .pitfall-list li {
+            background: var(--danger-bg);
+            border-left: 4px solid var(--danger-color);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+
+        .pitfall-list li strong {
+            color: var(--danger-color);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .tip-box {
+            background: var(--success-bg);
+            border-left: 4px solid var(--success-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .tip-box strong {
+            color: var(--success-color);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .comparison-table th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: var(--code-bg);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-buttons a {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .nav-buttons a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+        <span class="icon">🌙</span>
+    </button>
+
+    <div class="cheatsheet-container">
+        <div class="nav-buttons">
+            <a href="../index.html">← Home</a>
+            <a href="index.html">📚 Study Materials</a>
+            <a href="comparisons/index.html">🔀 Service Comparisons</a>
+            <a href="../exam/index.html">📝 Practice Exam</a>
+        </div>
+
+        <div class="hero-section">
+            <h1>📋 Quick Cheatsheet</h1>
+            <p>Essential decision trees, tricky scenarios, and common pitfalls for exam day</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 10 Common Pitfalls to Avoid</h2>
+            <ul class="pitfall-list">
+                <li>
+                    <strong>1. Choosing EBS over EFS for Shared Storage</strong>
+                    EBS volumes can only be attached to one EC2 instance at a time (except io1/io2 with multi-attach in same AZ). Use EFS for shared file storage across multiple instances.
+                </li>
+                <li>
+                    <strong>2. Not Considering Data Transfer Costs</strong>
+                    Data transfer between AZs, regions, and out to the internet incurs costs. Design with data locality in mind and use VPC endpoints to avoid NAT Gateway charges.
+                </li>
+                <li>
+                    <strong>3. Forgetting About VPC Peering Limitations</strong>
+                    VPC peering is not transitive. If VPC A peers with B, and B peers with C, A cannot communicate with C through B without a direct peering connection.
+                </li>
+                <li>
+                    <strong>4. Misunderstanding RDS Read Replica vs Multi-AZ</strong>
+                    Multi-AZ is for high availability (automatic failover), Read Replicas are for read scalability. Multi-AZ uses synchronous replication, Read Replicas use asynchronous.
+                </li>
+                <li>
+                    <strong>5. Not Using AWS Organizations for Multi-Account</strong>
+                    Managing multiple accounts without Organizations loses consolidated billing, centralized policies (SCPs), and simplified account provisioning with AWS Control Tower.
+                </li>
+                <li>
+                    <strong>6. Choosing Wrong Database Type</strong>
+                    Don't use RDS for time-series data (use Timestream), graph data (use Neptune), or document data at scale (use DynamoDB). Match the database to the use case.
+                </li>
+                <li>
+                    <strong>7. Ignoring S3 Storage Classes</strong>
+                    Keeping all data in S3 Standard wastes money. Use S3 Intelligent-Tiering, S3-IA, or Glacier based on access patterns. Implement lifecycle policies.
+                </li>
+                <li>
+                    <strong>8. Not Implementing Proper Disaster Recovery</strong>
+                    Backups alone aren't enough. Define RPO/RTO requirements and choose appropriate DR strategy: Backup & Restore, Pilot Light, Warm Standby, or Multi-Site Active/Active.
+                </li>
+                <li>
+                    <strong>9. Overlooking Security Group vs NACL Differences</strong>
+                    Security Groups are stateful (return traffic automatically allowed), NACLs are stateless (must explicitly allow return traffic). SGs operate at instance level, NACLs at subnet level.
+                </li>
+                <li>
+                    <strong>10. Not Using CloudWatch Alarms and Automation</strong>
+                    Manual monitoring doesn't scale. Set up CloudWatch alarms, use EventBridge for event-driven automation, and implement auto-remediation with Systems Manager Automation.
+                </li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🌳 Key Decision Trees</h2>
+
+            <h3>Storage Selection</h3>
+            <div class="decision-tree">
+                <pre>Need storage?
+├─ Block Storage?
+│  ├─ Single instance, high IOPS → EBS io1/io2
+│  ├─ Single instance, general → EBS gp3
+│  ├─ Boot volume → EBS
+│  └─ Multiple instances in same AZ → EBS Multi-Attach (io1/io2)
+├─ File Storage?
+│  ├─ Linux, NFS, elastic, multi-AZ → EFS
+│  ├─ Windows, SMB → FSx for Windows File Server
+│  ├─ High performance computing → FSx for Lustre
+│  └─ NetApp workloads → FSx for NetApp ONTAP
+└─ Object Storage?
+   ├─ Frequent access → S3 Standard
+   ├─ Unknown access patterns → S3 Intelligent-Tiering
+   ├─ Infrequent access → S3 Standard-IA
+   ├─ Archive, fast retrieval → S3 Glacier Instant Retrieval
+   ├─ Archive, hours retrieval → S3 Glacier Flexible Retrieval
+   └─ Long-term archive → S3 Glacier Deep Archive</pre>
+            </div>
+
+            <h3>Database Selection</h3>
+            <div class="decision-tree">
+                <pre>Need database?
+├─ Relational (SQL)?
+│  ├─ Need PostgreSQL/MySQL/MariaDB/SQL Server/Oracle → RDS
+│  ├─ Need high availability → RDS Multi-AZ
+│  ├─ Need read scaling → RDS Read Replicas
+│  ├─ Serverless → Aurora Serverless
+│  ├─ Global database → Aurora Global Database
+│  └─ High performance, MySQL/PostgreSQL → Aurora
+├─ Non-Relational (NoSQL)?
+│  ├─ Key-value, document, serverless → DynamoDB
+│  ├─ In-memory cache → ElastiCache (Redis/Memcached)
+│  ├─ Wide column store → DynamoDB or Keyspaces
+│  ├─ Document database → DocumentDB (MongoDB compatible)
+│  ├─ Graph database → Neptune
+│  ├─ Time-series → Timestream
+│  └─ Ledger/immutable → QLDB
+└─ Analytics/Data Warehouse?
+   ├─ Petabyte-scale SQL → Redshift
+   ├─ Real-time analytics → Kinesis + Lambda + DynamoDB
+   └─ S3 data lake queries → Athena</pre>
+            </div>
+
+            <h3>Compute Selection</h3>
+            <div class="decision-tree">
+                <pre>Need compute?
+├─ Containers?
+│  ├─ Want to manage infrastructure → ECS on EC2
+│  ├─ Serverless containers → ECS on Fargate
+│  ├─ Kubernetes → EKS
+│  └─ Kubernetes serverless → EKS on Fargate
+├─ Serverless?
+│  ├─ Event-driven, short tasks → Lambda
+│  ├─ Long-running workflows → Step Functions
+│  └─ APIs → API Gateway + Lambda
+└─ Virtual Machines?
+   ├─ General purpose → EC2 t3/t4g, m5/m6g
+   ├─ Compute optimized → EC2 c5/c6g
+   ├─ Memory optimized → EC2 r5/r6g, x1e
+   ├─ GPU workloads → EC2 p3/p4, g4
+   ├─ High performance computing → EC2 hpc6a
+   ├─ Spot instances for fault-tolerant → EC2 Spot
+   └─ Reserved capacity → Reserved Instances/Savings Plans</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚡ Quick Reference Tables</h2>
+
+            <h3>RDS Multi-AZ vs Read Replicas</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Multi-AZ</th>
+                        <th>Read Replicas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Purpose</td>
+                        <td>High Availability</td>
+                        <td>Read Scalability</td>
+                    </tr>
+                    <tr>
+                        <td>Replication</td>
+                        <td>Synchronous</td>
+                        <td>Asynchronous</td>
+                    </tr>
+                    <tr>
+                        <td>Can Read From</td>
+                        <td>No (standby not accessible)</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td>Failover</td>
+                        <td>Automatic</td>
+                        <td>Manual (promote to master)</td>
+                    </tr>
+                    <tr>
+                        <td>Location</td>
+                        <td>Same region, different AZ</td>
+                        <td>Same region or cross-region</td>
+                    </tr>
+                    <tr>
+                        <td>Use Case</td>
+                        <td>Disaster recovery, maintenance</td>
+                        <td>Read-heavy workloads, reporting</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Disaster Recovery Strategies (RPO/RTO)</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Strategy</th>
+                        <th>RPO</th>
+                        <th>RTO</th>
+                        <th>Cost</th>
+                        <th>Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Backup & Restore</td>
+                        <td>Hours</td>
+                        <td>Hours-Days</td>
+                        <td>$</td>
+                        <td>Non-critical, cost-sensitive</td>
+                    </tr>
+                    <tr>
+                        <td>Pilot Light</td>
+                        <td>Minutes</td>
+                        <td>Hours</td>
+                        <td>$$</td>
+                        <td>Core services always running</td>
+                    </tr>
+                    <tr>
+                        <td>Warm Standby</td>
+                        <td>Seconds</td>
+                        <td>Minutes</td>
+                        <td>$$$</td>
+                        <td>Business-critical, scaled down</td>
+                    </tr>
+                    <tr>
+                        <td>Multi-Site Active/Active</td>
+                        <td>None</td>
+                        <td>Seconds</td>
+                        <td>$$$$</td>
+                        <td>Mission-critical, zero downtime</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>💡 Pro Tips for Exam Day</h2>
+
+            <div class="tip-box">
+                <strong>🎯 Tip 1: Read the Question Carefully</strong>
+                <p>Look for keywords: "most cost-effective", "least operational overhead", "highest performance", "most secure". These guide you to the right answer.</p>
+            </div>
+
+            <div class="tip-box">
+                <strong>🎯 Tip 2: Eliminate Wrong Answers First</strong>
+                <p>Often 2 answers are clearly wrong. Between the remaining 2, look for what the question is optimizing for (cost vs performance vs simplicity).</p>
+            </div>
+
+            <div class="tip-box">
+                <strong>🎯 Tip 3: AWS Best Practices Matter</strong>
+                <p>When in doubt, choose the answer that follows AWS Well-Architected Framework principles: security, reliability, performance, cost optimization, and operational excellence.</p>
+            </div>
+
+            <div class="tip-box">
+                <strong>🎯 Tip 4: Think Serverless and Managed Services</strong>
+                <p>AWS generally prefers answers that use managed services over self-managed. Lambda over EC2, RDS over EC2 database, etc., when requirements allow.</p>
+            </div>
+
+            <div class="tip-box">
+                <strong>🎯 Tip 5: Don't Overthink</strong>
+                <p>The exam tests practical knowledge. If an answer seems overly complex or requires deep implementation details, it's probably not the right answer.</p>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="../index.html">← Back to Home</a>
+            <a href="index.html">📚 Browse All Study Materials</a>
+        </div>
+    </div>
+
+    <script>
+        // Dark Mode Functionality
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const icon = darkModeToggle.querySelector('.icon');
+
+        // Check for saved theme preference or default to light mode
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            icon.textContent = '☀️';
+        }
+
+        // Toggle dark mode
+        darkModeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+
+            // Update icon and save preference
+            if (document.body.classList.contains('dark-mode')) {
+                icon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    </script>
+</body>
+</html>

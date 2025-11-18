@@ -24,7 +24,7 @@ wheels/
 *.egg
 
 # Generated study materials (built during deployment)
-study/
+# study/ - Now committed with dark mode support
 
 # IDE
 .vscode/
