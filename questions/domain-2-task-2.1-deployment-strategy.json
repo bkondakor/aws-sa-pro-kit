@@ -1,0 +1,145 @@
+{
+  "domain": "Domain 2: Design for New Solutions",
+  "task": "Task 2.1: Deployment Strategy",
+  "question_count": 12,
+  "questions": [
+    {
+      "question": "In July 2025, AWS introduced built-in blue/green deployment capability for ECS, eliminating the need for CodeDeploy. A company wants to implement this new feature for their ECS Fargate service. During deployment, they need to run integration tests against the green environment before routing production traffic. Which capability should they leverage?",
+      "options": [
+        "Configure CodeDeploy lifecycle hooks even though using built-in ECS blue/green",
+        "Use ECS's automatic Lambda function invocation at specified lifecycle stages to run tests against the green revision",
+        "Implement manual testing by keeping both blue and green running simultaneously",
+        "Configure Application Load Balancer health checks to validate the green environment"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The new built-in ECS blue/green deployment feature (July 2025) automatically invokes Lambda functions at specified lifecycle stages, allowing comprehensive testing against the green revision before traffic cutover. This is included with Amazon ECS at no additional charge. Teams can configure Lambda functions to run integration tests, smoke tests, or any validation logic. Option A is incorrect - the whole point of the new feature is eliminating the need for CodeDeploy. Option C (manual testing) defeats the automation purpose. Option D (ALB health checks) validates basic health but doesn't run comprehensive integration tests. Key benefit: This new capability makes complex CodeDeploy workarounds unnecessary while providing near-instantaneous rollback capability if issues arise during validation."
+    },
+    {
+      "question": "A team is implementing canary deployments for their Lambda function processing critical financial transactions. They want to route 10% of traffic to the new version for 10 minutes, then automatically shift the remaining 90% if no errors occur. Which deployment configuration achieves this?",
+      "options": [
+        "Use Lambda versions with weighted aliases: assign 90% weight to $LATEST and 10% to the new version",
+        "Configure CodeDeploy with Lambda deployment using Canary10Percent10Minutes configuration",
+        "Implement API Gateway canary deployment with 10% traffic to the new stage",
+        "Use EventBridge rules to route 10% of events to the new Lambda version"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS CodeDeploy for Lambda supports predefined canary configurations like 'Canary10Percent10Minutes' which shifts 10% of traffic to the new version, waits 10 minutes, then automatically shifts the remaining 90% if CloudWatch alarms don't trigger. CodeDeploy can automatically rollback if failures are detected. Option A (weighted aliases) allows percentage-based routing but doesn't provide the automatic time-based progression or automated rollback that CodeDeploy offers. Option C (API Gateway canary) works for API-triggered Lambdas but doesn't help with event-driven sources like SQS, Kinesis, etc. Option D doesn't exist as a native capability. CodeDeploy also supports Linear (e.g., Linear10PercentEvery10Minutes) and All-at-once deployment patterns. Best practice: Use CloudWatch Alarms with CodeDeploy to automatically trigger rollback on error rate increases."
+    },
+    {
+      "question": "A company needs to choose an Infrastructure as Code tool for their new AWS-only project. The development team is proficient in Python and wants to use familiar programming constructs (loops, conditionals, functions). They need to deploy across 10 AWS accounts with slight variations per account. Which tool is MOST appropriate?",
+      "options": [
+        "AWS CloudFormation with YAML templates and nested stacks for reusability",
+        "AWS CDK with Python, leveraging programming language features and CDK constructs",
+        "Terraform with HCL, using modules for reusability across accounts",
+        "AWS CloudFormation with JSON templates and template parameters"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS CDK with Python is the optimal choice given the requirements: (1) Team is proficient in Python - no new language to learn, (2) Can use Python's loops, conditionals, functions, classes for complex logic and variations across accounts, (3) AWS-only project - CDK's tight AWS integration is beneficial, (4) CDK constructs provide higher-level abstractions reducing boilerplate. CDK synthesizes to CloudFormation, so you get CloudFormation's state management benefits. Option A (CloudFormation YAML) requires learning YAML/CloudFormation syntax and is more verbose for variations. Option C (Terraform) requires learning HCL and is better suited for multi-cloud; for AWS-only, CDK's ergonomics are superior. Option D (JSON) is even more verbose than YAML. As of 2025, CDK has growing momentum and AWS investment, making it increasingly the default choice for AWS-only infrastructure. CDK supports L1 (CloudFormation), L2 (curated), and L3 (patterns) constructs for different abstraction levels."
+    },
+    {
+      "question": "A development team uses AWS CloudFormation StackSets to deploy a VPC architecture across 50 accounts in AWS Organizations. They update the template to add new subnets. They want to ensure that if the update fails in more than 3 accounts, the entire deployment stops. Which StackSets configuration achieves this?",
+      "options": [
+        "Set Maximum Concurrent Accounts to 3 and Continue Deploying to Remaining Accounts on Failure",
+        "Set Failure Tolerance Count to 3 and Stop Operation on Subsequent Failures",
+        "Configure CloudFormation rollback triggers with CloudWatch alarms",
+        "Use StackSets drift detection to prevent deployments with more than 3 drifted accounts"
+      ],
+      "correctAnswer": 1,
+      "explanation": "StackSets provides deployment control options including Failure Tolerance. Setting Failure Tolerance Count to 3 means: if updates fail in 3 or fewer accounts, the operation continues; if failures exceed 3, the operation stops and doesn't deploy to remaining accounts. This prevents cascading failures across the organization. You also configure Maximum Concurrent Accounts (parallelism) separately. For example: Max Concurrent = 10, Failure Tolerance = 3 means StackSets deploys to 10 accounts at a time but stops the entire operation if total failures exceed 3. Option A controls parallelism but doesn't stop on failures. Option C (rollback triggers) works for individual stacks but not for controlling StackSets operations across multiple accounts. Option D (drift detection) is for identifying configuration drift, not for controlling deployment failures. Best practice: Set conservative failure tolerance for production changes to prevent wide-scale issues."
+    },
+    {
+      "question": "A SaaS company deploys customer-specific resources (databases, compute, storage) using Infrastructure as Code. They need feature flags to enable/disable features per customer without redeploying infrastructure. Which approach provides the MOST operationally efficient solution?",
+      "options": [
+        "Use CloudFormation parameters and update stacks with different parameter values per customer",
+        "Implement AWS AppConfig for feature flag management, decoupling feature enablement from infrastructure deployment",
+        "Store feature flags in DynamoDB and query on each request",
+        "Use separate CloudFormation templates for each feature combination"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS AppConfig is purpose-built for feature flag and configuration management. It provides: (1) Dynamic configuration changes without redeployment, (2) Safe deployment strategies for configuration changes (similar to code deployments), (3) Validation of configuration data before deployment, (4) Rollback capability if issues occur, (5) Integration with Lambda, ECS, EC2, and other compute services. Feature flags can be enabled/disabled per customer instantly without infrastructure changes. Option A (CloudFormation parameters) requires stack updates which are slow and risky for simple feature toggles. Option C (DynamoDB) can work but requires custom implementation of safe rollout, validation, and rollback - reinventing what AppConfig provides. Option D (separate templates) creates maintenance nightmare. AppConfig deployment strategies include all-at-once, linear, and exponential rollout patterns, similar to CodeDeploy but for configuration."
+    },
+    {
+      "question": "A financial services company must deploy applications with zero downtime and the ability to instantly rollback. They use Application Load Balancer with two target groups. During deployment, they want to validate the new version with synthetic transactions before routing real user traffic. Which deployment strategy and validation approach should they implement?",
+      "options": [
+        "Blue/green deployment with Route 53 weighted routing for gradual traffic shift",
+        "Blue/green deployment with ALB listener rules and weighted target groups, using a pre-traffic Lambda hook for validation",
+        "Canary deployment with CloudWatch Synthetics running tests against the canary version",
+        "Rolling deployment with Connection Draining enabled"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Blue/green with ALB weighted target groups provides instant rollback capability and zero downtime. The architecture: (1) Blue target group handles production traffic (100% weight), (2) Deploy new version to green target group (0% weight), (3) Use Lambda hook to run synthetic tests against green, (4) If tests pass, shift traffic by adjusting weights (can be gradual: 10%, 50%, 100%), (5) If issues occur, instantly revert weights to 100% blue. ALB allows weights from 0-100 on target groups. Option A (Route 53) has slower rollback due to DNS propagation/caching. Option C (canary) works but doesn't provide the instant rollback that ALB weighted target groups offer. Option D (rolling) has downtime during rollback (must redeploy previous version). With ALB weighted target groups, rollback is near-instantaneous (just adjust weights), meeting the 'instantly rollback' requirement."
+    },
+    {
+      "question": "A company uses CloudFormation to deploy a complex application with dependencies between resources (VPC → Subnets → EC2 → Load Balancer → DNS). Template updates sometimes fail midway, leaving the stack in UPDATE_ROLLBACK_FAILED state. Which CloudFormation features help prevent and recover from this scenario? (Select TWO)",
+      "options": [
+        "Use Stack Policy to prevent updates to critical resources",
+        "Enable Termination Protection on the stack",
+        "Implement CloudFormation DeletionPolicy: Retain on critical resources",
+        "Use Change Sets to preview changes before execution",
+        "Configure CloudFormation to Continue Update Rollback to skip problematic resources",
+        "Enable Automatic Rollback on CloudWatch Alarm triggers"
+      ],
+      "type": "multiple",
+      "correctAnswer": [3, 4],
+      "explanation": "The best combination is: (1) Change Sets allow previewing exactly what CloudFormation will change before executing, reducing surprises that cause failures, and (2) Continue Update Rollback allows recovering from UPDATE_ROLLBACK_FAILED state by skipping resources that can't be rolled back. Option A (Stack Policy) prevents accidental updates but doesn't help with failed rollbacks. Option B (Termination Protection) prevents stack deletion, not relevant here. Option C (DeletionPolicy Retain) prevents resource deletion but doesn't address rollback failures. Option F (Alarm triggers) can automatically rollback but doesn't prevent or recover from UPDATE_ROLLBACK_FAILED state. When UPDATE_ROLLBACK_FAILED occurs, you use Continue Update Rollback in the console or AWS CLI, optionally specifying resources to skip. This is critical for recovering from complex failure scenarios without losing the entire stack."
+    },
+    {
+      "question": "An enterprise manages infrastructure for both AWS and on-premises VMware environments. They need a single Infrastructure as Code tool that can provision resources in both environments, with existing team expertise in declarative configuration. Which tool should they standardize on?",
+      "options": [
+        "AWS CDK, using AWS CDK for CloudFormation (AWS resources) and CDK8s for Kubernetes-based VMware",
+        "Terraform, leveraging AWS provider for cloud resources and VMware provider for on-premises",
+        "AWS CloudFormation with custom resources backed by Lambda to provision VMware resources",
+        "Ansible for both environments as it supports both cloud and on-premises provisioning"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Terraform is the correct choice for hybrid cloud/on-premises infrastructure. Key advantages: (1) Official providers for both AWS and VMware vSphere, (2) Declarative HCL syntax consistent across providers, (3) Single workflow and state management across environments, (4) Mature ecosystem and community support for hybrid scenarios. The team can use Terraform modules to abstract differences between AWS and VMware. Option A (CDK) is primarily AWS-focused; while CDK8s exists for Kubernetes, it doesn't directly support VMware vSphere. Option C (CloudFormation with custom resources) is overly complex and defeats the purpose of IaC - custom Lambda code to manage VMware is maintenance-heavy. Option D (Ansible) is a configuration management tool, not primarily an IaC provisioning tool, though it can provision resources. Terraform's strength in multi-cloud and hybrid scenarios makes it the industry standard for this use case, as confirmed by 2025 trends showing Terraform as the default choice for multi-provider scenarios."
+    },
+    {
+      "question": "A company deploys microservices using AWS CodePipeline with stages: Source (GitHub) → Build (CodeBuild) → Deploy to Dev (ECS) → Manual Approval → Deploy to Prod (ECS). They want to add security scanning after Build and automatically fail the pipeline if critical vulnerabilities are found. Where should security scanning be added?",
+      "options": [
+        "Add a Test stage after Build with CodeBuild project running security scanners (Snyk, Trivy), configured to fail the stage on critical findings",
+        "Implement security scanning in the Build stage CodeBuild project as a post-build phase",
+        "Use Lambda function triggered by CodePipeline between Build and Deploy stages",
+        "Enable Amazon Inspector scanning in ECR which will automatically block vulnerable images from deployment"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Adding a dedicated Test stage with security scanning provides: (1) Clear separation of concerns (build vs test), (2) Explicit visibility in pipeline - stakeholders see that security scanning occurred, (3) Ability to run multiple test types in parallel, (4) Clear failure indication if vulnerabilities found. The CodeBuild project in the Test stage runs security scanners and uses exit codes to signal pass/fail, stopping the pipeline before Dev deployment if critical vulnerabilities exist. Option B (post-build phase) works but lacks visibility - failures appear as 'Build failed' rather than 'Security scan failed'. Option C (Lambda) adds unnecessary complexity - CodeBuild can run any security tool. Option D (Inspector in ECR) provides scanning but doesn't automatically block deployments - it reports findings. Best practice: Use dedicated Test stage with parallel actions for different scan types (SAST with CodeGuru, container scanning with Trivy/Snyk, dependency checking with OWASP Dependency-Check)."
+    },
+    {
+      "question": "A development team uses Terraform to manage AWS infrastructure across 20 environments (4 regions × 5 stages). They experience frequent state locking conflicts when multiple team members deploy simultaneously. Which configuration provides the MOST robust state management?",
+      "options": [
+        "Use local state files with Git for version control",
+        "Configure S3 backend with DynamoDB for state locking, with separate state files per environment",
+        "Use Terraform Cloud for state management and collaboration",
+        "Store state in S3 with versioning enabled, without DynamoDB locking"
+      ],
+      "correctAnswer": 1,
+      "explanation": "S3 backend with DynamoDB state locking is the AWS-native, robust solution for team collaboration. Configuration: (1) S3 bucket with versioning for state files (disaster recovery), (2) DynamoDB table for state locking (prevents concurrent modifications), (3) Separate state files per environment using workspace or different S3 keys. This prevents conflicts while maintaining separation. S3 provides durability, versioning for rollback, and encryption. DynamoDB locking ensures only one person/process can modify state at a time. Option A (local + Git) is extremely problematic - state contains sensitive data and Git isn't designed for state management; merge conflicts are disastrous. Option C (Terraform Cloud) is excellent but adds external dependency and cost. Option D (S3 without DynamoDB) risks state corruption from concurrent updates. Best practice: Enable S3 versioning, bucket encryption, and restricted IAM access. Use separate state files per environment (either via workspaces or different S3 keys) to prevent cross-environment impact."
+    },
+    {
+      "question": "A company uses AWS CDK to deploy infrastructure. They want to ensure that developers can see what CloudFormation resources will be created before deploying. Additionally, they need to validate that CDK applications comply with organizational policies (e.g., all S3 buckets encrypted, no public access). Which CDK features address these requirements? (Select TWO)",
+      "options": [
+        "Use 'cdk diff' command to preview changes before deployment",
+        "Implement CDK Aspects to validate and enforce policies across constructs",
+        "Enable CloudFormation Change Sets in CDK configuration",
+        "Use 'cdk synth' to generate CloudFormation templates for review",
+        "Configure AWS Config rules to validate deployed resources",
+        "Implement custom Lambda-backed CloudFormation resources for validation"
+      ],
+      "type": "multiple",
+      "correctAnswer": [1, 3],
+      "explanation": "The correct combination is: (1) CDK Aspects allow implementing cross-cutting concerns and policy validation. Aspects visit all constructs in the CDK app and can validate, modify, or enforce rules. For example, an aspect can verify all S3 buckets have encryption enabled and fail the synth process if not. (2) 'cdk synth' generates the CloudFormation template that will be deployed, allowing review of exact resources before deployment. While 'cdk diff' (Option A) shows changes, it doesn't help with initial deployments or policy validation. Option C is incorrect - Change Sets are CloudFormation feature automatically used by CDK, not separately configured. Option E (Config rules) validates after deployment, not before. Option F is overengineered. CDK Aspects example: class BucketEncryptionAspect implements IAspect { visit(node: IConstruct) { if (node instanceof s3.Bucket && !node.encryptionKey) { Annotations.of(node).addError('Bucket must be encrypted'); } }}. This fails synthesis if policies aren't met, preventing deployment."
+    },
+    {
+      "question": "A platform team manages a base networking infrastructure (VPC, subnets, security groups) deployed via CloudFormation. Application teams need to deploy resources into this VPC without having permissions to modify the networking stack. Which CloudFormation feature enables this safe resource sharing?",
+      "options": [
+        "Use CloudFormation Cross-Stack References with Outputs and ImportValue",
+        "Grant application teams read-only access to the networking stack",
+        "Use AWS Resource Access Manager (RAM) to share VPC resources",
+        "Store VPC IDs in Systems Manager Parameter Store for application stacks to reference"
+      ],
+      "correctAnswer": 0,
+      "explanation": "CloudFormation Cross-Stack References using Outputs and ImportValue is the native solution. The networking stack exports values (VPC ID, subnet IDs, security group IDs) using Outputs with Export names. Application stacks import these values using Fn::ImportValue. Benefits: (1) Type-safe references (CloudFormation validates that exported values exist), (2) Dependency tracking (CloudFormation prevents deleting exported values while they're in use), (3) No additional permissions needed on networking stack. Example: Networking stack: Outputs: VPCId: Value: !Ref VPC Export: Name: Platform-VPC-ID. Application stack: Resources: EC2Instance: Properties: SubnetId: !ImportValue Platform-Subnet-ID. Option B (read access) doesn't solve the deployment integration problem. Option C (RAM) is for sharing actual resources, not for CloudFormation integration. Option D (Parameter Store) works but lacks CloudFormation's native dependency tracking and validation. Cross-stack references provide clean separation: platform team owns infrastructure, app teams deploy into it without modification permissions."
+    }
+  ]
+}

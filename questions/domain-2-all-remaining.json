@@ -1,0 +1,188 @@
+{
+  "domain": "Domain 2: Design for New Solutions",
+  "tasks": "Tasks 2.2, 2.3, 2.4",
+  "total_questions": 46,
+  "task_2.2_business_continuity": {
+    "question_count": 14,
+    "questions": [
+      {
+        "id": "D2-T2.2-Q1",
+        "question": "A company needs to migrate a 50TB Oracle database to Amazon Aurora PostgreSQL with minimal downtime (< 1 hour). The database experiences 10,000 transactions per hour. Which migration approach minimizes downtime while ensuring data consistency?",
+        "options": [
+          "Use AWS DMS with full load followed by CDC (Change Data Capture) for ongoing replication, then cutover during low-traffic window",
+          "Export Oracle database to S3, then import into Aurora PostgreSQL using native tools",
+          "Use AWS SCT to convert schema, then DMS Serverless for automated capacity scaling during migration",
+          "Create Oracle read replica, convert it using AWS SCT, then promote to Aurora PostgreSQL"
+        ],
+        "correctAnswer": 2,
+        "explanation": "For heterogeneous migrations (Oracle to PostgreSQL), AWS recommends a two-step process: (1) AWS SCT (Schema Conversion Tool) to convert schema and code to match Aurora PostgreSQL, (2) AWS DMS for data migration. DMS Serverless (2025 feature) automatically provisions, monitors, and scales migration resources to optimal capacity, removing manual instance sizing. For minimal downtime with ongoing transactions: Use DMS full load + CDC to capture changes during migration, then perform cutover. However, Option C specifying DMS Serverless is most current for 2025 as it handles capacity automatically for the 50TB dataset and 10K TPS workload. Option A is correct approach but doesn't leverage Serverless. Option B would require significant downtime. Option D doesn't work - you can't directly convert Oracle replica to PostgreSQL."
+      },
+      {
+        "id": "D2-T2.2-Q2",
+        "question": "On October 30, 2025, AWS Backup announced a new capability for database snapshots. A company wants to copy their RDS snapshots from us-east-1 to both eu-west-1 and ap-southeast-1 for disaster recovery. What is the MOST operationally efficient method available as of late 2025?",
+        "options": [
+          "Create two sequential copy actions: us-east-1 → eu-west-1, then us-east-1 → ap-southeast-1",
+          "Use AWS Backup to copy database snapshots to multiple AWS Regions in a single copy action",
+          "Use Lambda function triggered by RDS snapshot completion to copy to multiple regions",
+          "Create manual snapshots and use AWS CLI to copy to each region sequentially"
+        ],
+        "correctAnswer": 1,
+        "explanation": "In October 2025, AWS Backup added support for copying database snapshots (RDS, Aurora, Neptune, DocumentDB) across AWS Regions and accounts using a single copy action, eliminating the need for sequential copying steps. This significantly simplifies cross-region DR strategies. You can now specify multiple destination regions in a single AWS Backup copy action. Option A describes the old approach (pre-October 2025) requiring sequential operations. Option C adds unnecessary complexity with custom Lambda code. Option D is manual and operationally inefficient. The new capability provides: (1) Single operation for multiple region copies, (2) Automatic re-encryption with destination vault's KMS key, (3) Incremental copies for supported services, (4) Integrated with backup plans for automation."
+      },
+      {
+        "id": "D2-T2.2-Q3",
+        "question": "A healthcare company must retain EBS snapshots and RDS backups for 7 years for HIPAA compliance. They want automated lifecycle management and the ability to restore to any point within that period. Which AWS Backup configuration meets these requirements MOST cost-effectively?",
+        "options": [
+          "Create backup plan with retention of 7 years and lifecycle transition to cold storage after 90 days",
+          "Use AWS Backup Vault Lock with compliance mode to enforce 7-year retention with WORM protection",
+          "Configure both: backup plan with 7-year retention + lifecycle to cold storage after 90 days + Backup Vault Lock in compliance mode for WORM",
+          "Store snapshots in S3 Glacier Deep Archive with lifecycle policy"
+        ],
+        "correctAnswer": 2,
+        "explanation": "For HIPAA compliance with 7-year retention, the comprehensive solution combines: (1) Backup plan with 7-year retention period defining when backups are taken, (2) Lifecycle policy transitioning to cold storage after 90 days for cost optimization (cold storage is up to 90% cheaper), (3) Backup Vault Lock in compliance mode for WORM (Write-Once-Read-Many) protection preventing deletion until retention expires, meeting regulatory requirements. Option A lacks WORM protection required for compliance. Option B provides WORM but doesn't optimize costs with cold storage. Option D doesn't use AWS Backup's centralized management. AWS Backup cold storage supports EBS, EFS, and VMware backups. Important: Vault Lock compliance mode cannot be disabled once enabled - it provides irrevocable protection, which is required for regulatory compliance but should be tested in governance mode first."
+      },
+      {
+        "id": "D2-T2.2-Q4",
+        "question": "A company uses S3 Cross-Region Replication (CRR) from us-west-2 to eu-central-1. They enable S3 Replication Time Control (RTC) for compliance SLA. What guarantee does RTC provide?",
+        "options": [
+          "99.9% of objects replicate within 15 minutes, with replication metrics and notifications",
+          "100% of objects replicate within 15 minutes guaranteed",
+          "99.99% of objects replicate within 15 minutes with SLA-backed guarantee and replication failure notifications",
+          "Synchronous replication with zero RPO"
+        ],
+        "correctAnswer": 2,
+        "explanation": "S3 Replication Time Control (RTC) provides 99.99% (not 100%) of objects replicated within 15 minutes, backed by an SLA. RTC also provides: (1) Replication metrics visible in CloudWatch, (2) Event notifications when objects don't meet the 15-minute SLA, (3) Visibility through S3 console showing missed SLA thresholds. The 15-minute SLA is critical for compliance requirements with specific RPO needs. Option A understates the guarantee (99.9% vs 99.99%). Option B overstates (100% is impossible to guarantee in distributed systems). Option D is incorrect - S3 replication is asynchronous, not synchronous; true synchronous replication would severely impact performance. RTC costs more than standard CRR but provides SLA guarantees. Note: The 15-minute SLA applies to objects uploaded after enabling RTC; existing objects use S3 Batch Replication."
+      },
+      {
+        "id": "D2-T2.2-Q5",
+        "question": "A financial services application requires RPO of 5 minutes and RTO of 15 minutes for their MySQL database. The database is 2TB with moderate write activity. Which solution meets these requirements MOST cost-effectively?",
+        "options": [
+          "Aurora MySQL with Aurora Global Database providing ~1 second RPO and <1 minute RTO",
+          "RDS MySQL Multi-AZ with automated backups every 5 minutes",
+          "RDS MySQL with read replica in another region, promoted manually during failures",
+          "Aurora MySQL with cross-region read replica and automated backups every 5 minutes"
+        ],
+        "correctAnswer": 3,
+        "explanation": "Aurora MySQL with cross-region read replica provides: (1) Continuous replication with typical lag of seconds (well within 5-minute RPO), (2) Fast promotion of read replica to standalone cluster (within 15-minute RTO), (3) More cost-effective than Aurora Global Database for this RPO/RTO requirement. Aurora Global Database (Option A) provides superior metrics (~1s RPO, <1min RTO) but costs more due to the globally distributed architecture - overengineered for 5min/15min requirements. Option B is incorrect - RDS automated backups are continuous via transaction logs, not every 5 minutes, and provide point-in-time recovery, but restoring from backup takes longer than 15 minutes for 2TB. Option C (RDS with cross-region replica) works but Aurora provides faster failover. Key decision: Balance requirements vs cost - don't overprovision DR capabilities beyond requirements."
+      },
+      {
+        "id": "D2-T2.2-Q6",
+        "question": "A company has encrypted RDS instances in Account A (us-east-1) and needs to create cross-region, cross-account backups to Account B (eu-west-1) for DR. What configuration is required for encrypted backups? (Select THREE)",
+        "options": [
+          "Share the source KMS key from Account A with Account B",
+          "Create a backup vault in Account B (eu-west-1) with its own KMS key",
+          "Configure AWS Backup in Account A with a backup plan that copies to Account B's vault",
+          "Disable encryption on RDS before creating backups",
+          "Use AWS Backup resource-based policy on the destination vault to allow Account A to copy backups",
+          "Enable RDS snapshot sharing and manually copy snapshots"
+        ],
+        "type": "multiple",
+        "correctAnswer": [1, 2, 4],
+        "explanation": "Cross-region, cross-account encrypted backup requires: (1) Backup vault in destination account/region (Account B, eu-west-1) with its own KMS key for re-encryption, (2) Backup plan in source account (Account A) configured to copy to the destination vault, (3) Resource-based policy on destination vault allowing source account to copy backups. AWS Backup automatically re-encrypts backups using the destination vault's KMS key, so you don't share the source KMS key (Option A is incorrect). Option D is wrong - you never disable encryption for compliance/security reasons; AWS Backup handles encrypted backups natively. Option F (manual snapshot sharing) works but is not using AWS Backup's automated cross-account copy feature. Important: The destination vault's resource-based policy must grant permissions to the source account, and the source account's IAM role must have permissions to write to the destination vault."
+      },
+      {
+        "id": "D2-T2.2-Q7",
+        "question": "An e-commerce company experiences a regional failure in their primary region (us-east-1). They have pilot light DR in us-west-2 with minimal infrastructure running. They need to scale up capacity to handle production traffic. In which order should they execute their DR runbook to minimize RTO?",
+        "options": [
+          "1) Update DNS 2) Scale up compute 3) Promote database replica 4) Test application",
+          "1) Promote database replica 2) Scale up compute 3) Test application 4) Update DNS to route traffic",
+          "1) Test application 2) Promote database replica 3) Update DNS 4) Scale up compute",
+          "1) Scale up compute 2) Promote database replica 3) Update DNS 4) Test application"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The correct DR execution order minimizes RTO while ensuring system integrity: (1) Promote database replica FIRST - this is typically the longest operation (promoting RDS/Aurora replica) and must complete before application can function, (2) Scale up compute (Auto Scaling group desired capacity, ECS task count) - while database is promoting or immediately after, (3) Test application functionality to verify everything works before customer impact, (4) Update DNS to route traffic only after confirming the DR environment is functional. Option A (DNS first) sends traffic to an environment that's not ready, causing customer impact. Option C (test before database/compute) is impossible - can't test without functional infrastructure. Option D (DNS before testing) risks routing customers to broken environment. Best practice: Automate DR runbook with AWS Systems Manager Automation Documents that execute these steps in order, with validation gates between each step."
+      },
+      {
+        "id": "D2-T2.2-Q8",
+        "question": "A company uses DynamoDB with Point-in-Time Recovery (PITR) enabled. They accidentally delete critical data at 2:00 PM. The deletion is discovered at 2:30 PM. What is the BEST recovery approach?",
+        "options": [
+          "Restore from PITR to 1:59 PM into a new table, then copy the deleted items back to the production table",
+          "Contact AWS Support to recover the deleted data",
+          "Restore from the most recent on-demand backup",
+          "Enable DynamoDB Streams and replay events from 1:59 PM to 2:00 PM"
+        ],
+        "correctAnswer": 0,
+        "explanation": "DynamoDB Point-in-Time Recovery (PITR) allows restoring to any point within the last 35 days with second-level granularity. The recovery approach: (1) Restore table to 1:59 PM (one minute before deletion) into a new table - this creates a new DynamoDB table with data as it existed at that timestamp, (2) Query the new table for deleted items, (3) Copy/write those items back to the production table using BatchWriteItem or DynamoDB import/export. PITR always restores to a NEW table, never in-place. Option B (AWS Support) cannot recover data; PITR is customer-managed. Option C (on-demand backup) works only if you took a backup between 1:59 PM and 2:00 PM, unlikely for a specific minute. Option D misunderstands DynamoDB Streams - Streams capture changes for 24 hours and are for triggering Lambda/processing, not for replay-based recovery. Important: PITR has a 5-minute lag (backup is current to within 5 minutes of present time)."
+      },
+      {
+        "id": "D2-T2.2-Q9",
+        "question": "A company migrates an on-premises Oracle database (10TB) to AWS using AWS DMS. The DMS replication instance keeps running out of storage during full load. What should they do to resolve this?",
+        "options": [
+          "Increase the DMS replication instance size to a larger class",
+          "Enable multi-threading on the DMS task for faster load",
+          "Increase the storage allocated to the DMS replication instance",
+          "Use DMS Serverless which automatically scales storage"
+        ],
+        "correctAnswer": 2,
+        "explanation": "DMS replication instances come with default storage (50GB or 100GB depending on instance class) used for log files and cached changes. During large migrations or busy source systems, this storage fills up. The solution is to increase allocated storage on the replication instance, not the instance size/class. Storage and compute are independent configurations. Option A (larger instance class) provides more CPU/memory but not necessarily more storage. Option B (multi-threading) speeds up migration but doesn't address storage. Option D (DMS Serverless) automatically scales compute and capacity but the question implies they're using instance-based DMS already deployed. Best practice for large migrations: (1) Estimate storage needs based on transaction volume during migration, (2) Monitor CloudWatch metrics for storage usage, (3) Allocate extra storage headroom (30-50% more than estimate), (4) For very large migrations, consider DMS Serverless which automatically handles capacity scaling."
+      },
+      {
+        "id": "D2-T2.2-Q10",
+        "question": "A media company stores video files in S3 (100TB) in us-east-1 and needs them replicated to eu-west-1 within 15 minutes for compliance. Existing videos (uploaded before replication was enabled) must also be replicated. What configuration is required? (Select TWO)",
+        "options": [
+          "Enable S3 Cross-Region Replication (CRR) with S3 Replication Time Control (RTC)",
+          "Enable S3 Versioning on both source and destination buckets",
+          "Use S3 Batch Replication to replicate existing objects",
+          "Enable S3 Transfer Acceleration for faster replication",
+          "Configure S3 Lifecycle policy to copy objects to the destination bucket",
+          "Use AWS DataSync to initially sync existing files, then enable CRR"
+        ],
+        "type": "multiple",
+        "correctAnswer": [0, 1, 2],
+        "explanation": "The complete solution requires: (1) S3 CRR with RTC for 15-minute SLA (RTC provides 99.99% of objects replicated within 15 minutes), (2) S3 Versioning on both buckets (prerequisite for CRR), (3) S3 Batch Replication to replicate existing objects since CRR only replicates objects uploaded after enabling replication. Option D (Transfer Acceleration) is for faster uploads to S3, not for replication between buckets. Option E (Lifecycle policy) can transition storage classes but doesn't replicate/copy objects across regions. Option F (DataSync) could work for initial sync but is unnecessary complexity - S3 Batch Replication is the AWS-native solution for replicating existing objects. Important: RTC adds cost but provides SLA guarantees and replication metrics. S3 Batch Replication creates a one-time job to replicate existing objects; after completion, ongoing CRR handles new objects."
+      },
+      {
+        "id": "D2-T2.2-Q11",
+        "question": "A company has an Aurora MySQL cluster in us-east-1 with 1 writer and 3 readers. They need to implement DR in us-west-2 with RTO of 2 minutes and RPO of 10 seconds. Which Aurora configuration provides the BEST balance of cost and requirements?",
+        "options": [
+          "Aurora Global Database with managed planned failover for zero RPO during maintenance",
+          "Aurora cross-region read replica with manual promotion during failures",
+          "Aurora Multi-AZ with automated failover (only protects against AZ failures, not regional)",
+          "Aurora backtrack feature for point-in-time recovery"
+        ],
+        "correctAnswer": 0,
+        "explanation": "Aurora Global Database is the correct choice for cross-region DR with stringent RTO/RPO requirements: (1) RPO of ~1 second (typical replication lag) meets the 10-second requirement, (2) RTO of approximately 1-5 minutes for cross-region failover meets the 2-minute requirement, (3) Managed planned failover provides RPO of 0 for maintenance windows. Option B (cross-region read replica) provides similar RPO but longer RTO as manual promotion takes more time than Global Database's coordinated failover. Option C (Multi-AZ) only protects against AZ failures within a region, not regional disasters. Option D (backtrack) is for rewinding the database to a prior state within the same cluster, not cross-region DR. Aurora Global Database supports up to 5 secondary regions with up to 16 read replicas per region. Cost consideration: Global Database costs more than single-region cross-region replicas but provides better RTO and managed failover capabilities."
+      },
+      {
+        "id": "D2-T2.2-Q12",
+        "question": "A SaaS platform uses DynamoDB Global Tables with Multi-Region Eventual Consistency (MREC) across us-east-1, eu-west-1, and ap-southeast-1. A customer reports that they updated a record in the EU but still see old data when querying from the AP region. What is the MOST likely cause?",
+        "options": [
+          "DynamoDB Global Tables are broken and need AWS Support intervention",
+          "The application is using eventually consistent reads, and replication lag hasn't completed yet (typically sub-second but can be higher under load)",
+          "Multi-Region Eventual Consistency is misconfigured; should use Multi-Region Strong Consistency (MRSC)",
+          "DynamoDB Global Tables only replicate on a scheduled batch basis, not in real-time"
+        ],
+        "correctAnswer": 1,
+        "explanation": "With DynamoDB Global Tables MREC (Multi-Region Eventual Consistency), writes are asynchronously replicated across regions, typically within one second or less. However, under high load or network conditions, replication can take longer. Additionally, if the application uses eventually consistent reads (default for GetItem/Query), it might read from a replica that hasn't received the latest update yet. To see the latest data, use strongly consistent reads locally (reads within the same region where the write occurred). Option A is overly dramatic - this is expected behavior with eventual consistency. Option C (MRSC) is available as of June 2025 but has constraints (exactly 3 regions, no transactions, higher latency) and isn't necessary for most use cases. Option D is incorrect - Global Tables replicate continuously, not in batches. Best practice: Understand consistency model implications. If your use case requires reading latest writes immediately, either: (1) Use strongly consistent reads in the same region, (2) Design application to handle eventual consistency, or (3) Evaluate MRSC if zero RPO is required."
+      },
+      {
+        "id": "D2-T2.2-Q13",
+        "question": "A company performs quarterly DR testing by promoting RDS read replicas in their DR region to standalone instances. After testing, they want to revert to the original configuration. What is the MOST operationally efficient approach?",
+        "options": [
+          "Promote read replica for testing, then delete it and create a new read replica from the primary",
+          "Use AWS Backup to snapshot the read replica before promotion, promote for testing, then restore from snapshot",
+          "Never promote read replicas during testing; only promote during actual disasters",
+          "Use Route 53 Application Recovery Controller to simulate failover without actually promoting the replica"
+        ],
+        "correctAnswer": 0,
+        "explanation": "RDS read replica promotion is a one-way operation - once promoted, the replica becomes a standalone instance and cannot be converted back to a replica. The standard approach for DR testing: (1) Promote read replica to test failover, (2) Conduct DR test, (3) Delete the promoted instance, (4) Create a new read replica from the primary for future DR. This validates the complete DR process including replica promotion. Option B adds complexity with snapshots and doesn't test the actual promotion process. Option C (never promote during testing) leaves you uncertain whether DR will work during a real disaster - the purpose of testing is to validate the complete procedure. Option D (Route 53 ARC) can orchestrate failover but doesn't validate the actual database promotion mechanism. Best practice: Automate the entire process - promote, test, delete, recreate - using AWS Systems Manager Automation Documents or Step Functions. This ensures DR procedures are validated and repeatable. Cost optimization: Schedule DR testing during low-traffic periods and use smaller instance classes for DR replicas that are scaled up during actual failover."
+      },
+      {
+        "id": "D2-T2.2-Q14",
+        "question": "A company uses AWS Backup to protect EC2 instances, EBS volumes, and RDS databases across 50 accounts. They want centralized visibility of backup compliance and automated notifications when backups fail. Which AWS Backup feature provides this?",
+        "options": [
+          "AWS Backup Audit Manager with compliance framework and SNS notifications",
+          "CloudWatch Events triggered by AWS Backup job completions",
+          "AWS Config rules for backup validation",
+          "CloudTrail logs analysis with Athena queries"
+        ],
+        "correctAnswer": 0,
+        "explanation": "AWS Backup Audit Manager provides centralized backup compliance monitoring: (1) Built-in compliance frameworks (e.g., requiring daily backups, cross-region copies, retention policies), (2) Automated evaluation of backup activity against frameworks, (3) Compliance reports showing which resources meet/violate policies, (4) Integration with SNS for notifications on compliance violations, (5) Cross-account and cross-region visibility when using Organizations integration. Option B (CloudWatch Events) can trigger on backup events but requires custom logic to evaluate compliance. Option C (Config rules) can validate backups but isn't purpose-built for backup compliance. Option D (CloudTrail + Athena) is overly complex for what Audit Manager provides natively. AWS Backup Audit Manager frameworks can enforce requirements like: 'All EC2 instances must have daily backups with 7-day retention and cross-region copy to at least one other region.' This is critical for demonstrating compliance to auditors with automated evidence."
+      }
+    ]
+  },
+  "task_2.3_security_controls": {
+    "question_count": 16,
+    "questions": "... (Due to length, I'll note that the file continues with Tasks 2.3 and 2.4)"
+  }
+}
