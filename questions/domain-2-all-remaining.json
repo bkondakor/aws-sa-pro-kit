@@ -15,7 +15,7 @@
           "Create Oracle read replica, convert it using AWS SCT, then promote to Aurora PostgreSQL"
         ],
         "correctAnswer": 2,
-        "explanation": "For heterogeneous migrations (Oracle to PostgreSQL), AWS recommends a two-step process: (1) AWS SCT (Schema Conversion Tool) to convert schema and code to match Aurora PostgreSQL, (2) AWS DMS for data migration. DMS Serverless (2025 feature) automatically provisions, monitors, and scales migration resources to optimal capacity, removing manual instance sizing. For minimal downtime with ongoing transactions: Use DMS full load + CDC to capture changes during migration, then perform cutover. However, Option C specifying DMS Serverless is most current for 2025 as it handles capacity automatically for the 50TB dataset and 10K TPS workload. Option A is correct approach but doesn't leverage Serverless. Option B would require significant downtime. Option D doesn't work - you can't directly convert Oracle replica to PostgreSQL."
+        "explanation": "For heterogeneous migrations (Oracle to PostgreSQL), AWS recommends a two-step process: (1) AWS SCT (Schema Conversion Tool) to convert schema and code to match Aurora PostgreSQL, (2) AWS DMS for data migration. DMS Serverless (released in 2023, with 2025 enhancements for premigration assessments and automatic storage scaling) automatically provisions, monitors, and scales migration resources to optimal capacity, removing manual instance sizing. For minimal downtime with ongoing transactions: Use DMS full load + CDC to capture changes during migration, then perform cutover. Option C specifying DMS Serverless is optimal as it handles capacity automatically for the 50TB dataset and 10K TPS workload, with April 2025 automatic storage scaling eliminating the previous 100GB limit. Option A is correct approach but doesn't leverage Serverless automation. Option B would require significant downtime. Option D doesn't work - you can't directly convert Oracle replica to PostgreSQL."
       },
       {
         "id": "D2-T2.2-Q2",
@@ -45,13 +45,13 @@
         "id": "D2-T2.2-Q4",
         "question": "A company uses S3 Cross-Region Replication (CRR) from us-west-2 to eu-central-1. They enable S3 Replication Time Control (RTC) for compliance SLA. What guarantee does RTC provide?",
         "options": [
-          "99.9% of objects replicate within 15 minutes, with replication metrics and notifications",
+          "99.9% of objects replicate within 15 minutes with SLA-backed guarantee, replication metrics, and event notifications",
           "100% of objects replicate within 15 minutes guaranteed",
-          "99.99% of objects replicate within 15 minutes with SLA-backed guarantee and replication failure notifications",
+          "99.99% design target with replication metrics but no formal SLA",
           "Synchronous replication with zero RPO"
         ],
-        "correctAnswer": 2,
-        "explanation": "S3 Replication Time Control (RTC) provides 99.99% (not 100%) of objects replicated within 15 minutes, backed by an SLA. RTC also provides: (1) Replication metrics visible in CloudWatch, (2) Event notifications when objects don't meet the 15-minute SLA, (3) Visibility through S3 console showing missed SLA thresholds. The 15-minute SLA is critical for compliance requirements with specific RPO needs. Option A understates the guarantee (99.9% vs 99.99%). Option B overstates (100% is impossible to guarantee in distributed systems). Option D is incorrect - S3 replication is asynchronous, not synchronous; true synchronous replication would severely impact performance. RTC costs more than standard CRR but provides SLA guarantees. Note: The 15-minute SLA applies to objects uploaded after enabling RTC; existing objects use S3 Batch Replication."
+        "correctAnswer": 0,
+        "explanation": "S3 Replication Time Control (RTC) is backed by an SLA guaranteeing 99.9% (not 99.99%) of objects replicated within 15 minutes during any billing month. While the design target is 99.99%, the formal SLA commitment is 99.9%. RTC also provides: (1) Replication metrics visible in CloudWatch, (2) Event notifications when objects don't meet the 15-minute SLA, (3) Visibility through S3 console showing missed SLA thresholds. The 15-minute SLA is critical for compliance requirements with specific RPO needs. Option B is incorrect - 100% is impossible to guarantee in distributed systems. Option C describes the design goal but not the SLA commitment. Option D is incorrect - S3 replication is asynchronous, not synchronous; true synchronous replication would severely impact performance. RTC costs more than standard CRR but provides SLA guarantees. Note: The SLA doesn't apply when replication data transfer rate exceeds the default 1 Gbps quota."
       },
       {
         "id": "D2-T2.2-Q5",
