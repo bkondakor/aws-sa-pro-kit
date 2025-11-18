@@ -1,0 +1,130 @@
+{
+  "domain": "Domain 3: Continuous Improvement for Existing Solutions",
+  "task": "Task 3.2: Security Improvements",
+  "question_count": 10,
+  "questions": [
+    {
+      "id": "D3-T3.2-Q1",
+      "question": "GuardDuty detects an EC2 instance communicating with a known command-and-control server. The security team wants automated response: isolate the instance, capture forensic data, and notify the security team. Which architecture provides automated incident response?",
+      "options": [
+        "GuardDuty finding triggers EventBridge rule → Lambda function: modifies security group to block all traffic, creates EBS snapshots, sends SNS notification",
+        "Configure GuardDuty to automatically quarantine compromised instances",
+        "Use Security Hub to aggregate GuardDuty findings and manually respond",
+        "Create CloudWatch alarm on GuardDuty finding count and page security team"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Automated incident response requires EventBridge + Lambda orchestration: (1) GuardDuty publishes findings to EventBridge as events, (2) EventBridge rule matches specific finding types (e.g., Trojan:EC2/DNSDataExfiltration), (3) Lambda function executes response: modify instance security group to deny all ingress/egress (isolate), create EBS volume snapshots (preserve evidence), tag instance as 'quarantined', invoke Systems Manager to capture memory dump if SSM agent running, send SNS notification to security team with finding details. Option B is incorrect - GuardDuty doesn't have automatic response capabilities; it only detects and reports. Option C (Security Hub aggregation) provides centralized view but doesn't automate response. Option D (CloudWatch alarm) only notifies, doesn't remediate. Lambda function should: use least privilege IAM role, log all actions to CloudTrail for audit, create forensic S3 bucket for evidence storage (snapshots, logs), optionally invoke Step Functions for complex multi-step response workflows. Consider using AWS Security Hub's built-in automated response and remediation actions (ASFF) as an alternative to custom Lambda. For regulated environments: ensure forensic data collection complies with chain of custody requirements, use CloudFormation to deploy response automation consistently across accounts."
+    },
+    {
+      "id": "D3-T3.2-Q2",
+      "question": "A company uses AWS Macie to discover sensitive data in S3. Macie found PII in 15 out of 10,000 buckets. The security team wants automated remediation: move sensitive objects to encrypted, restricted-access buckets, and alert data owners. What should they implement?",
+      "options": [
+        "Macie sensitive data discovery job → EventBridge rule on findings → Lambda: copy objects to secure bucket, delete from source, notify via SNS",
+        "Enable Macie auto-remediation feature to move sensitive data automatically",
+        "Use S3 Batch Operations to copy objects based on Macie finding reports",
+        "Create AWS Config rule to detect sensitive data and remediate via Systems Manager"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Macie automated remediation workflow: (1) Macie sensitive data discovery job analyzes S3 objects, (2) Macie publishes findings to EventBridge when PII/sensitive data detected, (3) EventBridge rule matches Macie finding events (SensitiveData:S3Object/Personal or Custom), (4) Lambda function triggered with finding metadata (bucket, object key, PII types), (5) Lambda: verifies finding severity, copies object to restricted S3 bucket (versioning enabled, MFA delete, bucket key encryption), updates object ACL to private, optionally deletes from source or tags for review, queries identity/access management to determine data owner, sends SNS notification to owner. Option B doesn't exist - Macie detects but doesn't remediate automatically. Option C (S3 Batch Operations) requires manual job creation from Macie reports - not automated. Option D (Config) is for configuration compliance, not data content analysis. Implementation considerations: Lambda function should handle large objects (use multipart copy), implement exponential backoff for S3 API limits, maintain audit log in DynamoDB (what moved, when, by whom), use S3 inventory to track object locations. For compliance: Macie classification results should drive DLP policies, integrate with data governance tools, consider AWS Clean Rooms for data sharing without exposure. Macie finding types: Financial (credit card), Personal (SSN, passport), Credentials (AWS secrets), Custom (regex patterns). Configure suppression rules to ignore false positives (test data, encrypted data)."
+    },
+    {
+      "id": "D3-T3.2-Q3",
+      "question": "Security audit reveals that ACM certificates are expiring without renewal, causing service outages. Certificates are used with ALB, CloudFront, and API Gateway. How can certificate lifecycle management be improved to prevent expirations?",
+      "options": [
+        "Implement EventBridge rule detecting ACM DaysToExpiry metric, triggering Lambda to renew certificates 30 days before expiration",
+        "Use ACM automatic certificate renewal for publicly trusted certificates and set up CloudWatch alarms on DaysToExpiry for private certificates",
+        "Migrate to AWS Certificate Manager Private CA for automated renewal",
+        "Create calendar reminders for manual certificate renewal"
+      ],
+      "correctAnswer": 1,
+      "explanation": "ACM certificate lifecycle management requires understanding automatic renewal: (1) Publicly trusted ACM certificates (domain-validated via DNS or email) renew AUTOMATICALLY if validation records remain in place. ACM attempts renewal 60 days before expiration. (2) Private certificates (issued by ACM Private CA) require manual renewal or automation. (3) Imported certificates (from external CAs) do NOT auto-renew - must be manually reimported before expiration. The solution: Ensure DNS validation records persist (CNAME for ACM validation in Route 53), monitor CloudWatch metric AWS/CertificateManager DaysToExpiry for all certificates, create CloudWatch alarm triggering SNS when DaysToExpiry < 30 for private/imported certificates, automate private certificate renewal using Lambda + ACM API RequestCertificate. Option A is incorrect - you cannot manually renew ACM-issued public certificates; ACM handles this automatically. Attempting to request new certificate for same domain creates duplicate, doesn't renew existing. Option C (ACM Private CA) is for different use case (internal certificates), not solution for publicly trusted certificates. Option D (manual reminders) is error-prone. Best practices: Use DNS validation (not email) for automatic renewal, monitor all ACM certificates in centralized account, use AWS Config rule (acm-certificate-expiration-check) to detect approaching expiration, document certificate owners and rotation procedures, for imported certificates: automate renewal with source CA and reimport via Lambda. Certificate transparency logs: ACM certificates appear in public CT logs for audit. ACM supports up to 10 SANs per certificate for efficiency."
+    },
+    {
+      "id": "D3-T3.2-Q4",
+      "question": "A company wants to continuously verify that no IAM policies grant broad permissions (Principal: *, Action: *, Resource: *) and automatically flag them for review. Which service provides this capability with minimal operational overhead?",
+      "options": [
+        "IAM Access Analyzer with policy validation scans",
+        "AWS Config with managed rule iam-policy-no-statements-with-admin-access",
+        "Custom Lambda function analyzing IAM policies daily",
+        "Security Hub compliance standard checks"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS Config rule 'iam-policy-no-statements-with-admin-access' continuously monitors IAM policies: (1) Evaluates IAM policies attached to users, groups, and roles, (2) Flags non-compliant policies granting admin access (Action: *, Resource: *), (3) Triggers on configuration changes (new policy, policy update), (4) Integrates with Config remediation for automated response, (5) Compliance timeline shows when violations occurred. For this use case: Enable Config in all accounts, activate managed rule, set up SNS notification on non-compliance, optionally configure remediation to detach overly permissive policies (with approval step). Option A (Access Analyzer) focuses on external resource sharing and policy validation during development, not continuous monitoring of existing policies. Option C (Lambda) requires custom code for policy parsing, IAM API pagination, and handling policy variations - reinventing Config. Option D (Security Hub) aggregates findings from Config and other services but doesn't directly evaluate policies. Config rules for IAM best practices: iam-password-policy (password requirements), iam-user-unused-credentials-check (inactive users), iam-root-access-key-check (root keys exist), access-keys-rotated (key age), mfa-enabled-for-iam-console-access (MFA on users). Use Config conformance packs to deploy multiple related rules together (e.g., 'Operational Best Practices for IAM'). Config remediation via Systems Manager Automation: AWS-DisableS3BucketPublicReadWrite, AWS-DeleteUnusedIAMRole. For preventive control: use SCPs to deny creation of policies with Action: * and Resource: *, blocking overly permissive policies at creation time (defense in depth: SCP prevents, Config detects)."
+    },
+    {
+      "id": "D3-T3.2-Q5",
+      "question": "Security team uses AWS Detective to investigate a GuardDuty finding about unusual API calls from an IAM user. They want to understand: which resources the user accessed, source IPs over time, and whether this represents privilege escalation. Which Detective capability provides this analysis?",
+      "options": [
+        "Detective finding groups automatically correlating related security events",
+        "Detective visualizations showing IAM user activity timeline, resource access patterns, and IP address history with machine learning anomaly detection",
+        "CloudTrail Insights analysis integrated into Detective",
+        "VPC Flow Logs correlation in Detective"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS Detective provides ML-powered security investigation with visualization: (1) Ingests CloudTrail, VPC Flow Logs, GuardDuty findings automatically, (2) Creates behavior graph showing relationships between users, roles, IP addresses, AWS resources, (3) Time-based visualizations: 'Scope time' window to view activity during investigation period, Baselines showing typical vs anomalous behavior, IP address geo-location and first-seen dates, Resource access patterns (which S3 buckets, EC2 instances, databases user accessed), API call volumes and types over time. (4) Detective uses ML to highlight unusual activities: new IP addresses, new geolocations, spike in API calls, new services accessed. For this scenario: Select IAM user in Detective console, view Activity timeline showing all API calls, examine ResourceAccessed panel for accessed resources, check IPAddress panel for source IPs with geo-location, look for PrivilegeEscalation panel highlighting suspicious permission changes. Option A (finding groups) exists but is for aggregating related findings, not detailed investigation. Option C (CloudTrail Insights) detects unusual API activity but Detective provides deeper investigation with graph visualization. Option D (Flow Logs) show network traffic, not IAM API activity. Detective investigation workflow: Start with GuardDuty finding in Detective (integrated), pivot to involved entities (user, role, resource), examine behavior during suspected time + baseline comparison, expand to related entities (which other users from same IP, what else did the user access), export findings to case management system. Detective supports up to 1 year of aggregated data for investigations. Pricing: per GB of ingested data (CloudTrail events, VPC Flow Logs, GuardDuty findings)."
+    },
+    {
+      "id": "D3-T3.2-Q6",
+      "question": "A company needs to enforce network segmentation: production workloads (subnet-prod) cannot communicate with development workloads (subnet-dev) even though both are in the same VPC. Security groups and NACLs are already configured, but audit shows some cross-environment traffic. What additional security control should be implemented?",
+      "options": [
+        "AWS Network Firewall with stateful rule groups blocking traffic between production and development CIDR ranges",
+        "VPC Security Groups with explicit deny rules (Security Groups only support allow rules, so this won't work)",
+        "AWS WAF protecting application endpoints from cross-environment access",
+        "VPC Flow Logs to monitor traffic and manually block violating instances"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS Network Firewall provides stateful, inline traffic inspection at VPC level: (1) Deploy Network Firewall endpoints in dedicated subnet per AZ, (2) Update route tables to route traffic through firewall endpoints, (3) Create stateful rule group with Suricata-compatible rules: 'drop ip $PROD_CIDR any -> $DEV_CIDR any' (block prod to dev), 'drop ip $DEV_CIDR any -> $PROD_CIDR any' (block dev to prod), (4) Firewall inspects packets, enforces rules, logs violations to S3/CloudWatch. Network Firewall provides defense-in-depth beyond Security Groups/NACLs: IDS/IPS capabilities (detect exploits, malware), domain filtering (block DNS queries to malicious domains), centralized rule management for complex policies, protocol enforcement (block non-standard traffic). Option B is incorrect - Security Groups are stateful whitelist only (implicit deny); you cannot create explicit deny rules (though NACLs support explicit deny, they might be insufficient if misconfured). Option C (WAF) operates at application layer (HTTP/HTTPS), not network layer - won't block TCP/UDP between subnets. Option D (Flow Logs) is detective, not preventive. Implement Network Firewall: (1) Create firewall policy with rule groups, (2) Deploy firewall in VPC, (3) Update route tables: 0.0.0.0/0 → firewall endpoint for inter-subnet routing, (4) Monitor firewall logs for denied connections, (5) Use AWS Firewall Manager to deploy Network Firewall across VPCs centrally. Use cases: segment workloads (prod/dev), comply with regulations requiring stateful inspection, block outbound traffic to unapproved destinations, inspect encrypted traffic with TLS inspection (requires certificate). Rule group types: Stateful (track connection state, bi-directional), Stateless (simple allow/deny, processed before stateful), Domain list (block/allow based on domain names)."
+    },
+    {
+      "id": "D3-T3.2-Q7",
+      "question": "CloudTrail logs show an IAM user making API calls that should not be possible given their attached policies (e.g., launching EC2 instances when user has no EC2 permissions). Investigation is needed to identify the permission source. Which IAM feature helps identify HOW the user gained these permissions?",
+      "options": [
+        "IAM Access Analyzer policy validation",
+        "IAM policy simulator with CloudTrail event details",
+        "CloudTrail Insights to detect unusual IAM activity",
+        "IAM credential report showing user permissions"
+      ],
+      "correctAnswer": 1,
+      "explanation": "IAM Policy Simulator helps debug permission issues: (1) Select IAM user/role, (2) Input specific API action (ec2:RunInstances), (3) Optionally input CloudTrail event request parameters (specific AMI, VPC), (4) Simulator evaluates: identity-based policies (attached to user), resource-based policies (e.g., AMI launch permissions), permission boundaries, SCPs, session policies (if assumed role), (5) Results show: whether action is allowed/denied, which policy statements contributed to decision, evaluation logic explaining why. For this scenario: Enter user and ec2:RunInstances action, Simulator may reveal: user assumed a role with EC2 permissions (check CloudTrail for AssumeRole), user is member of group with broad permissions, resource-based policy on AMI grants access, temporary credentials from federation had broader permissions. Policy Simulator shows complete evaluation logic following AWS's policy evaluation flowchart. Option A (Access Analyzer) validates policies for external access and policy correctness, not runtime permission evaluation. Option C (Insights) detects unusual activity but doesn't explain permission source. Option D (credential report) shows users and credential status, not permission evaluation. Debugging IAM permissions: (1) Use Policy Simulator to test access, (2) Check CloudTrail for AssumeRole calls (user may have assumed role), (3) Review all group memberships (users inherit group policies), (4) Examine resource policies (S3 bucket policies, KMS key policies may grant cross-account access), (5) Verify SCPs not restricting (though SCPs deny, not grant), (6) Check session policies if using STS assume-role with session tags. Policy evaluation order: Explicit Deny in any policy → SCP allow check → Resource-based policy allow → Identity-based policy allow → Session policy allow (if applicable) → Permission boundary allow. If action allowed anywhere and not explicitly denied, access grants."
+    },
+    {
+      "id": "D3-T3.2-Q8",
+      "question": "A company wants to implement just-in-time privileged access: developers can request temporary admin access to production accounts for incident response, access expires after 4 hours, and all actions during elevated access are logged. Which solution provides this capability?",
+      "options": [
+        "AWS SSO with permission sets that automatically expire after 4 hours",
+        "Systems Manager Session Manager with time-limited assume-role policies and CloudTrail logging",
+        "Custom workflow: developer requests via ServiceNow → Lambda creates temporary IAM user with 4-hour STS session → CloudTrail logs → Lambda deletes user",
+        "IAM roles with maximum session duration of 4 hours, requested via self-service portal, activities logged to CloudTrail"
+      ],
+      "correctAnswer": 3,
+      "explanation": "IAM roles with session duration limits provide just-in-time access: (1) Create 'BreakGlassAdmin' role with maximum session duration = 4 hours (default 1 hour, max 12 hours), (2) Trust policy allows developers to assume role (or federated users), (3) Self-service portal (API Gateway + Lambda): developer authenticates, requests access with justification, Lambda assumes role via STS, returns temporary credentials valid 4 hours, logs request to audit table, (4) CloudTrail automatically logs all API actions made with temporary credentials including role session name identifying requester, (5) Credentials expire after 4 hours, revoking access automatically. Option A (AWS SSO permission sets) have session duration but SSO doesn't support 'request access' workflow natively - permission sets are pre-assigned. Option B (Session Manager) is for interactive shell access to EC2, not for AWS API access. Option C (temporary IAM user) is overly complex - IAM users are permanent until deleted (not truly temporary), uses STS for session but still creates IAM user unnecessarily. Enhancements: Use AWS CloudFormation or CDK to deploy break-glass infrastructure, Integrate approval workflow (Step Functions): developer requests → manager approves via SNS → Lambda grants access, Use CloudWatch Events to alert security team when break-glass role assumed, Store justifications in DynamoDB for compliance audit, Implement MFA requirement for assume-role (aws:MultiFactorAuthPresent condition in role trust policy), Monitor with GuardDuty for unusual break-glass usage patterns. Session duration in STS AssumeRole API: DurationSeconds parameter (900 to 43200 seconds / 15 min to 12 hours). Role's maximum session duration setting overrides API request if API requests longer session. Audit trail: CloudTrail logs show roleSessionName identifying who assumed role, all subsequent API calls include role ARN and session name."
+    },
+    {
+      "id": "D3-T3.2-Q9",
+      "question": "Security audit reveals that CloudTrail logs are being deleted from S3 buckets in some accounts, potentially hiding malicious activity. What controls should be implemented to prevent CloudTrail log tampering? (Select TWO)",
+      "options": [
+        "Enable S3 Object Lock in compliance mode on CloudTrail S3 bucket with retention period",
+        "Use S3 bucket policies denying all delete operations even from account root",
+        "Enable MFA Delete on the CloudTrail S3 bucket",
+        "Configure CloudTrail log file validation to detect modifications",
+        "Use AWS Organizations to enforce CloudTrail in all accounts",
+        "Store CloudTrail logs in S3 Glacier Deep Archive immediately"
+      ],
+      "type": "multiple",
+      "correctAnswer": [0, 2],
+      "explanation": "Preventing CloudTrail log deletion requires WORM protection: (1) S3 Object Lock in compliance mode with retention period (e.g., 7 years for SOX, 90 days minimum recommended) ensures objects cannot be deleted or modified until retention expires, even by root account. Compliance mode lock cannot be removed. (2) MFA Delete requires MFA token for object deletion or versioning changes, adding human verification step preventing automated or accidental deletion. Combined: Object Lock prevents deletion during retention, MFA Delete adds authentication layer for operations after retention. Option B (bucket policy deny delete) can be overridden by root or by changing bucket policy itself - not as secure as Object Lock. Option D (log file validation) detects tampering but doesn't prevent it (detective vs preventive control). Option E (Organizations enforcing CloudTrail) ensures trails exist but doesn't protect logs from deletion. Option F (Glacier) delays access but doesn't prevent deletion. Implementation: Create S3 bucket with versioning enabled (prerequisite for Object Lock), Enable Object Lock, Set default retention (compliance mode, 90 days), Enable MFA Delete, Bucket policy denying unencrypted uploads and non-SSL access, CloudTrail configured to use this bucket. Additional controls: Cross-account CloudTrail logging (logs from member accounts to security account bucket), CloudWatch Logs for real-time monitoring despite S3 log delays, SNS notifications on S3 bucket policy changes or Object Lock configuration changes, Regular access review for CloudTrail S3 bucket (minimize permissions). CloudTrail best practices: Organization trail (one trail for all accounts), Log file validation enabled, Encrypted with KMS CMK (audit key usage), Multi-region trail (logs from all regions to one bucket), Integrated with CloudWatch Logs for alerting. S3 Object Lock modes: Compliance (cannot be deleted even by root, for regulatory compliance), Governance (can be deleted with special permissions, for operational flexibility). Use Compliance mode for compliance requirements, Governance mode for flexible retention policies."
+    },
+    {
+      "id": "D3-T3.2-Q10",
+      "question": "A company implements infrastructure as code using CloudFormation. They want to enforce that all stacks use encrypted storage (encrypted EBS, S3 buckets with encryption, encrypted RDS) BEFORE deployment. Which approach provides pre-deployment validation?",
+      "options": [
+        "Use CloudFormation Hooks to validate stack templates before CREATE/UPDATE operations",
+        "Enable AWS Config rules to detect non-encrypted resources after deployment",
+        "Implement CI/CD pipeline step running cfn-lint to check templates",
+        "Use SCPs to deny creation of unencrypted resources"
+      ],
+      "correctAnswer": 0,
+      "explanation": "CloudFormation Hooks provide pre-deployment validation: (1) Hooks are registered with CloudFormation, (2) Hooks execute before CREATE, UPDATE, or DELETE operations on stacks, (3) Hook evaluates stack template and resources, (4) If hook returns FAILED, CloudFormation operation aborts (stack not created/updated), (5) If hook returns SUCCESS, operation proceeds. For this scenario: Create Hook checking CloudFormation template for: EBS volumes with Encrypted=true, S3 buckets with BucketEncryption configuration, RDS instances with StorageEncrypted=true. Hook Lambda function parses template, validates encryption properties, returns pass/fail. This prevents deployment of non-compliant stacks. Option B (Config rules) is detective (after deployment), not preventive. Option C (cfn-lint) is static analysis tool useful for syntax and basic validation but doesn't have context of organizational policies - would need custom rules. Option D (SCPs) prevents API calls but is organization-wide, not template-specific, and difficult to manage for complex policies. CloudFormation Hooks use cases: Policy enforcement (tagging, encryption, approved resource types), Cost control (deny expensive instance types), Security validation (no public S3 buckets, required security groups), Compliance (HIPAA, PCI-DSS resource requirements). Hooks can: Scan entire template, Evaluate specific resource types, Make API calls for external validation, Timeout after 30 seconds (plan hook execution accordingly). Deploy hooks using: CloudFormation Registry, Hooks CLI plugin, Share hooks across organization using AWS Organizations. Alternative: Use CloudFormation Guard rules (policy-as-code) to validate templates, integrated into CI/CD pipeline. Guard uses declarative rules: 'AWS::S3::Bucket { Properties.BucketEncryption exists }'. Hook vs Guard: Hooks run in CloudFormation service (required for deployment), Guard runs in CI/CD (shift-left validation). Use both for defense-in-depth: Guard in CI/CD for fast feedback, Hooks as final enforcement gate."
+    }
+  ]
+}

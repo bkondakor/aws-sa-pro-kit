@@ -1,0 +1,145 @@
+{
+  "domain": "Domain 1: Organizational Complexity",
+  "task": "Task 1.2: Security Controls",
+  "question_count": 12,
+  "questions": [
+    {
+      "question": "A company has implemented AWS Organizations with multiple OUs. The security team has created an IAM policy allowing EC2:* actions and attached it to developers' roles. However, there's an SCP at the OU level denying ec2:TerminateInstances. A developer with the IAM policy tries to terminate an instance but receives an access denied error. After investigation, the security team updates the IAM policy to explicitly allow ec2:TerminateInstances. What will happen?",
+      "options": [
+        "The developer will now be able to terminate instances because the explicit IAM allow overrides the SCP deny",
+        "The developer still cannot terminate instances because SCPs are at the top of the permission hierarchy and IAM policies cannot override SCP denies",
+        "The developer can terminate instances only in the specific region where the IAM policy was updated",
+        "The developer can terminate instances because IAM policies are evaluated before SCPs in the permission evaluation logic"
+      ],
+      "correctAnswer": 1,
+      "explanation": "SCPs sit at the top of the AWS permission hierarchy. Even if an IAM policy explicitly grants a permission, an SCP can override this by denying it. If an SCP denies an action on an account, no entity in that account can perform that action, regardless of their IAM permissions. SCPs act as a permission filter - they set the maximum permissions available. The intersection of allowed permissions (IAM policy allows ec2:TerminateInstances) and SCP permissions (SCP denies ec2:TerminateInstances) results in a deny. The only way to fix this is to modify the SCP, not the IAM policy."
+    },
+    {
+      "question": "An organization wants to implement ABAC (Attribute-Based Access Control) to reduce the number of IAM policies they manage. They have 50 development teams, each working on different projects. Currently, they have separate IAM roles for each team-project combination (200+ roles). Which ABAC implementation would be MOST effective for reducing policy management complexity?",
+      "options": [
+        "Create one IAM role per team with policies granting access only to resources where the resource tag 'Team' matches the principal's tag 'Team', and tag resources with project names",
+        "Create one IAM role per project with policies checking both team and project tags, reducing roles from 200 to 50",
+        "Create a single developer role with a policy that grants access when both principal tags (Team and Project) match the corresponding resource tags",
+        "Keep separate roles but use ABAC to validate that resource tags match principal tags at runtime"
+      ],
+      "correctAnswer": 2,
+      "explanation": "The most effective ABAC implementation is option C: a single IAM role with a policy using conditions like 'StringEquals: {\"aws:PrincipalTag/Team\": \"${aws:ResourceTag/Team}\", \"aws:PrincipalTag/Project\": \"${aws:ResourceTag/Project}\"}'. When developers federate into AWS, their Team and Project attributes from the IdP become session tags. The single policy grants access when tags match, eliminating the need for 200+ roles. This scales automatically - when new teams or projects are created, no policy updates are needed, just proper tagging. Option A still requires multiple roles (50). Option B only partially reduces roles. Option D doesn't actually reduce the number of roles. The key ABAC benefit is: you can allow actions on all resources if the resource's tag matches the principal's tag, dramatically reducing policy count."
+    },
+    {
+      "question": "A security team needs to implement cross-account access for an application in Account A to read objects from an S3 bucket in Account B. The bucket contains highly sensitive data. What is the MOST secure implementation that follows AWS best practices?",
+      "options": [
+        "Create an IAM user in Account B with access keys, grant S3 read permissions, and store the credentials in AWS Secrets Manager in Account A",
+        "Enable S3 bucket public access with an S3 bucket policy restricting access to the source IP addresses of Account A's resources",
+        "Create an IAM role in Account B with S3 read permissions, configure a trust policy allowing Account A to assume it, and have the application in Account A assume the role using STS",
+        "Use S3 bucket ACLs to grant the Account A root account read permissions on all objects"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Cross-account access using IAM roles with AssumeRole is the AWS best practice and most secure approach. The IAM role in Account B has a trust policy specifying Account A as a trusted entity. The application in Account A assumes this role using STS AssumeRole, receiving temporary credentials. This approach: (1) uses temporary credentials (not long-lived access keys), (2) can include ExternalId for additional security, (3) can include conditions like source IP or MFA, (4) provides clear audit trails in CloudTrail. Option A uses long-lived credentials which are less secure and harder to rotate. Option B making the bucket public is a severe security risk even with IP restrictions. Option D using ACLs is deprecated and AWS recommends using bucket policies and IAM policies instead. Additionally, bucket ACLs can't enforce the same granular controls as IAM roles."
+    },
+    {
+      "question": "A company implements AWS SSO (IAM Identity Center) integrated with their corporate Active Directory. They need some users to access AWS with elevated privileges only after MFA verification, while others can access without MFA for read-only operations. How should this be implemented in IAM Identity Center?",
+      "options": [
+        "Create two permission sets: one requiring MFA at the permission set level for elevated access, and one without MFA for read-only access",
+        "Configure MFA at the IAM Identity Center identity source level, making it required for all users, then use attribute-based access control to bypass MFA for read-only users",
+        "Create one permission set with conditions using 'aws:MultiFactorAuthPresent' to grant elevated permissions when MFA is used and read-only permissions otherwise",
+        "IAM Identity Center enforces MFA at the login level only, so use separate AWS accounts for elevated and read-only access"
+      ],
+      "correctAnswer": 2,
+      "explanation": "The correct approach is to create a single permission set with conditional policies using 'aws:MultiFactorAuthPresent'. The policy grants elevated permissions when 'aws:MultiFactorAuthPresent': 'true' and grants only read-only permissions when this condition is false or when MFA wasn't used. Users can choose to sign in with or without MFA, and their permissions adjust accordingly. This provides flexibility and follows the principle of progressive access. Option A would work but requires users to be assigned to different permission sets based on their intended action, which is less flexible. Option B is incorrect - you can't selectively bypass MFA requirements for certain users if it's enforced at the identity source level. Option D is overly complex and not necessary. The key is understanding that IAM conditions can differentiate permissions based on MFA presence in the same session."
+    },
+    {
+      "question": "An enterprise must ensure that no IAM role in their organization can be created or modified to allow iam:PassRole to 'AdminRole' without security team approval. They want to prevent this across all accounts in their AWS Organization proactively. What is the MOST effective implementation? (Select TWO)",
+      "options": [
+        "Create an SCP that denies iam:CreateRole and iam:PutRolePolicy if the policy being created contains iam:PassRole for AdminRole",
+        "Use AWS Config with a custom rule that detects iam:PassRole permissions for AdminRole and automatically remediates",
+        "Implement IAM Access Analyzer custom policy checks in a CI/CD pipeline to validate policies before deployment",
+        "Use AWS Control Tower guardrails to prevent creation of policies with iam:PassRole for AdminRole",
+        "Enable AWS CloudTrail and create EventBridge rules to detect and alert on iam:PassRole usage",
+        "Configure AWS Organizations to require approval workflows for all IAM changes"
+      ],
+      "type": "multiple",
+      "correctAnswer": [0, 2],
+      "explanation": "The most effective preventive controls are: (1) An SCP that denies creating/modifying roles containing iam:PassRole for AdminRole - this provides organization-wide preventive control at the permission boundary level. In September 2025, AWS Organizations added full IAM policy language support for SCPs, including conditions and resource ARNs, making it possible to deny policies based on their content. (2) IAM Access Analyzer custom policy checks in CI/CD pipelines provide proactive validation before deployment, detecting violations early. Options B and E are detective controls (detect after the fact) rather than preventive. Option D (Control Tower guardrails) could work but is less granular than SCPs for this specific use case. Option F doesn't exist - Organizations doesn't have built-in approval workflows. The key is preventing the issue before it happens (preventive) vs detecting it after (detective)."
+    },
+    {
+      "question": "A company uses AWS Secrets Manager for database credentials rotation. Their application runs on ECS Fargate across multiple environments (dev, staging, prod). They want to ensure that the dev environment can only access dev secrets, staging can only access staging secrets, etc. What is the MOST secure and maintainable approach?",
+      "options": [
+        "Create separate AWS accounts for each environment and store secrets in each account",
+        "Use a single Secrets Manager with resource-based policies on each secret restricting access to specific ECS task roles",
+        "Tag secrets with environment tags and use IAM policies with conditions checking that the principal tag matches the secret's resource tag",
+        "Store secrets in Parameter Store instead and use different AWS KMS keys for each environment with key policies restricting access"
+      ],
+      "correctAnswer": 2,
+      "explanation": "ABAC with tag-based access control (Option C) is the most scalable and maintainable approach. Tag secrets with 'Environment:dev', 'Environment:staging', etc., and tag ECS task roles with the same. The IAM policy uses: 'Condition': {'StringEquals': {'aws:PrincipalTag/Environment': '${aws:ResourceTag/Environment}'}}. This scales automatically - new environments require no policy updates, just consistent tagging. Option A (separate accounts) works but is heavy-weight for environment separation within the same workload. Option B (resource policies on each secret) doesn't scale well and requires updating policies for each new secret or task role. Option D (Parameter Store with different KMS keys) could work but is more complex than necessary and doesn't leverage ABAC's scalability benefits. The tag-based approach also makes it easy to audit and visualize access patterns."
+    },
+    {
+      "question": "A security audit reveals that several IAM policies in the organization grant iam:PassRole with a wildcard (*) in the Resource element. IAM Access Analyzer flags this as a security warning. Why is this a security concern, and what is the recommended remediation?",
+      "options": [
+        "It's not actually a security risk; IAM Access Analyzer is overly cautious. The Action element restrictions are sufficient",
+        "It allows privilege escalation - users could pass highly privileged roles to services like Lambda or EC2, gaining those privileges indirectly. Restrict the Resource to specific role ARNs",
+        "It only affects CloudFormation deployments. Remediation is to use service-specific PassRole permissions",
+        "The warning is about performance. Wildcards in PassRole slow down IAM evaluation. Use explicit role ARNs for better performance"
+      ],
+      "correctAnswer": 1,
+      "explanation": "iam:PassRole with wildcard resource is a critical security finding because it enables privilege escalation. A user with this permission can pass ANY role (including highly privileged admin roles) to AWS services. For example, they could: (1) Create a Lambda function and pass it an AdminRole, then invoke the function to execute admin actions, or (2) Launch an EC2 instance with an AdminRole, then access the instance to gain admin privileges. This bypasses direct permission grants. The remediation is to explicitly specify which roles can be passed: 'Resource': ['arn:aws:iam::account:role/SpecificAppRole']. This is why IAM Access Analyzer flags it as a SECURITY WARNING (not just a suggestion). Options C and D are incorrect - this is not about CloudFormation or performance. Option A is dangerously wrong - this IS a genuine security risk. The principle: iam:PassRole should be as restrictive as direct permission grants, as it's effectively an indirect way to gain those permissions."
+    },
+    {
+      "question": "An organization with 500+ AWS accounts wants to implement centralized security findings aggregation from AWS Security Hub. They want a security team in a central account to view and manage findings from all accounts. What configuration is required? (Select THREE)",
+      "options": [
+        "Enable AWS Security Hub in all 500+ accounts",
+        "Designate one account as the Security Hub administrator account in AWS Organizations",
+        "Create cross-account IAM roles for Security Hub to assume in each member account",
+        "Enable auto-enabling for Security Hub to automatically enable it in new accounts",
+        "Configure Security Hub finding aggregation across all AWS regions to the administrator account",
+        "Use AWS Config aggregators to collect Security Hub findings"
+      ],
+      "type": "multiple",
+      "correctAnswer": [0, 1, 3],
+      "explanation": "The required configuration includes: (1) Enable Security Hub in all accounts - required for findings generation, (2) Designate a Security Hub administrator account - this central account can view and manage findings from all member accounts in the organization, (3) Enable auto-enabling - ensures new accounts automatically have Security Hub enabled and associated with the administrator account. Option C is not needed - when using AWS Organizations integration, Security Hub uses service-linked roles automatically, not cross-account IAM roles. Option E relates to cross-region aggregation, which is a separate feature and not strictly required for multi-account setup (though useful). Option F is incorrect - AWS Config aggregators are for Config data, not Security Hub. Security Hub has its own built-in aggregation mechanism when you designate an administrator account."
+    },
+    {
+      "question": "A company needs to enforce that all EBS volumes and RDS databases created in their AWS Organization must be encrypted with customer-managed KMS keys (CMKs), not AWS-managed keys. What is the MOST effective enforcement mechanism?",
+      "options": [
+        "Create an SCP that denies ec2:CreateVolume and rds:CreateDBInstance unless the KMS key ARN matches a specific customer-managed key pattern",
+        "Use AWS Config rules that detect unencrypted or AWS-managed-key-encrypted resources and automatically remediate by re-encrypting",
+        "Enable default encryption for EBS and RDS in each account, specifying the customer-managed KMS key",
+        "Implement AWS Control Tower detective guardrails that alert when resources aren't encrypted with CMKs"
+      ],
+      "correctAnswer": 0,
+      "explanation": "An SCP with a deny statement is the most effective preventive control. The SCP can deny CreateVolume and CreateDBInstance unless the request includes encryption with a customer-managed KMS key. Example condition: 'StringNotEquals': {'ec2:KmsKeyId': 'arn:aws:kms:*:*:key/*'} combined with denying unencrypted volumes. Since September 2025, SCPs support full IAM policy language including conditions and individual resource ARNs, making this highly granular control possible. Option B is detective (detects after creation) not preventive, and re-encrypting RDS requires recreation. Option C sets defaults but doesn't ENFORCE - users can still override. Option D is purely detective/alerting, not enforcement. The key principle: preventive controls (SCPs) are superior to detective controls (Config, Control Tower detective guardrails) for security requirements that must never be violated."
+    },
+    {
+      "question": "A development team uses AWS Certificate Manager (ACM) to manage SSL/TLS certificates. They need some certificates to be exportable for use on on-premises servers, while others remain non-exportable for AWS services. What approach should they use?",
+      "options": [
+        "Use ACM for all certificates; certificates generated by ACM are exportable by default",
+        "Use ACM Private CA for exportable certificates and ACM for non-exportable certificates",
+        "Import externally generated certificates into ACM for exportable certificates, use ACM-generated certificates for non-exportable ones",
+        "ACM certificates cannot be exported; use AWS Systems Manager Parameter Store for exportable certificate storage"
+      ],
+      "correctAnswer": 1,
+      "explanation": "ACM-generated certificates are not exportable and can only be used with integrated AWS services (ELB, CloudFront, API Gateway). For exportable certificates, you must use ACM Private CA, which issues certificates that can be exported and used anywhere, including on-premises. Option A is incorrect - ACM certificates are NOT exportable. Option C is partially correct (imported certificates can be exported) but creates operational complexity managing external CAs. Option D misunderstands the requirement - Parameter Store is for storing secrets, not for certificate issuance. The distinction is critical: ACM (free) provides certificates locked to AWS services for security; ACM Private CA (paid) provides a private CA that can issue exportable certificates. For a hybrid environment, you'd use both: ACM Private CA for on-premises needs and regular ACM for AWS service integrations."
+    },
+    {
+      "question": "A company implements permission boundaries for all IAM roles created by developers. The permission boundary allows only S3 and DynamoDB actions. A developer creates a role with a policy allowing S3, DynamoDB, and EC2 actions, then tries to launch an EC2 instance using this role. What happens?",
+      "options": [
+        "The EC2 instance launches successfully because the IAM policy explicitly allows EC2 actions",
+        "The EC2 instance launch fails because permission boundaries set the maximum permissions, and EC2 actions are not included in the boundary",
+        "The EC2 instance launches but the role cannot perform any actions because permission boundaries override IAM policies completely",
+        "The permission boundary is ignored because IAM policies take precedence over boundaries"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Permission boundaries set the maximum permissions that an IAM entity can have. The effective permissions are the intersection of the identity-based policy and the permission boundary. In this case: IAM policy allows S3, DynamoDB, and EC2. Permission boundary allows only S3 and DynamoDB. Effective permissions = intersection = S3 and DynamoDB only. The role can be used to launch an EC2 instance (if the developer has permission to launch instances), but when the instance tries to perform EC2 API actions using this role, those actions will be denied because EC2 actions are not in the intersection. Option A is incorrect - the IAM policy alone doesn't determine permissions. Option C is incorrect - boundaries don't override policies; they intersect with them. Option D is wrong - boundaries are always enforced when present. Permission boundaries are powerful for delegating user/role creation while maintaining security - developers can create roles but cannot grant permissions beyond the boundary."
+    },
+    {
+      "question": "An organization wants to automatically detect when an IAM policy change grants more permissive access than the previous version, preventing accidental privilege escalation. Which AWS service and feature should they use?",
+      "options": [
+        "AWS Config with managed rule 'iam-policy-no-statements-with-admin-access'",
+        "IAM Access Analyzer custom policy checks using the 'Check for new access' feature",
+        "AWS CloudTrail Insights to detect unusual IAM API activity patterns",
+        "AWS Security Hub with CIS AWS Foundations Benchmark controls"
+      ],
+      "correctAnswer": 1,
+      "explanation": "IAM Access Analyzer custom policy checks with the 'Check for new access' feature is specifically designed for this use case. It uses automated reasoning (provable security based on mathematical logic) to determine whether an updated policy grants new access compared to the existing version. This provides comprehensive findings about what new permissions the updated policy grants. You can integrate this into CI/CD pipelines to prevent deploying more permissive policies. Option A (Config rule) only checks if policies grant admin access, not whether they're more permissive than before. Option C (CloudTrail Insights) detects unusual API activity, not policy permission changes. Option D (Security Hub/CIS) provides security best practice compliance checks but doesn't compare policy versions for new access. The key differentiator: Access Analyzer uses provable security to mathematically prove what access a policy grants, making the comparison definitive, not heuristic-based."
+    }
+  ]
+}

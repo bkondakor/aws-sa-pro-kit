@@ -1,0 +1,98 @@
+{
+  "domain": "Domain 1: Organizational Complexity",
+  "task": "Task 1.5: Cost Optimization and Visibility",
+  "question_count": 8,
+  "questions": [
+    {
+      "question": "A company has variable compute workloads that run on a mix of EC2 instance families (c5, m5, r5) across multiple regions and also uses AWS Fargate and Lambda. They want to commit to steady-state usage to reduce costs but need maximum flexibility as their architecture evolves. They currently spend $100/hour on compute. Which commitment strategy provides the BEST balance of savings and flexibility for 2025?",
+      "options": [
+        "Purchase Standard Reserved Instances for the most-used instance type in each region (72% discount)",
+        "Purchase Compute Savings Plans with a $70/hour commitment (up to 66% discount with full flexibility)",
+        "Purchase EC2 Instance Savings Plans for each instance family separately",
+        "Purchase Convertible Reserved Instances to allow instance type changes"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Compute Savings Plans is the optimal choice for 2025. It provides: (1) Up to 66% discount (comparable to Convertible RIs), (2) Flexibility across instance families, sizes, operating systems, and regions, (3) Coverage for EC2, Fargate, and Lambda without separate commitments, (4) Automatic discount application as workloads shift between services. With $100/hour spend, a $70/hour commitment covers steady-state usage while maintaining flexibility for the remaining $30/hour. Option A (Standard RIs) provides slightly higher discount (72% vs 66%) but locks to specific instance types/regions - risky given their evolving architecture and only ~3% additional savings. Option C (EC2 Instance Savings Plans) provides more savings than Compute but less flexibility - requires separate commitments per family. Option D (Convertible RIs) offers flexibility but is legacy; AWS recommends Savings Plans. 2025 guidance: Savings Plans for almost all scenarios due to flexibility and automatic application across services."
+    },
+    {
+      "question": "A financial services company with 200 AWS accounts needs to implement cost allocation and chargeback to business units. Each business unit has multiple projects and environments (dev, staging, prod). They want to enforce tagging compliance and generate monthly cost reports by business unit and project. Which combination of services and configurations is MOST effective? (Select THREE)",
+      "options": [
+        "Create and activate cost allocation tags for 'BusinessUnit', 'Project', and 'Environment' in the management account",
+        "Implement AWS Organizations tag policies requiring mandatory tags on all resources",
+        "Enable AWS Cost and Usage Reports (CUR) with resource-level granularity and deliver to S3 for analysis",
+        "Use AWS Budgets to enforce spending limits per business unit",
+        "Deploy AWS Cost Categories to group costs by business unit and project combinations",
+        "Use AWS Cost Explorer saved reports filtered by cost allocation tags"
+      ],
+      "type": "multiple",
+      "correctAnswer": [1, 2, 4],
+      "explanation": "The comprehensive solution requires: (1) Tag policies in AWS Organizations enforce mandatory tags organization-wide, ensuring compliance by preventing non-compliant resource creation or flagging violations, (2) CUR provides detailed cost data with resource-level tags that can be analyzed using Athena/QuickSight for detailed chargeback reports, (3) Cost Categories allow grouping costs into logical categories based on tag combinations (e.g., 'BU-Engineering-Production'), simplifying reporting and budgeting. Option A (activating tags) is necessary but doesn't enforce compliance. Option D (Budgets) helps control costs but doesn't solve allocation/reporting. Option F (Cost Explorer) is useful but doesn't provide the detailed, automated reporting that CUR + Cost Categories + tag policies provide. Best practice: Tag policies (enforcement) + Cost Categories (grouping) + CUR (detailed reporting) creates a comprehensive cost allocation system. Cost Categories can use rules like: IF tag:BusinessUnit = 'Engineering' AND tag:Project = 'DataPlatform' THEN 'Engineering-DataPlatform'."
+    },
+    {
+      "question": "A company analyzes their AWS Cost and Usage Report and discovers they're spending $50,000/month on data transfer charges. After investigation, they find: 40% is cross-AZ data transfer within the same region, 35% is cross-region replication, and 25% is data transfer to the internet. Which optimization strategy would provide the GREATEST cost reduction?",
+      "options": [
+        "Implement VPC endpoints for AWS services to eliminate data transfer charges",
+        "Redesign the architecture to minimize cross-AZ traffic by placing interdependent services in the same AZ with proper backup strategies",
+        "Use CloudFront for content delivery to reduce data transfer to internet charges",
+        "Consolidate all workloads in a single region to eliminate cross-region transfer costs"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Minimizing cross-AZ traffic addresses the largest cost component (40% = $20,000/month). AWS charges for data transferred between AZs (typically $0.01/GB each direction). Strategies: (1) Place tightly coupled services in the same AZ, (2) Use VPC endpoints to avoid cross-AZ traffic for AWS service calls, (3) Implement caching to reduce database queries across AZs. However, maintain Multi-AZ for stateful services (RDS, etc.) for resilience. Option C (CloudFront) only addresses 25% of costs and may not be applicable to all workloads. Option D (single region) reduces 35% but eliminates disaster recovery capabilities - unacceptable for most enterprises. Option A (VPC endpoints) helps but typically has smaller impact than architectural redesign. Important: Cross-AZ data transfer within a region is often overlooked but accumulates significantly in high-throughput applications. Balance cost optimization with resilience requirements."
+    },
+    {
+      "question": "An organization enabled AWS Cost Anomaly Detection in July 2025 with the latest model enhancements. They receive anomaly alerts for a $5,000 spike in EC2 costs, but investigation shows this is due to their planned quarterly load testing that occurs every 3 months. How should they configure Cost Anomaly Detection to reduce false positives for known recurring events?",
+      "options": [
+        "Disable Cost Anomaly Detection during planned load testing periods",
+        "Rely on the ML model's automatic learning - the 2025 enhancements distinguish between one-time and recurrent cost events over time",
+        "Create separate monitors with higher alert thresholds for services used in load testing",
+        "Configure suppression rules in the AWS User Notifications integration to filter alerts during testing windows"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The July 2025 AWS Cost Anomaly Detection model enhancements specifically address this scenario. The improved ML model: (1) Better understands organization's typical spend patterns, (2) Distinguishes between one-time and recurrent cost events, (3) Maintains accuracy in detecting cost changes that require attention. After several occurrences, the model should learn the quarterly pattern and reduce false positives. However, for immediate optimization, Option D (suppression rules via AWS User Notifications, introduced May 2025) provides a complementary approach. Option A (disabling) removes protection during testing. Option C (higher thresholds) reduces sensitivity for all spikes, not just planned ones. Best practice: Let the ML model learn patterns while using AWS User Notifications for advanced filtering. The integration with AWS User Notifications (available since May 2025) enables sophisticated alert management with verified contact management and reusable alert configurations."
+    },
+    {
+      "question": "A media company has 500 TB of data in S3 Standard storage. Analysis shows: 60% of data is accessed frequently in the first 30 days, then rarely accessed. 30% has unpredictable access patterns. 10% is archival data not accessed for 90+ days. Which S3 storage optimization strategy minimizes costs while maintaining access requirements?",
+      "options": [
+        "Move all data to S3 Glacier Flexible Retrieval after 30 days to minimize storage costs",
+        "Use S3 Lifecycle policies: transition to S3 Standard-IA after 30 days, then to S3 Glacier Flexible Retrieval after 90 days",
+        "Enable S3 Intelligent-Tiering for the entire dataset to automatically optimize storage classes based on access patterns",
+        "Use S3 Lifecycle policy for the 60% (Standard → Standard-IA after 30 days), S3 Intelligent-Tiering for the 30% with unpredictable patterns, and move 10% archival to Glacier Deep Archive"
+      ],
+      "correctAnswer": 3,
+      "explanation": "The optimal strategy uses different approaches for different access patterns: (1) For the 60% with predictable patterns, use Lifecycle policies (Standard → Standard-IA after 30 days) - this is cost-effective for known patterns, (2) For the 30% with unpredictable access, S3 Intelligent-Tiering automatically moves data between tiers based on actual usage without retrieval fees, preventing costly Glacier retrievals for occasionally accessed data, (3) For 10% archival, Glacier Deep Archive offers lowest storage cost ($0.00099/GB vs $0.004/GB for Glacier Flexible). Option A over-archives data, causing expensive retrieval fees for the 30% with unpredictable access. Option B uses one-size-fits-all approach, suboptimal for varied patterns. Option C (all Intelligent-Tiering) incurs monitoring fees ($0.0025/1000 objects) unnecessarily for predictable patterns. Key insight: S3 Intelligent-Tiering is ideal for unpredictable access patterns (no retrieval fees between frequent/infrequent tiers), while Lifecycle policies are more cost-effective for predictable patterns."
+    },
+    {
+      "question": "An enterprise wants to optimize EC2 costs and receives AWS Compute Optimizer recommendations suggesting: downsize 30% of instances (oversized), change instance families for 40% (better price-performance), and no changes for 30%. However, the application teams are hesitant due to concerns about performance impact. What is the BEST approach to safely implement these recommendations?",
+      "options": [
+        "Implement all Compute Optimizer recommendations immediately during a maintenance window to maximize savings",
+        "Start with instances in development/staging environments, validate performance, then gradually roll out to production with monitoring",
+        "Only implement the downsizing recommendations (30%) and ignore the instance family changes due to higher risk",
+        "Reject all recommendations because application teams understand their workloads better than automated tools"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The safe, phased approach is: (1) Test in lower environments first (dev/staging) to validate Compute Optimizer recommendations without production risk, (2) Monitor performance metrics (CPU, memory, disk, network) to confirm the changes don't degrade performance, (3) Gradually roll out to production, starting with less critical workloads, (4) Implement CloudWatch alarms and dashboards to detect issues early. Compute Optimizer uses ML analysis of actual utilization metrics (CloudWatch data) and can identify optimization opportunities, but validation is prudent. Option A (immediate implementation) risks production outages if recommendations don't account for periodic load spikes or application-specific behaviors. Option C ignores potentially significant savings from family changes. Option D wastes optimization opportunities - Compute Optimizer analyzes actual metrics over 14+ days, often identifying waste humans miss. Best practice: Compute Optimizer provides data-driven recommendations, but implement with testing, monitoring, and gradual rollout for production safety."
+    },
+    {
+      "question": "A company using AWS Organizations wants to implement Reserved Instance (RI) and Savings Plan sharing across accounts to maximize utilization. They have production accounts (high priority) and development accounts (low priority). How should they configure sharing to ensure production workloads receive commitment benefits first?",
+      "options": [
+        "Purchase all RIs and Savings Plans in the management account; AWS automatically prioritizes based on account creation order",
+        "Disable RI/Savings Plan sharing and purchase separately in each account to ensure allocation",
+        "Enable RI/Savings Plan sharing (default for Organizations); AWS automatically shares across the organization with the purchasing account having first priority",
+        "RI/Savings Plan sharing cannot be controlled by priority; they distribute equally across all accounts"
+      ],
+      "correctAnswer": 2,
+      "explanation": "RI and Savings Plan sharing in AWS Organizations works as follows: (1) When sharing is enabled (default), discounts are first applied to the purchasing account, (2) Remaining unused discounts automatically share to other accounts in the organization, (3) Sharing can be disabled if complete isolation is needed, but this reduces utilization efficiency. For the scenario: purchasing RIs/Savings Plans in production accounts ensures production gets first priority for those commitments. Remaining unused discounts (e.g., during low production load) automatically benefit development accounts, maximizing utilization. Option A is incorrect - there's no automatic prioritization by account creation order. Option B (disabling sharing) prevents efficient utilization of unused commitments. Option D is wrong - the purchasing account always has first priority. Best practice: Purchase commitments in high-priority accounts, enable sharing organization-wide to maximize utilization. Advanced: you can disable sharing for specific accounts if strict isolation is required, but this typically reduces overall efficiency and increases costs."
+    },
+    {
+      "question": "A global company analyzes their AWS bill and discovers that 20% of costs are from inter-region data transfer. They use S3 Cross-Region Replication (CRR) for compliance and CloudFront for content delivery with multiple regional origins. Which optimization provides GREATEST data transfer cost reduction while maintaining functionality?",
+      "options": [
+        "Replace S3 CRR with S3 Same-Region Replication to eliminate cross-region transfer costs",
+        "Consolidate CloudFront to use a single origin region and leverage CloudFront's edge locations for global distribution",
+        "Enable S3 Transfer Acceleration for cross-region transfers to reduce costs",
+        "Use AWS Direct Connect with Direct Connect Gateway to route inter-region traffic through private connectivity"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Consolidating CloudFront to use a single origin region is the optimal cost optimization. Here's why: (1) CloudFront caches content at edge locations worldwide, so most requests are served from edge cache, not the origin, (2) When edge fetch from origin is needed, CloudFront-to-S3 data transfer in the same region is free within AWS, (3) CloudFront origin fetches use AWS's private network efficiently. Multiple regional origins increase cross-region traffic unnecessarily. Option A (SRR) violates the compliance requirement for cross-region replication. Option C (S3 Transfer Acceleration) actually increases costs - it's designed for faster uploads, not cost savings, and adds fees. Option D (Direct Connect) doesn't reduce inter-region data transfer costs; it's for on-premises connectivity. Important: Data transfer FROM CloudFront to users is charged at CloudFront rates (often lower than EC2/S3 rates), and CloudFront-to-S3 in same region is free for origin fetches. Best practice: Use CloudFront with single origin region for cost-effective global distribution."
+    }
+  ]
+}

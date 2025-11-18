@@ -1,0 +1,208 @@
+{
+  "domain": "Domain 2: Design for New Solutions",
+  "task": "Task 2.4: Reliability Requirements",
+  "question_count": 16,
+  "questions": [
+    {
+      "id": "D2-T2.4-Q1",
+      "question": "A web application experiences variable traffic patterns with daily spikes from 100 to 5000 requests per minute. Historical data shows traffic spikes occur predictably at 9 AM and 6 PM daily. Which Auto Scaling configuration minimizes costs while maintaining performance?",
+      "options": [
+        "Target tracking scaling policy maintaining 50% CPU utilization",
+        "Predictive scaling policy analyzing 14 days of historical metrics to forecast and scale ahead of predicted load",
+        "Scheduled scaling actions at 8:50 AM and 5:50 PM to pre-scale capacity",
+        "Step scaling policy with multiple thresholds for different load levels"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Predictive scaling (available as of 2025 in most regions) uses machine learning to analyze up to 14 days of CloudWatch metrics and forecast capacity needs for the next 48 hours. For workloads with cyclical patterns (daily spikes at 9 AM/6 PM), predictive scaling: (1) Scales ahead of forecasted load (proactive vs reactive), (2) Provides smoother scaling than reactive policies, (3) Reduces the lag between demand increase and capacity availability. Predictive scaling can operate in 'Forecast Only' mode (test forecasts) or 'Forecast and Scale' mode (actually scale). Option C (scheduled scaling) works but requires manual maintenance and doesn't adapt to changing patterns. Option A (target tracking) is reactive - waits for CPU to reach 50% before scaling, causing performance degradation during rapid spikes. Option D (step scaling) is also reactive. Best practice: Combine predictive scaling for cyclical patterns with target tracking or step scaling for unexpected spikes beyond forecasted levels."
+    },
+    {
+      "id": "D2-T2.4-Q2",
+      "question": "An e-commerce application uses Application Load Balancer with Auto Scaling. During deployments, new instances pass ALB health checks before completing application initialization, causing errors for requests routed to them. What configuration prevents traffic to incompletely initialized instances?",
+      "options": [
+        "Increase ALB health check interval and unhealthy threshold",
+        "Enable connection draining with 300-second timeout",
+        "Configure Auto Scaling lifecycle hooks to delay instance in-service state until application initialization completes",
+        "Use ALB health check path pointing to a lightweight endpoint"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Auto Scaling lifecycle hooks pause instance launch at a defined point (Pending:Wait state), allowing custom actions before the instance enters service. Implementation: (1) Create lifecycle hook for instance launch, (2) Application signals completion using complete-lifecycle-action API or CloudWatch Event after initialization, (3) Only then does instance enter InService state and receive ALB traffic. This ensures full application readiness before traffic. Option A (longer health checks) delays detection of unhealthy instances but doesn't prevent initial traffic to unready instances. Option B (connection draining) handles in-flight requests during instance termination, not launch. Option D (lightweight health check) makes the problem worse - instance passes health check faster while still initializing. Alternative: Use ALB health check path requiring complete initialization (e.g., /health that verifies all dependencies), but lifecycle hooks provide better control. Lifecycle hooks support up to 2-hour wait time. Use SNS/SQS notifications to trigger initialization workflows."
+    },
+    {
+      "id": "D2-T2.4-Q3",
+      "question": "A video processing application uses SQS queue feeding Lambda functions. Processing a video takes 3 minutes on average, but the Lambda timeout is 15 minutes. Occasionally, messages are processed multiple times causing duplicate video outputs. What is the ROOT cause and solution?",
+      "options": [
+        "SQS visibility timeout (30 seconds default) is too short; increase to 15 minutes (6x max Lambda timeout)",
+        "Lambda is not deleting messages after processing; add explicit DeleteMessage call",
+        "SQS message retention is too long; reduce retention period",
+        "Use SQS FIFO queue instead of standard queue to prevent duplicates"
+      ],
+      "correctAnswer": 0,
+      "explanation": "SQS visibility timeout controls how long a message is invisible after a consumer receives it. If processing isn't complete before visibility timeout expires, the message becomes visible again and another consumer receives it, causing duplicate processing. For Lambda: (1) Lambda automatically manages message deletion on successful completion, (2) Visibility timeout must be >= 6x Lambda timeout to account for retries (Lambda retries twice on failure), (3) For 15-minute Lambda timeout, visibility timeout should be 15 × 6 = 90 minutes (maximum allowed is 12 hours). Option B is incorrect - Lambda event source mapping automatically deletes messages on successful processing. Option C (retention) controls how long messages stay in queue if unprocessed, not related to duplicates. Option D (FIFO) provides exactly-once processing within a 5-minute deduplication window but adds complexity and has lower throughput (3000 msg/sec vs standard's unlimited). Solution: Set visibility timeout = Lambda timeout × 6 in SQS queue configuration or event source mapping."
+    },
+    {
+      "id": "D2-T2.4-Q4",
+      "question": "A microservices application uses Network Load Balancer distributing traffic to services running on EC2 instances across three AZs. They want to ensure that if an entire AZ fails, traffic is only routed to healthy AZs. Which NLB configuration provides this?",
+      "options": [
+        "Enable cross-zone load balancing on the NLB",
+        "Disable cross-zone load balancing and configure health checks with fast failover",
+        "Use Route 53 health checks monitoring each AZ's NLB node",
+        "Configure NLB with target group health checks and deregistration delay of 0 seconds"
+      ],
+      "correctAnswer": 1,
+      "explanation": "With NLB cross-zone load balancing DISABLED: Each NLB node (one per AZ) routes traffic only to targets in its own AZ. If an AZ fails: (1) The NLB node in that AZ becomes unavailable, (2) DNS/routing directs traffic to NLB nodes in healthy AZs, (3) Those nodes route to targets in their respective (healthy) AZs only. This prevents failed AZ impact. With cross-zone enabled (Option A), NLB nodes route to targets in all AZs - if an AZ fails, healthy AZ nodes try to route to failed AZ targets (causing delays/failures until health checks mark them unhealthy). Option C (Route 53) adds complexity and slower failover than NLB's built-in AZ isolation. Option D (deregistration delay) controls connection draining duration, not AZ failure handling. Trade-off: Disabling cross-zone can cause uneven traffic distribution if AZs have unequal target counts. Best practice for AZ independence: Disable cross-zone for equal targets per AZ; enable for uneven distribution accepting slower AZ failure detection."
+    },
+    {
+      "id": "D2-T2.4-Q5",
+      "question": "A financial application requires that all requests are processed exactly once with strong ordering guarantees. Messages are published from multiple sources. Which combination of AWS services meets these requirements MOST cost-effectively?",
+      "options": [
+        "SQS FIFO queue with content-based deduplication and message group ID",
+        "SQS standard queue with application-level deduplication logic",
+        "Kinesis Data Streams with consumer tracking of sequence numbers",
+        "EventBridge with DLQ for failed deliveries"
+      ],
+      "correctAnswer": 0,
+      "explanation": "SQS FIFO queue provides: (1) Exactly-once processing - automatic deduplication within 5-minute window using message deduplication ID, (2) Strict ordering - messages in same message group ID are delivered in order, (3) Content-based deduplication - uses SHA-256 hash of message body as deduplication ID (no need to set manually), (4) Support for multiple message groups - different groups can be processed in parallel while maintaining order within each group. This is purpose-built for the requirement. Option B (standard queue) provides at-least-once delivery (duplicates possible) requiring complex application logic for deduplication. Option C (Kinesis) provides ordering within a shard and at-least-once delivery, but requires managing checkpoints and is more complex/expensive for simple queue use cases. Option D (EventBridge) provides at-least-once delivery. FIFO queue limitations: 3000 messages/second (with batching, 300 ops/second otherwise), higher cost than standard queue. Use message group ID strategically for parallel processing while maintaining order."
+    },
+    {
+      "id": "D2-T2.4-Q6",
+      "question": "A latency-sensitive application uses Application Load Balancer with connection draining. During deployments, users experience intermittent errors. Analysis shows the application gracefully handles in-flight requests but the default 300-second deregistration delay is too long. What configuration optimizes deployments?",
+      "options": [
+        "Reduce deregistration delay to match application's maximum request duration (e.g., 60 seconds)",
+        "Increase deregistration delay to 900 seconds for safer draining",
+        "Set deregistration delay to 0 seconds for fastest deployment",
+        "Use connection draining with sticky sessions to maintain user connections"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Deregistration delay (connection draining) controls how long the ALB waits before fully deregistering a target. During this time: (1) No new connections are sent to the target, (2) Existing connections are allowed to complete, (3) After the delay expires, connections are forcibly closed. Optimal configuration: Set delay slightly longer than longest expected request duration. If application requests complete within 60 seconds, set delay to 60-90 seconds. This minimizes deployment time while preventing request interruption. Option B (900 seconds) unnecessarily prolongs deployments. Option C (0 seconds) immediately closes connections causing errors. Option D conflates two concepts - sticky sessions maintain affinity but don't affect draining duration. Best practice: Monitor CloudWatch metrics for request duration, set deregistration delay to 95th percentile request duration + buffer. For websocket applications, delay should account for longest session duration. Range: 0-3600 seconds."
+    },
+    {
+      "id": "D2-T2.4-Q7",
+      "question": "A data processing application uses Lambda functions triggered by Kinesis Data Streams. During high-volume periods, Lambda throttles occur causing processing delays. The application can tolerate 5-minute processing delays. Which configuration improves reliability? (Select TWO)",
+      "options": [
+        "Increase Lambda concurrent execution limit (reserved concurrency)",
+        "Enable Kinesis Enhanced Fan-Out for dedicated throughput per Lambda consumer",
+        "Configure Lambda event source mapping with batch size of 10,000",
+        "Enable Lambda function parallelization factor on the event source mapping",
+        "Increase Kinesis shard count to handle higher throughput",
+        "Configure Lambda retry attempts to 0 to prevent duplicate processing"
+      ],
+      "type": "multiple",
+      "correctAnswer": [1, 3],
+      "explanation": "For Lambda + Kinesis reliability: (1) Enhanced Fan-Out provides 2 MB/sec dedicated read throughput per consumer (vs shared 2 MB/sec per shard with standard iterators), preventing consumer competition and read throttling, (2) Parallelization factor (1-10) allows multiple Lambda invocations processing from the same shard simultaneously, increasing processing throughput. With factor=10, one shard can invoke up to 10 Lambdas concurrently. These address throughput limitations. Option A (reserved concurrency) helps if Lambda concurrency is the bottleneck but not if Kinesis read is the issue. Option C (large batch) increases efficiency but max batch size is 10,000; doesn't solve throttling. Option E (more shards) helps but is more expensive than Enhanced Fan-Out. Option F (0 retries) causes data loss on failures. Enhanced Fan-Out costs more but critical for multiple consumers. Parallelization factor requires Lambda functions to be idempotent (out-of-order processing possible within shard)."
+    },
+    {
+      "id": "D2-T2.4-Q8",
+      "question": "A global application uses CloudFront with multiple origin endpoints (US, EU, APAC) based on viewer geography. During regional failures, requests should failover to the nearest healthy origin. Which CloudFront configuration achieves this?",
+      "options": [
+        "Use CloudFront origin groups with primary and secondary origins, configuring failover status codes (5xx, 4xx)",
+        "Use Route 53 latency-based routing behind CloudFront origins",
+        "Configure CloudFront with Lambda@Edge selecting origin based on viewer location and health",
+        "Use CloudFront origin access control with health check monitoring"
+      ],
+      "correctAnswer": 0,
+      "explanation": "CloudFront origin groups provide native origin failover: (1) Create origin group with primary and secondary origins, (2) Configure failover criteria (HTTP status codes: 500, 502, 503, 504, 403, 404 - customizable), (3) If primary origin returns failover status code, CloudFront automatically tries secondary origin, (4) Can nest multiple origin groups for multi-level failover. For geographic distribution: Create behavior patterns routing based on headers/paths to different origin groups, each with primary/secondary. Option B (Route 53) behind origins works but adds DNS propagation delay; CloudFront origin groups provide faster failover at edge. Option C (Lambda@Edge) can implement custom logic but is more complex and costly than native origin groups. Option D misunderstands - origin access control (OAC) is for securing S3 origins, not failover. Origin groups check pattern: Primary fails (5xx) → Try secondary → If secondary fails → Return error to viewer. Use CloudWatch metrics to monitor origin health and failover events."
+    },
+    {
+      "id": "D2-T2.4-Q9",
+      "question": "A mobile application backend uses DynamoDB with provisioned capacity. Traffic is unpredictable with occasional spikes to 10x normal throughput lasting 5-10 minutes. They want to avoid throttling during spikes without over-provisioning. What is the MOST cost-effective solution?",
+      "options": [
+        "Switch to DynamoDB on-demand capacity mode",
+        "Keep provisioned mode and enable DynamoDB auto scaling with target utilization of 70%",
+        "Keep provisioned mode and enable DynamoDB burst capacity (automatic)",
+        "Increase provisioned capacity to 10x normal throughput"
+      ],
+      "correctAnswer": 1,
+      "explanation": "DynamoDB auto scaling with provisioned capacity provides: (1) Automatically adjusts provisioned capacity based on actual utilization, (2) Scales up when utilization exceeds target (70% default), (3) Scales down during low usage, saving costs vs fixed high capacity, (4) Can handle spikes up to 2x current capacity using burst capacity while auto scaling adjusts, (5) More cost-effective than on-demand for predictable baseline with occasional spikes. Option A (on-demand) works but is more expensive if you have a predictable baseline throughput; on-demand costs ~5x more per request. Use on-demand for truly sporadic, unpredictable traffic. Option C (burst capacity) is automatic but limited to 300 seconds of unused capacity; insufficient for sustained spikes. Option D (10x provisioning) wastes money during normal periods. Best practice: Provisioned + auto scaling for workloads with identifiable baseline; on-demand for highly variable/unpredictable workloads with no baseline. Auto scaling can take a few minutes to adjust, hence target utilization of 70% provides buffer."
+    },
+    {
+      "id": "D2-T2.4-Q10",
+      "question": "A serverless application uses API Gateway invoking Lambda functions. During sudden traffic spikes, Lambda concurrent execution limit is reached, causing 429 throttling errors. The application can handle 500 concurrent requests maximum. What configuration prevents service degradation?",
+      "options": [
+        "Enable API Gateway throttling at 500 requests per second",
+        "Configure Lambda reserved concurrency of 500 for the function",
+        "Enable API Gateway caching to reduce Lambda invocations",
+        "Use Lambda provisioned concurrency of 500"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Lambda reserved concurrency guarantees that exactly that amount of concurrency is available for the function and prevents it from using more (protecting other functions/accounts from noisy neighbor). Setting reserved concurrency of 500: (1) Ensures the function can handle 500 concurrent requests, (2) Prevents exceeding capacity (which would cause failures), (3) Protects account-level concurrency for other functions. Important: Regional concurrent execution limit is 1000 by default (can be increased). Reserved concurrency allocates from this pool. Option A (API Gateway throttling) limits requests per second, not concurrency. RPS and concurrency are different: RPS × duration = concurrency. Option C (caching) reduces load but doesn't guarantee capacity. Option D (provisioned concurrency) pre-warms functions for low latency but doesn't limit concurrency - can still exceed capacity and throttle. Reserved concurrency = ceiling; provisioned concurrency = warm floor. Best practice: Set reserved concurrency to protect critical functions; use provisioned concurrency for latency-sensitive functions."
+    },
+    {
+      "id": "D2-T2.4-Q11",
+      "question": "A real-time analytics application processes streaming data from Kinesis Data Streams using Lambda. They observe that during processing failures, the same records are retried multiple times, then eventually moved to the Dead Letter Queue (DLQ). They want failed records to be retried with exponential backoff before moving to DLQ. How should this be configured?",
+      "options": [
+        "Configure Lambda event source mapping with maximum retry attempts and maximum record age",
+        "Implement exponential backoff logic in the Lambda function code",
+        "Configure Lambda destination for on-failure events pointing to SQS for retry logic",
+        "Use Kinesis Data Streams retention period to allow re-processing"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Lambda event source mapping for streams (Kinesis, DynamoDB Streams) provides configurable retry behavior: (1) Maximum retry attempts - how many times to retry failed batches (-1 = retry until record expires or processed), (2) Maximum record age - discard records older than this (seconds), (3) On-failure destination - where to send records after retries exhausted, (4) Bisect on function error - split failed batches to isolate bad records. Lambda implements exponential backoff automatically between retries. Configuration ensures: Records are retried with backoff, old records don't retry forever (record age), failed records go to DLQ after max attempts. Option B (code-level backoff) doesn't apply - Lambda retries are automatic. Option C (destinations) can send failure info but doesn't configure retry logic. Option D (retention) keeps records in stream but doesn't control retry behavior. Best practice: Set max record age to prevent retrying very old data; set max retry attempts based on failure tolerance; use bisect on error to isolate poisonous messages."
+    },
+    {
+      "id": "D2-T2.4-Q12",
+      "question": "A multi-tier application uses Auto Scaling groups for web and application tiers. During scale-in events, instances are terminated immediately even though connections are still active. What configuration ensures graceful shutdown? (Select TWO)",
+      "options": [
+        "Configure Auto Scaling lifecycle hooks to delay termination, allowing application to finish processing",
+        "Enable connection draining on the load balancer with appropriate timeout",
+        "Set Auto Scaling termination policy to OldestInstance",
+        "Implement application-level shutdown logic responding to SIGTERM signals",
+        "Use Auto Scaling scheduled actions to prevent scale-in during business hours",
+        "Configure health check grace period to delay termination"
+      ],
+      "type": "multiple",
+      "correctAnswer": [0, 3],
+      "explanation": "Graceful shutdown requires: (1) Auto Scaling lifecycle hook (terminating:wait) - pauses termination, allowing custom logic. Application completes requests, saves state, then signals completion via complete-lifecycle-action API. Default timeout is 1 hour (max: 48 hours for scale-in). (2) Application handles SIGTERM - when EC2 receives shutdown, it sends SIGTERM to processes. Application should catch this signal, stop accepting new work, complete in-flight work, and exit gracefully. Combined approach: Lifecycle hook provides time, application handles signal properly. Option B (connection draining) is ALB feature for deregistration, applies when instance is removed from target group but doesn't delay Auto Scaling termination. Option C (termination policy) selects which instance to terminate, doesn't affect graceful shutdown. Option E (scheduled actions) is a workaround, not a solution. Option F (health check grace period) prevents premature health check failures during launch, not relevant to termination. Best practice: Lifecycle hook + SIGTERM handling + ELB connection draining for complete graceful shutdown."
+    },
+    {
+      "id": "D2-T2.4-Q13",
+      "question": "An application uses EventBridge to route events from multiple sources to various targets (Lambda, SQS, SNS). During outages, some events are lost. They need guaranteed event delivery with the ability to replay events for up to 30 days after failures are resolved. What should they implement?",
+      "options": [
+        "Enable EventBridge Archive for the event bus, configure retention of 30 days, and use Replay to reprocess events after outage resolution",
+        "Configure EventBridge to use SQS as a target with 14-day message retention",
+        "Enable CloudTrail to log all events for replay",
+        "Use EventBridge global endpoints for automatic failover"
+      ],
+      "correctAnswer": 0,
+      "explanation": "EventBridge Archive and Replay provides event sourcing capabilities: (1) Archive captures all events matching filter patterns (or all events), (2) Stores events for specified retention (up to indefinite), (3) Replay allows reprocessing archived events to configured targets, (4) Useful for disaster recovery, testing, and auditing. After resolving outages: Create a replay specifying time range, EventBridge reprocesses archived events to targets. Option B (SQS) only provides 14-day retention (extended queue) and doesn't help with events already delivered and failed. Option C (CloudTrail) logs API calls, not application events in EventBridge. Option D (global endpoints) provides regional failover but doesn't solve event replay after resolution. Archive configuration: Specify event pattern filter (archive specific events or all), retention period, and encryption. Replay: Select archive, time window, and destination event bus. Events are replayed in order with original timestamps preserved but delivery occurs at replay time. Use case: After fixing bug in Lambda consumer, replay last 24 hours of events."
+    },
+    {
+      "id": "D2-T2.4-Q14",
+      "question": "A latency-sensitive application requires database query latency under 10ms with high throughput. The application reads heavily (90% reads, 10% writes) with strong consistency requirements. Which database solution meets these requirements?",
+      "options": [
+        "DynamoDB with DynamoDB Accelerator (DAX) using strongly consistent reads",
+        "ElastiCache for Redis with cluster mode enabled and read replicas",
+        "Aurora MySQL with read replicas using read endpoints",
+        "RDS PostgreSQL with Multi-AZ and read replicas"
+      ],
+      "correctAnswer": 0,
+      "explanation": "DynamoDB + DAX provides: (1) DAX caches DynamoDB reads with microsecond latency (well under 10ms), (2) Supports both eventually consistent and strongly consistent reads from DAX cache, (3) Write-through cache automatically updated on writes, (4) Scales to millions of requests per second. For strongly consistent reads, DAX uses consistent read against DynamoDB, caching the result. Option B (Redis) achieves low latency but doesn't natively provide strong consistency with cross-region scenarios (though single-region reads from primary are consistent). Option C (Aurora read replicas) provides read scaling but replica lag means replicas have eventual consistency; only primary provides strong consistency. Option D (RDS PostgreSQL) similar issue plus higher latency than DAX. Trade-off: DAX strongly consistent reads have slightly higher latency than eventually consistent reads (still sub-10ms) because they bypass certain cache layers. DAX cluster: Primary node handles writes, multiple read replicas for read scaling. Use TTL settings to control cache freshness. For pure cache use case without DynamoDB table, use ElastiCache; DAX is optimized for DynamoDB acceleration."
+    },
+    {
+      "id": "D2-T2.4-Q15",
+      "question": "A video streaming application uses CloudFront with S3 origin. During popular live events, the S3 origin returns 503 errors due to request rate exceeding S3 limits. What architecture change prevents origin overload?",
+      "options": [
+        "Enable S3 Transfer Acceleration to handle higher request rates",
+        "Configure CloudFront with origin shield to reduce requests to S3 origin",
+        "Use multiple S3 buckets with CloudFront origin groups for load distribution",
+        "Enable S3 request rate performance optimization with randomized key prefixes"
+      ],
+      "correctAnswer": 1,
+      "explanation": "CloudFront Origin Shield acts as an additional caching layer between edge locations and origin: (1) All requests from all edge locations in a region go through Origin Shield, (2) Origin Shield consolidates requests, significantly reducing load on origin, (3) Improves cache hit ratio - if one edge requests content, all edges benefit from Shield's cache, (4) Reduces origin's request rate by 40-80% typically. Perfect for S3 origins with rate limit concerns. Option A (Transfer Acceleration) is for faster uploads to S3, not for request rate handling. Option C (multiple buckets) adds operational complexity; S3 auto-scales but Shield is simpler solution. Option D (randomized prefixes) helps distribute requests across S3 partitions but Origin Shield provides better protection. Origin Shield cost: Per 10,000 requests + per GB data transfer. Enable in CloudFront origin settings by selecting Origin Shield region (usually same as origin region). Best practice: Use Origin Shield for origins with limited request capacity or high cost per request (compute origins, third-party APIs)."
+    },
+    {
+      "id": "D2-T2.4-Q16",
+      "question": "A financial application must guarantee that SNS notifications are delivered to all subscribers even during service interruptions. Some subscribers are SQS queues, others are Lambda functions, and some are HTTPS endpoints. Which configuration ensures reliable delivery? (Select TWO)",
+      "options": [
+        "Configure SNS subscription filter policies to ensure relevant messages reach each subscriber",
+        "Enable SNS DLQ for each subscription to capture failed deliveries for retry",
+        "Use SNS message archiving to store all messages for 30 days",
+        "Configure SNS delivery retry policies with exponential backoff for HTTPS endpoints",
+        "Replace SNS with EventBridge for guaranteed delivery",
+        "Enable SNS FIFO topics for ordered delivery"
+      ],
+      "type": "multiple",
+      "correctAnswer": [1, 3],
+      "explanation": "SNS reliable delivery requires: (1) Dead Letter Queue (DLQ) per subscription - when deliveries fail after retries, messages go to DLQ (SQS queue) where they can be processed after resolving issues. DLQ prevents message loss. (2) Delivery retry policies - SNS automatically retries failed deliveries with exponential backoff. For HTTPS endpoints, configure retry policy parameters (number of retries, min/max delay, backoff function). These ensure delivery attempts continue, with DLQ catching ultimate failures. Option A (filter policies) routes messages but doesn't improve reliability. Option C doesn't exist - SNS doesn't have message archiving (EventBridge has Archive). Option E (EventBridge) provides archival/replay but SNS is sufficient for this use case with proper DLQ config. Option F (FIFO topics) provides ordering but doesn't improve delivery reliability over standard topics. SNS delivery guarantees by endpoint type: SQS/Lambda (high durability, automatic retries), HTTPS (best-effort, configure retries), SMS/Email (best-effort). Always configure DLQ for critical subscriptions. Monitor DLQ depth in CloudWatch."
+    }
+  ]
+}
