@@ -1,0 +1,172 @@
+{
+  "domain": "Domain 1: Organizational Complexity",
+  "task": "Advanced Scenarios - Networking, Multi-Account, Security",
+  "question_count": 15,
+  "questions": [
+    {
+      "question": "A multinational corporation is migrating from multiple site-to-site VPN connections to AWS Transit Gateway VPN. They have 25 branch offices that need to connect to AWS. Each branch office has dual ISP connections for redundancy. During testing, they notice that aggregate throughput per VPN tunnel is only reaching 1.25 Gbps despite having sufficient bandwidth. What is the PRIMARY reason for this limitation?",
+      "options": [
+        "Transit Gateway VPN connections are limited to 1.25 Gbps per VPN tunnel due to single-flow IPsec throughput limits",
+        "Transit Gateway has a global bandwidth cap of 50 Gbps for all VPN connections combined",
+        "The customer gateway devices need hardware acceleration to achieve higher throughput",
+        "BGP route limits are causing traffic to be throttled at the Transit Gateway"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS Transit Gateway VPN connections have a per-tunnel throughput limit of 1.25 Gbps due to IPsec single-flow encryption overhead. This is a fundamental limitation of IPsec VPN tunnels as they cannot utilize multiple CPU cores for a single tunnel. To achieve higher throughput, you must use ECMP (Equal Cost Multi-Path) routing with multiple VPN tunnels and ensure traffic is distributed across them. Each VPN connection provides two tunnels (for redundancy), and with ECMP, you can add multiple VPN connections to achieve aggregate throughput beyond 1.25 Gbps. Option B is incorrect - Transit Gateway can support up to 50 Gbps per VPN connection with proper ECMP configuration across multiple tunnels. Option C, while hardware acceleration can help, doesn't solve the per-tunnel limit. Option D is unrelated - BGP route limits would cause connectivity issues, not throughput throttling. The key learning is that architects must design for ECMP with multiple VPN tunnels to scale beyond 1.25 Gbps."
+    },
+    {
+      "question": "An enterprise has an existing Direct Connect LAG with two 10 Gbps connections. Due to increasing bandwidth demands, they want to upgrade by adding two 100 Gbps connections to the same LAG while maintaining the existing 10 Gbps connections during the migration period. What will happen when they attempt this configuration?",
+      "options": [
+        "The LAG will automatically adjust to use all four connections with weighted load balancing based on port speed",
+        "The configuration will be rejected because all connections in a LAG must have identical port speeds",
+        "The 100 Gbps connections will be throttled to 10 Gbps to match the existing connections",
+        "The LAG will operate in hybrid mode, routing different traffic types to different speed connections"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS Direct Connect LAG (Link Aggregation Group) has a strict requirement that all connections in a LAG must use the same bandwidth (port speed). You cannot mix 10 Gbps and 100 Gbps connections in the same LAG. This is an IEEE 802.3ad (LACP) standard requirement that AWS enforces. To upgrade from 10 Gbps to 100 Gbps connections, the architect must either: (1) Create a new LAG with 100 Gbps connections, migrate traffic, then decommission the old LAG, or (2) Create individual 100 Gbps connections without LAG, use multiple VIFs with BGP for redundancy. Option A is incorrect - there's no weighted load balancing in LAGs. Option C is false - AWS will reject the configuration entirely rather than throttle. Option D is incorrect - no such hybrid mode exists. The critical learning point is that LAG upgrades require careful planning and cannot be done in-place with mixed speeds, which can catch architects off guard during capacity planning."
+    },
+    {
+      "question": "A Solutions Architect is implementing defense-in-depth security for a multi-account organization. They create an SCP that denies all EC2 instance launches except t3.micro and t3.small. They also implement an IAM permission boundary that allows launching instances up to t3.medium. A developer with full EC2 permissions (within the permission boundary) attempts to launch a t3.medium instance. What will happen?",
+      "options": [
+        "The instance will launch successfully because the IAM permission allows it",
+        "The launch will fail because the SCP takes precedence and denies t3.medium",
+        "The instance will launch as t3.small, automatically downgraded by AWS",
+        "The launch will fail with an SCP override prompt requiring approval"
+      ],
+      "correctAnswer": 1,
+      "explanation": "In AWS, permissions are evaluated using the intersection of all applicable policies: Identity-based policies AND Permission Boundaries AND SCPs AND Resource-based policies. The effective permissions are the intersection (logical AND) of all these. Service Control Policies (SCPs) from AWS Organizations act as a guardrail - they set the maximum permissions that can be granted, regardless of what IAM policies say. In this scenario: The IAM permissions allow EC2 launches, the permission boundary allows up to t3.medium, but the SCP explicitly denies everything except t3.micro and t3.small. Since SCPs are evaluated as part of the authorization chain, the SCP denial takes precedence and blocks the t3.medium launch. Option A is incorrect because IAM permissions alone don't determine access. Option C is false - AWS doesn't auto-downgrade instance types. Option D is incorrect - there's no SCP override mechanism. This is a tricky scenario because architects might assume permission boundaries are the most restrictive element, but SCPs operate at the account level and can override even tightly scoped IAM permissions. The key insight is that all permissions must allow an action for it to succeed."
+    },
+    {
+      "question": "A media company uses CloudFront with an S3 bucket as the primary origin and an on-premises web server as a secondary custom origin. They configure origin failover to use the on-premises server when S3 is unavailable. During testing, they notice that failover to the custom origin happens even when S3 returns 404 errors for missing objects, causing unexpected behavior. What is the BEST way to fix this?",
+      "options": [
+        "Configure origin failover to only trigger on 5xx errors (500, 502, 503, 504) and not 4xx errors",
+        "Disable origin failover and use Lambda@Edge to implement custom failover logic",
+        "Configure S3 bucket policies to return 503 instead of 404 for missing objects",
+        "Use multiple distributions with Route 53 health checks for failover instead"
+      ],
+      "correctAnswer": 0,
+      "explanation": "CloudFront origin failover allows you to specify which HTTP status codes should trigger failover to the secondary origin. By default, CloudFront may fail over on both 4xx and 5xx errors, but this behavior can be customized. A 404 error indicates the object doesn't exist at the origin, which is a valid response and shouldn't trigger failover to a different origin - the object simply doesn't exist. However, 5xx errors (500, 502, 503, 504) indicate origin infrastructure problems and should trigger failover. The solution is to configure the origin group to only failover on 5xx status codes. This is done by specifying StatusCodes in the FailoverCriteria (500, 502, 503, 504). Option B is overly complex - Lambda@Edge adds latency and cost when built-in features suffice. Option C is incorrect - changing valid 404 responses to 503 would break HTTP semantics and caching behavior. Option D is unnecessary complexity and wouldn't solve the fundamental issue of inappropriate failover triggers. The key learning is understanding CloudFront's origin failover behavior and properly configuring status codes for failover criteria to avoid false positives."
+    },
+    {
+      "question": "A financial services company uses AWS KMS multi-region keys for encrypting data that must be available in us-east-1 and eu-west-1. They have a central security account that owns the multi-region primary key in us-east-1 and its replica in eu-west-1. Application accounts need to decrypt data in both regions. After granting cross-account access in the key policy, decryption works in us-east-1 but fails in eu-west-1 with an access denied error. What is the MOST likely cause?",
+      "options": [
+        "Multi-region keys require separate key policies for each region, and the eu-west-1 replica key policy wasn't updated",
+        "Cross-account access with multi-region keys requires VPC endpoints in the same region as the replica",
+        "The application account's IAM role needs to specify the replica key ARN explicitly for eu-west-1",
+        "Multi-region key replicas are read-only and cannot be used for decryption in cross-account scenarios"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS KMS multi-region keys are a powerful feature where related keys in different regions have the same key material but are treated as independent resources with their own key policies, aliases, and permissions. When you create a multi-region primary key and replicate it to another region, each key (primary and replicas) has its own key policy. Cross-account access must be explicitly granted in each region's key policy independently. In this scenario, the security account likely updated the primary key policy in us-east-1 to allow cross-account access, but forgot to update the replica key policy in eu-west-1. The solution is to update the eu-west-1 replica key policy to include the same cross-account permissions. Option B is incorrect - VPC endpoints are not required for cross-account KMS access, though they can be used for private connectivity. Option C is partially true (the ARN must be correct for each region) but the root cause is the missing key policy permission in eu-west-1. Option D is false - replicas can be used for all KMS operations including decryption. This scenario tests understanding that multi-region keys share key material but not policies or permissions."
+    },
+    {
+      "question": "A large enterprise with 200 AWS accounts in an AWS Organization needs to implement centralized DNS resolution for on-premises domain names. They configure Route 53 Resolver outbound endpoints and forwarding rules in a central networking account, then use RAM (Resource Access Manager) to share the rules with all accounts. After sharing, some accounts can resolve on-premises domains while others cannot. What is the MOST likely issue?",
+      "options": [
+        "The VPCs in failing accounts don't have the shared resolver rules associated with them",
+        "RAM sharing of resolver rules requires Organizations to be in all-features mode, which wasn't enabled",
+        "The outbound endpoints need to be created in each account individually, not shared",
+        "Route 53 Resolver has a limit of 100 accounts per shared rule"
+      ],
+      "correctAnswer": 0,
+      "explanation": "When Route 53 Resolver rules are shared via RAM to multiple accounts, the rules become available to those accounts, but they don't automatically apply to VPCs. Each account must explicitly associate the shared resolver rules with their VPCs. This is a common gotcha - architects assume that sharing the rules through RAM automatically enables them across all VPCs in the organization, but there's a second step required. The accounts that can resolve on-premises domains likely manually associated the shared rules with their VPCs, while the failing accounts didn't complete this step. The solution is to ensure each account associates the shared resolver rules with their VPCs via the VPC console or API. Option B is incorrect - while all-features mode is required for some RAM sharing scenarios, it's not the limiting factor here. Option C is false - outbound endpoints don't need to be in every account; they can be centralized and accessed by shared rules. Option D is incorrect - there's no such 100-account limit for shared resolver rules. This tests understanding of the two-step process: sharing rules via RAM, then associating rules with VPCs."
+    },
+    {
+      "question": "A company has Transit Gateways in us-east-1 and eu-west-1 with inter-region peering. They need to route traffic through a security appliance (firewall) VPC in us-east-1 for all traffic flowing between regions. They enable appliance mode on the us-east-1 Transit Gateway attachment for the firewall VPC. Traffic is still bypassing the firewall. What additional configuration is required?",
+      "options": [
+        "Enable appliance mode on the inter-region peering attachment as well",
+        "Configure route tables to explicitly route inter-region traffic through the firewall VPC attachment",
+        "Appliance mode only works for intra-region traffic; use AWS Network Firewall for inter-region inspection",
+        "Configure the firewall VPC attachment as the default route in both Transit Gateway route tables"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Enabling appliance mode on a Transit Gateway VPC attachment ensures that return traffic for a flow uses the same availability zone as the original traffic, which is essential for stateful appliances like firewalls. However, appliance mode itself doesn't route traffic through the appliance - it only ensures consistent AZ-affinity for flows. To actually route traffic through the firewall VPC, you must configure Transit Gateway route tables with explicit routes that direct traffic to the firewall VPC attachment. For inter-region traffic inspection, the route tables in both regions should have routes pointing to the firewall VPC attachment. For example, the eu-west-1 Transit Gateway route table should have routes for us-east-1 CIDRs pointing to the peering attachment, but the us-east-1 side should route that incoming traffic to the firewall VPC attachment before routing to final destinations. Option A is incorrect - appliance mode is not needed on peering attachments. Option C is false - appliance mode works for inter-region traffic when routes are configured correctly. Option D is partially correct but not specific enough; you need explicit routing logic, not just a default route. This tests understanding that appliance mode solves flow symmetry but doesn't handle traffic routing."
+    },
+    {
+      "question": "An organization uses AWS IAM Identity Center (AWS SSO) with Azure AD as the identity source. They acquire another company that uses Okta. They want users from both Azure AD and Okta to access AWS accounts through SSO without migration. What is the BEST approach?",
+      "options": [
+        "Configure IAM Identity Center to use multiple identity sources simultaneously",
+        "Implement federation with both Azure AD and Okta directly to each AWS account using SAML",
+        "Create separate IAM Identity Center instances for each identity provider and use Organizations to manage access",
+        "Consolidate both identity providers into a single Azure AD tenant with B2B guest access for Okta users"
+      ],
+      "correctAnswer": 3,
+      "explanation": "AWS IAM Identity Center (formerly AWS SSO) currently supports only ONE external identity source at a time - you can choose either the built-in Identity Center directory, OR an external IdP like Azure AD, OR an Active Directory connector, but not multiple simultaneously. This is a significant limitation that many architects don't realize. Given this constraint, option D is the most practical solution: consolidate both identity providers by using Azure AD's B2B (business-to-business) collaboration feature to invite Okta users as guest users in the Azure AD tenant. These guest users can then authenticate through their Okta credentials while being represented in the Azure AD tenant that IAM Identity Center uses. Option A is incorrect - IAM Identity Center doesn't support multiple identity sources. Option B would work but loses the benefits of centralized SSO management and creates operational complexity with individual SAML setups per account. Option C is incorrect - you cannot have multiple IAM Identity Center instances in the same organization. This scenario tests awareness of IAM Identity Center's single-identity-source limitation and creative solutions for multi-IdP environments."
+    },
+    {
+      "question": "A company has a Direct Connect Gateway (DXGW) connected to multiple Transit Gateways across 3 regions. They want to add VPN backup connectivity to each Transit Gateway for redundancy. When they try to create VPN attachments to the Transit Gateways that already have DXGW associations, the configuration fails. What is the issue?",
+      "options": [
+        "A Transit Gateway can have either a Direct Connect Gateway association OR VPN attachments, but not both simultaneously",
+        "The BGP AS numbers conflict between the Direct Connect connection and VPN configuration",
+        "VPN attachments require the Transit Gateway to be in VPN mode, which conflicts with Direct Connect Gateway mode",
+        "The issue is that Transit Gateway can have both, but the same on-premises CIDR ranges cannot be advertised over both Direct Connect and VPN connections"
+      ],
+      "correctAnswer": 3,
+      "explanation": "This is a tricky scenario involving routing conflicts. A Transit Gateway CAN have both Direct Connect Gateway associations AND VPN attachments simultaneously - this is actually the recommended architecture for hybrid connectivity with failover. However, the issue arises when the same on-premises CIDR ranges are advertised via BGP over both the Direct Connect connection and the VPN connection to the same Transit Gateway. The Transit Gateway receives conflicting routes for the same CIDR ranges and may reject the configuration or create unpredictable routing behavior. The solution is to use BGP attributes (AS-PATH prepending or local preference) to make one path preferred over the other. Typically, you'd prepend AS numbers on the VPN advertisements to make them less preferred, so Direct Connect is primary and VPN is backup. Option A is false - Transit Gateway supports both connection types simultaneously. Option B might be part of the issue but isn't the primary blocker. Option C is incorrect - there's no such 'VPN mode' or 'Direct Connect Gateway mode' for Transit Gateways. The key learning is that multiple paths to the same destination require proper BGP tuning."
+    },
+    {
+      "question": "A company uses VPC sharing via AWS RAM to share subnets from a central networking account to multiple application accounts. Application teams in Account A and Account B create their own security groups in the shared VPC. Account A's application needs to allow traffic from Account B's application. Account A tries to reference Account B's security group in their security group rules but receives an error. What is the limitation?",
+      "options": [
+        "Security group references only work within the same AWS account, even in shared VPCs",
+        "Cross-account security group references require VPC peering between the accounts",
+        "Security groups in shared VPCs must be created in the owner account to be referenceable across participant accounts",
+        "Cross-account security group references require explicit RAM sharing of the security groups"
+      ],
+      "correctAnswer": 0,
+      "explanation": "This is a critical limitation of VPC sharing that catches many architects. While VPC sharing allows multiple accounts to create resources (EC2 instances, security groups, etc.) in shared subnets, security group references only work within the same AWS account, even when the security groups are in the same shared VPC. You cannot reference a security group owned by Account B in a security group rule created by Account A, even though both security groups are in the same shared VPC. This limitation exists because security groups are account-specific resources despite being in a shared VPC. The workaround is to use CIDR-based rules instead of security group references, or to create shared security groups in the VPC owner account and grant participant accounts permission to use them (though participants still can't reference each other's security groups). Option B is incorrect - VPC peering isn't relevant for shared VPCs. Option C is partially true but doesn't solve cross-account references between participant accounts. Option D is incorrect - RAM doesn't support sharing individual security groups independently. This tests understanding of VPC sharing limitations regarding security group references."
+    },
+    {
+      "question": "An architect is designing centralized egress filtering for 50 VPCs using AWS Network Firewall. To reduce costs, they consider deploying a single Network Firewall in a central VPC and using Gateway Load Balancer Endpoints (GWLBE) in spoke VPCs to route traffic to it. What is the PRIMARY issue with this approach?",
+      "options": [
+        "AWS Network Firewall cannot be used with Gateway Load Balancer; it requires direct VPC attachments",
+        "Gateway Load Balancer is designed for third-party appliances, not AWS native services like Network Firewall",
+        "This architecture would work but requires deploying Network Firewall endpoints in each spoke VPC, negating centralization benefits",
+        "The traffic flow would break return path routing because GWLB doesn't support stateful inspection handoff"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS Network Firewall is not integrated with Gateway Load Balancer. Network Firewall is deployed directly in VPCs using Network Firewall endpoints, which are ENIs in specified subnets. You cannot route traffic to Network Firewall via GWLB. If you want to centralize egress filtering using Network Firewall for multiple VPCs, the architecture should use a centralized egress VPC with Network Firewall endpoints deployed in it, and spoke VPCs route internet-bound traffic through Transit Gateway to the egress VPC. Gateway Load Balancer is specifically designed for integrating third-party virtual appliances (like Palo Alto, Fortinet, Check Point) that are deployed as EC2 instances. Option B is partially true but not the primary issue - GWLB is for third-party appliances, but the key point is Network Firewall doesn't integrate with it at all. Option C is incorrect - Network Firewall endpoints are needed but that's by design, not a workaround. Option D incorrectly suggests the architectural possibility exists. This tests understanding of when to use Network Firewall versus Gateway Load Balancer with third-party appliances."
+    },
+    {
+      "question": "A large enterprise with 1,500 AWS accounts wants to delegate AWS Security Hub administration to their security team's account. They also want to delegate GuardDuty, Config, and CloudFormation StackSets administration to the same security account for centralized management. What limitation will they encounter?",
+      "options": [
+        "Each AWS service can only have one delegated administrator per organization, so all four services can share the same delegated admin account",
+        "An organization can only have 5 delegated administrators total across all services",
+        "AWS Organizations limits delegated administrators to 10 services per account",
+        "Each service supports a different maximum number of member accounts that can be managed by a delegated administrator"
+      ],
+      "correctAnswer": 0,
+      "explanation": "This is actually a trick question where the correct answer describes what works correctly, but architects might overthink it. In AWS Organizations, each integrated AWS service can have one delegated administrator account. However, the same account can be the delegated administrator for multiple services simultaneously. There's no limit preventing a single account from being the delegated admin for Security Hub, GuardDuty, Config, and CloudFormation StackSets all at once. This is actually the recommended best practice - use a centralized security tooling account as the delegated admin for all security and compliance services. Option B is false - there's no such organization-wide limit of 5 delegated administrators across all services. Option C is incorrect - there's no 10-service-per-account limit. Option D, while technically true that different services have different member account limits (for example, Security Hub supports up to 5,000 accounts), isn't a limitation they would encounter when designating the delegated admin, and 1,500 accounts is within the limits of all mentioned services. The key insight is recognizing that delegated admin consolidation in one account is supported and recommended."
+    },
+    {
+      "question": "A consulting company wants to share a Transit Gateway with their client's AWS account using AWS Resource Access Manager (RAM). The consulting company's AWS Organization has RAM sharing with external accounts enabled. After creating the RAM share and sending the invitation to the client account, the client accepts it, but cannot attach VPCs to the shared Transit Gateway. What is the MOST likely issue?",
+      "options": [
+        "The client account must be invited to and accept membership in the consulting company's AWS Organization",
+        "External account sharing of Transit Gateways requires the shared Transit Gateway to be in a specific sharing mode that wasn't enabled",
+        "Transit Gateways cannot be shared with external accounts via RAM; only VPC resources can be shared externally",
+        "The client account needs to enable RAM external sharing in their account settings"
+      ],
+      "correctAnswer": 2,
+      "explanation": "This is a critical limitation of AWS RAM (Resource Access Manager) that many architects miss. While AWS RAM supports sharing many resource types both within an AWS Organization and with external accounts, Transit Gateways can ONLY be shared within the same AWS Organization - they cannot be shared with external accounts. Similarly, AWS License Manager configurations, Route 53 Resolver rules (prior to a recent update), and some other resources have the same limitation. Resources that can be shared externally include VPC subnets (VPC sharing), Aurora DB clusters, CodeBuild projects, and others, but Transit Gateway is explicitly limited to organization-internal sharing. The solution would be either: (1) Have the client join the consulting company's organization as a member account (Option A, but this has significant governance implications), or (2) Use alternative architectures like VPC peering or VPN connections. Option B is incorrect - there's no such 'sharing mode' for Transit Gateway. Option D is incorrect - the receiving account doesn't need to enable anything for external sharing; the limitation is on the resource type itself. This tests awareness of RAM's per-resource-type sharing scope limitations."
+    },
+    {
+      "question": "A SaaS provider hosts their service in us-east-1 behind a Network Load Balancer with an AWS PrivateLink endpoint service. Customers in eu-west-1 want to access the service privately without internet exposure. The provider wants to enable this without deploying duplicate infrastructure in eu-west-1. What is the MOST cost-effective solution?",
+      "options": [
+        "Create inter-region VPC peering from customer VPCs in eu-west-1 to the provider VPC in us-east-1, then use the PrivateLink endpoint",
+        "Deploy an NLB in eu-west-1 as a regional frontend that forwards traffic to the us-east-1 service via PrivateLink",
+        "Use AWS PrivateLink endpoint services with cross-region support enabled to allow eu-west-1 consumers to connect directly",
+        "Deploy a Network Load Balancer in eu-west-1 that targets the us-east-1 NLB IP addresses, then create a PrivateLink endpoint service from it"
+      ],
+      "correctAnswer": 3,
+      "explanation": "AWS PrivateLink endpoint services are region-specific and do not support direct cross-region connectivity. Customers can only create VPC endpoints in the same region as the endpoint service. For cross-region private connectivity, the most cost-effective solution is to deploy an NLB in eu-west-1 that has target groups pointing to the IP addresses of the NLB in us-east-1. Cross-region traffic between the NLBs uses AWS's private backbone. Then create a PrivateLink endpoint service from the eu-west-1 NLB, allowing customers in eu-west-1 to consume it. This creates a regional proxy pattern. Option A (VPC peering) wouldn't work because PrivateLink endpoints are private to the VPC; peering to the provider's VPC doesn't grant access to the endpoint service. Option B is less cost-effective because it suggests each customer deploys their own NLB. Option C is incorrect - PrivateLink doesn't have cross-region support built-in. The key learning is understanding PrivateLink's regional limitation and the NLB-to-NLB proxy pattern for cross-region enablement."
+    },
+    {
+      "question": "A large financial institution uses AWS Control Tower to provision new accounts through Account Factory. They have 25 custom SCPs, 15 custom CloudFormation StackSets for baseline resources, and 8 AWS Config rules that must be applied to every new account. During account provisioning, some of the CloudFormation StackSets fail to deploy. What is the MOST likely cause?",
+      "options": [
+        "Control Tower Account Factory has a limit of 10 CloudFormation StackSets per account and the 15 custom StackSets exceed this",
+        "The StackSets have dependencies on resources created by other StackSets, and there's no execution order guarantee",
+        "Account Factory can only execute AWS-managed StackSets, not custom user-created StackSets",
+        "The IAM role used by Account Factory doesn't have permissions to create all the resources defined in the StackSets"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS Control Tower Account Factory provisions accounts and applies customizations including CloudFormation StackSets. However, there's no built-in mechanism to control the execution order of multiple StackSets. If StackSet A creates a VPC and StackSet B tries to create subnets in that VPC, StackSet B might execute before StackSet A completes, causing failures. This is a common issue when implementing complex account baselines with many interdependent resources. The solution is to either: (1) Combine dependent resources into single StackSets to ensure ordered creation, (2) Use StackSet dependencies within CloudFormation (DependsOn), or (3) Implement Customizations for Control Tower (CfCT) which provides better control over execution sequencing. Option A is incorrect - there's no such 10-StackSet limit. Option C is false - Account Factory can deploy custom StackSets, not just AWS-managed ones. Option D is possible but less likely to be the primary issue since Account Factory uses the AWSControlTowerExecution role which has broad permissions. This tests understanding of Control Tower customization challenges and StackSet execution behavior."
+    }
+  ]
+}

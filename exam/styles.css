@@ -219,6 +219,17 @@ body {
     border-color: var(--warning-color);
 }
 
+.btn-check {
+    background: var(--accent-color);
+    color: white;
+}
+
+.btn-check:hover:not(:disabled) {
+    background: #0d5a94;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(20, 110, 180, 0.3);
+}
+
 /* Exam Screen */
 #examScreen {
     background: var(--bg-primary);

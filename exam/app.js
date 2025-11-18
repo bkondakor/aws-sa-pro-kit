@@ -11,6 +11,7 @@ class ExamApp {
         this.examMode = null;
         this.examConfig = null;
         this.studyMode = false; // Answer reveal mode
+        this.checkedAnswers = new Set(); // Track which questions have been checked in study mode
 
         this.screens = {
             welcome: document.getElementById('welcomeScreen'),
@@ -47,11 +48,13 @@ class ExamApp {
             this.studyMode = e.target.checked;
             // Update current question display if in exam screen
             if (this.screens.exam.classList.contains('active')) {
-                if (this.studyMode && this.userAnswers[this.currentQuestionIndex] !== null) {
+                if (this.studyMode && this.checkedAnswers.has(this.currentQuestionIndex)) {
                     this.showStudyModeFeedback();
                 } else {
                     this.hideStudyModeFeedback();
                 }
+                // Update check answer button visibility
+                this.updateCheckAnswerButton();
             }
         });
 
@@ -70,6 +73,7 @@ class ExamApp {
         document.getElementById('nextBtn').addEventListener('click', () => this.nextQuestion());
         document.getElementById('prevBtn').addEventListener('click', () => this.prevQuestion());
         document.getElementById('flagBtn').addEventListener('click', () => this.toggleFlag());
+        document.getElementById('checkAnswerBtn').addEventListener('click', () => this.checkAnswer());
         document.getElementById('submitBtn').addEventListener('click', () => this.submitExam());
         document.getElementById('reviewBtn').addEventListener('click', () => this.showReview());
         document.getElementById('retakeBtn').addEventListener('click', () => this.retakeExam());
@@ -230,6 +234,7 @@ class ExamApp {
             this.currentQuestionIndex = examState.currentQuestionIndex;
             this.userAnswers = examState.userAnswers;
             this.flaggedQuestions = new Set(examState.flaggedQuestions);
+            this.checkedAnswers = new Set(examState.checkedAnswers || []);
             this.startTime = examState.startTime;
             this.studyMode = examState.studyMode || false;
 
@@ -244,6 +249,7 @@ class ExamApp {
         this.currentQuestionIndex = 0;
         this.userAnswers = new Array(this.questions.length).fill(null);
         this.flaggedQuestions.clear();
+        this.checkedAnswers.clear();
         this.startTime = Date.now();
         this.startTimer();
         this.showScreen('exam');
@@ -258,6 +264,7 @@ class ExamApp {
             currentQuestionIndex: this.currentQuestionIndex,
             userAnswers: this.userAnswers,
             flaggedQuestions: Array.from(this.flaggedQuestions),
+            checkedAnswers: Array.from(this.checkedAnswers),
             startTime: this.startTime,
             examMode: this.examMode,
             studyMode: this.studyMode
@@ -347,31 +354,25 @@ class ExamApp {
                 optionDiv.classList.add('selected');
             }
 
-            input.addEventListener('change', (e) => {
-                if (isMultipleChoice) {
-                    this.toggleMultipleAnswer(parseInt(e.target.value));
-                } else {
-                    this.selectAnswer(parseInt(e.target.value));
-                }
-            });
-
             const label = document.createElement('label');
             label.htmlFor = `option${index}`;
             label.className = 'option-text';
             label.textContent = option;
-            label.style.cursor = 'pointer';
 
             optionDiv.appendChild(input);
             optionDiv.appendChild(label);
+
+            // Single click handler for the entire option div to prevent conflicts
             optionDiv.addEventListener('click', (e) => {
-                if (e.target !== input) {
-                    if (isMultipleChoice) {
-                        input.checked = !input.checked;
-                        this.toggleMultipleAnswer(index);
-                    } else {
-                        input.checked = true;
-                        this.selectAnswer(index);
-                    }
+                // Prevent default to avoid double-triggering
+                e.preventDefault();
+
+                if (isMultipleChoice) {
+                    input.checked = !input.checked;
+                    this.toggleMultipleAnswer(index);
+                } else {
+                    input.checked = true;
+                    this.selectAnswer(index);
                 }
             });
 
@@ -398,12 +399,15 @@ class ExamApp {
         // Update question palette
         this.renderQuestionPalette();
 
-        // Handle study mode feedback for already answered questions
-        if (this.studyMode && this.userAnswers[this.currentQuestionIndex] !== null) {
+        // Handle study mode feedback for already checked questions
+        if (this.studyMode && this.checkedAnswers.has(this.currentQuestionIndex)) {
             this.showStudyModeFeedback();
         } else {
             this.hideStudyModeFeedback();
         }
+
+        // Update check answer button visibility
+        this.updateCheckAnswerButton();
     }
 
     selectAnswer(optionIndex) {
@@ -421,10 +425,8 @@ class ExamApp {
         this.renderQuestionPalette();
         this.saveExamState();
 
-        // Show immediate feedback in study mode
-        if (this.studyMode) {
-            this.showStudyModeFeedback();
-        }
+        // Update check answer button visibility
+        this.updateCheckAnswerButton();
     }
 
     toggleMultipleAnswer(optionIndex) {
@@ -455,16 +457,31 @@ class ExamApp {
             }
         });
 
-        // Show immediate feedback in study mode
-        if (this.studyMode && currentAnswer.length > 0) {
-            this.showStudyModeFeedback();
-        } else if (this.studyMode && currentAnswer.length === 0) {
-            // Hide feedback if all selections are cleared
-            this.hideStudyModeFeedback();
-        }
-
         this.renderQuestionPalette();
         this.saveExamState();
+
+        // Update check answer button visibility
+        this.updateCheckAnswerButton();
+    }
+
+    checkAnswer() {
+        // Mark current question as checked
+        this.checkedAnswers.add(this.currentQuestionIndex);
+        this.showStudyModeFeedback();
+        this.updateCheckAnswerButton();
+    }
+
+    updateCheckAnswerButton() {
+        const checkAnswerBtn = document.getElementById('checkAnswerBtn');
+        const userAnswer = this.userAnswers[this.currentQuestionIndex];
+        const hasAnswer = userAnswer !== null && userAnswer !== undefined;
+        const isChecked = this.checkedAnswers.has(this.currentQuestionIndex);
+
+        if (this.studyMode && hasAnswer && !isChecked) {
+            checkAnswerBtn.style.display = 'inline-block';
+        } else {
+            checkAnswerBtn.style.display = 'none';
+        }
     }
 
     showStudyModeFeedback() {
@@ -538,6 +555,7 @@ class ExamApp {
             this.currentQuestionIndex++;
             this.renderQuestion();
             this.saveExamState();
+            this.updateCheckAnswerButton();
         }
     }
 
@@ -546,6 +564,7 @@ class ExamApp {
             this.currentQuestionIndex--;
             this.renderQuestion();
             this.saveExamState();
+            this.updateCheckAnswerButton();
         }
     }
 
@@ -553,6 +572,7 @@ class ExamApp {
         this.currentQuestionIndex = index;
         this.renderQuestion();
         this.saveExamState();
+        this.updateCheckAnswerButton();
     }
 
     renderQuestionPalette() {

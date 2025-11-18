@@ -1,0 +1,172 @@
+{
+  "domain": "Domain 2: Design for New Solutions",
+  "task": "Advanced Scenarios - Deployment, Architecture Patterns, Reliability",
+  "question_count": 15,
+  "questions": [
+    {
+      "question": "A financial trading application uses Lambda functions connected to a VPC to access RDS databases. Even with provisioned concurrency configured for 50 concurrent executions, users experience occasional 10-15 second delays during peak hours. CloudWatch metrics show that provisioned concurrency is never exhausted. What is the MOST likely cause?",
+      "options": [
+        "Provisioned concurrency doesn't eliminate cold starts for VPC-connected Lambda functions",
+        "The Lambda function's memory allocation is too low, causing slow initialization",
+        "Application Auto Scaling for provisioned concurrency is reacting too slowly to traffic spikes",
+        "Bursts beyond provisioned concurrency still experience ENI creation delays for VPC connections"
+      ],
+      "correctAnswer": 3,
+      "explanation": "While provisioned concurrency keeps Lambda execution environments warm and ready, functions that burst beyond the provisioned concurrency level still need to create new execution environments. For VPC-connected Lambda functions, new execution environments require Hyperplane ENIs to be attached, which can take 10-15 seconds. The scenario states that provisioned concurrency is never exhausted, which means traffic spikes are creating executions beyond the 50 provisioned instances. Option A is incorrect - provisioned concurrency DOES eliminate cold starts for the provisioned instances. Option B is unlikely to cause 10-15 second delays; memory affects execution speed, not initialization time. Option C is possible but the scenario states provisioned concurrency isn't exhausted, suggesting the scaling isn't the issue. The solution is to increase provisioned concurrency to handle peak traffic, or use Lambda's Hyperplane ENI optimization (which since 2019 uses a shared ENI pool, but initial attachment for new environments still has some delay). This tests understanding of Lambda VPC networking and provisioned concurrency limitations."
+    },
+    {
+      "question": "An architect designs an ECS cluster with 10 EC2 instances for a microservices application. They use the binpack placement strategy to maximize resource utilization. During a rolling deployment, several tasks fail to place despite sufficient aggregate cluster resources. What is the PRIMARY issue?",
+      "options": [
+        "Binpack strategy can create fragmentation where no single instance has enough resources for new task placement",
+        "ECS doesn't support rolling deployments with binpack strategy; only spread strategy supports it",
+        "The cluster instances need to be in an Auto Scaling group to support binpack placement",
+        "Binpack strategy has a hard limit of 5 tasks per instance regardless of available resources"
+      ],
+      "correctAnswer": 0,
+      "explanation": "The binpack placement strategy aims to place tasks on instances to maximize resource utilization, filling up instances before moving to the next. During rolling deployments, this can create a fragmentation problem: instances might each have small amounts of free CPU/memory, but no single instance has enough free resources to place a new task. For example, if a task needs 1 vCPU and 2GB RAM, and all 10 instances each have 0.5 vCPU and 1GB RAM free, the aggregate cluster has enough resources (5 vCPU, 10GB RAM) but no single instance can host the task. The solution is to either: (1) Use spread strategy for better distribution during deployments, (2) Overprovision cluster capacity, (3) Use ECS Cluster Auto Scaling to add instances when needed, or (4) Implement binpack with instanceId spread for better distribution. Option B is false - both strategies support rolling deployments. Option C is incorrect - Auto Scaling groups are recommended but not required for binpack. Option D is false - there's no such 5-task limit. This tests understanding of ECS task placement challenges with different strategies."
+    },
+    {
+      "question": "A company processes millions of IoT sensor events per day. Each event requires a simple 3-step transformation workflow taking 30 seconds. They need exactly-once processing semantics and must maintain an audit trail of all executions for 90 days. Which Step Functions workflow type should they use?",
+      "options": [
+        "Express workflows in synchronous mode for exactly-once semantics with CloudWatch Logs for audit trail",
+        "Standard workflows because they provide exactly-once execution and built-in 90-day execution history",
+        "Express workflows in asynchronous mode with DynamoDB for tracking execution state",
+        "Standard workflows with cross-region replication for durability and compliance"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Step Functions has two workflow types with distinct characteristics: Standard workflows provide exactly-once execution, have a full execution history stored for 90 days, and support long-running workflows but are limited to 2,000 executions per second per account per region. Express workflows provide at-least-once execution, don't maintain execution history (only CloudWatch Logs), but support much higher execution rates (100,000 per second). The scenario requires exactly-once semantics and 90-day audit trail, which are exclusive features of Standard workflows. While millions of events per day sounds high, it averages to ~12-40 executions per second, well within Standard workflow limits. Option A is incorrect - Express workflows only provide at-least-once semantics, even in synchronous mode. Option C doesn't solve the exactly-once requirement. Option D adds unnecessary complexity with cross-region replication. The key learning is understanding the execution semantics difference: Standard = exactly-once, Express = at-least-once. This tests awareness of Step Functions workflow type selection based on execution guarantees."
+    },
+    {
+      "question": "A DynamoDB table uses on-demand capacity mode. The table has a Global Secondary Index (GSI) with a different partition key. During traffic spikes, write operations to the base table are being throttled even though the table is in on-demand mode. What is the MOST likely cause?",
+      "options": [
+        "On-demand mode has a per-partition throughput limit that's being exceeded during spikes",
+        "The GSI is throttling writes because GSI projections are being written faster than DynamoDB can handle",
+        "DynamoDB automatically switches to provisioned mode during extreme spikes, causing throttling",
+        "On-demand mode requires time to scale up, and instant traffic spikes exceed the adaptive scaling rate"
+      ],
+      "correctAnswer": 3,
+      "explanation": "DynamoDB on-demand mode provides automatic scaling but not instant unlimited capacity. On-demand mode can accommodate up to double your previous peak traffic within 30 minutes. If you have instant traffic spikes that exceed this adaptive capacity, you'll experience throttling. For example, if your previous peak was 1,000 WCU/s, and you suddenly spike to 5,000 WCU/s, you'll be throttled until the system scales up. This is particularly relevant for GSIs - when you write to a base table with GSIs, DynamoDB must also write to the GSI. If the GSI's capacity cannot scale fast enough, the base table writes are throttled. Option A is partially true (partitions have throughput limits) but on-demand mode handles this with partition splitting; it's not the primary cause here. Option B is incorrectly stated - GSI projections don't have a separate throttling mechanism beyond the GSI's capacity. Option C is false - DynamoDB doesn't automatically switch modes. The solution is to either pre-warm capacity by gradually increasing traffic, use provisioned capacity for predictable spiky workloads, or implement exponential backoff. This tests understanding of on-demand mode scaling limits."
+    },
+    {
+      "question": "A global application uses Aurora Global Database with a primary cluster in us-east-1 and secondary clusters in eu-west-1 and ap-southeast-1. To reduce latency for European users writing data, they enable write forwarding on the eu-west-1 secondary cluster. After enabling it, they notice write performance for European users is worse than before. Why?",
+      "options": [
+        "Write forwarding requires synchronous replication to the primary, increasing latency compared to direct writes to primary",
+        "Write forwarding only works for INSERT operations, not UPDATE or DELETE, causing application errors",
+        "The secondary cluster's instance class must match the primary for write forwarding to work efficiently",
+        "Write forwarding is incompatible with Aurora Serverless v2 instances in the secondary cluster"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Aurora Global Database write forwarding allows secondary (read) clusters to forward writes to the primary cluster. However, this doesn't improve write latency for users closer to secondary regions - it actually increases latency. When write forwarding is enabled, writes to the secondary cluster are sent over the network to the primary cluster, the primary processes and commits them, then the changes replicate back to the secondary. This round-trip adds latency compared to users directly connecting to the primary. Write forwarding is designed for application architecture simplification (single endpoint for both reads and writes), not for improving write performance. For true low-latency writes in multiple regions, you need multi-master (Aurora MySQL only, still in preview), or application-level write routing to the appropriate primary. Option B is false - write forwarding supports all DML operations. Option C is incorrect - instance class matching isn't required. Option D is false - write forwarding works with Serverless v2. This tests understanding of Aurora Global Database write forwarding purpose and limitations."
+    },
+    {
+      "question": "An architect is configuring AWS service access for EKS pods. They need pods to access S3 and DynamoDB with different IAM permissions per pod. They're choosing between IRSA (IAM Roles for Service Accounts) and EKS Pod Identity. The cluster has 500 pods with 50 different service accounts requiring different permissions. What should they consider?",
+      "options": [
+        "IRSA has a limit of 100 service account to IAM role mappings per cluster, requiring EKS Pod Identity instead",
+        "EKS Pod Identity provides better performance with no webhook latency, making it preferable for large-scale deployments",
+        "IRSA requires manual OIDC provider setup per cluster while Pod Identity is automatic, reducing operational overhead",
+        "Both solutions work at scale; Pod Identity is newer with simpler configuration but IRSA is more widely supported across Kubernetes distributions"
+      ],
+      "correctAnswer": 3,
+      "explanation": "Both IRSA (IAM Roles for Service Accounts) and EKS Pod Identity solve the same problem of providing AWS credentials to pods. IRSA has been available since 2019 and uses a webhook to intercept AWS SDK calls and inject temporary credentials via OIDC federation. EKS Pod Identity is newer (2023) and uses a different approach with an agent DaemonSet and simpler configuration. Key differences: IRSA requires OIDC provider setup and trust policy configuration, but works across different Kubernetes distributions. Pod Identity is EKS-specific but has simpler configuration with no OIDC provider needed. Neither has the 100-mapping limit mentioned in Option A. Option B is partially true about webhook latency, but it's negligible for most workloads. Option C is partially true but both are manageable operationally. The right choice depends on your environment: IRSA for multi-distribution support, Pod Identity for EKS-native simplicity. This tests understanding of the two approaches and their trade-offs rather than a specific limitation."
+    },
+    {
+      "question": "A company has an API hosted on API Gateway serving customers globally. They use CloudFront with custom domain names and WAF for security. The API is configured as edge-optimized. Their security team wants to use API Gateway resource policies to restrict access to specific VPC endpoints. What issue will they encounter?",
+      "options": [
+        "Edge-optimized APIs don't support resource policies; they must switch to Regional API endpoints",
+        "Resource policies work with edge-optimized APIs but VPC endpoint restrictions only work with Regional APIs",
+        "API Gateway resource policies cannot be used together with CloudFront distributions",
+        "VPC endpoint restrictions require PrivateLink, which is incompatible with edge-optimized APIs"
+      ],
+      "correctAnswer": 1,
+      "explanation": "API Gateway edge-optimized endpoints automatically create and manage a CloudFront distribution in front of your API. While resource policies work with edge-optimized APIs for general access control, VPC endpoint restrictions (aws:SourceVpc or aws:SourceVpce conditions) only work with Regional API endpoints. This is because edge-optimized APIs route through CloudFront, which doesn't preserve the VPC endpoint source information. If you need to restrict API access to specific VPC endpoints, you must use a Regional API endpoint. The architecture would be: Regional API Gateway → Custom CloudFront distribution → WAF. This gives you control over CloudFront configuration and allows VPC endpoint restrictions on the API Gateway resource policy. Option A is incorrect - resource policies work with edge-optimized APIs for other conditions. Option C is false - you can use resource policies with CloudFront, but not VPC endpoint restrictions on edge-optimized APIs. Option D incorrectly describes PrivateLink compatibility. This tests understanding of API Gateway endpoint types and resource policy capabilities."
+    },
+    {
+      "question": "Organization A needs to send events from their account to Organization B's EventBridge event bus. Organization B creates an event bus policy allowing Organization A's account to PutEvents. After testing, events from Organization A are not appearing in Organization B's bus. The PutEvents calls succeed with no errors. What is missing?",
+      "options": [
+        "EventBridge requires resource-based policies on both the source and target event buses for cross-account delivery",
+        "Organization A must create an EventBridge rule that targets Organization B's event bus ARN",
+        "Cross-account event delivery requires AWS Organizations trust relationship between the accounts",
+        "Organization A's IAM principals need explicit permissions to PutEvents on the remote event bus in addition to the resource policy"
+      ],
+      "correctAnswer": 1,
+      "explanation": "EventBridge cross-account event delivery requires a two-step configuration: (1) The target account (Organization B) must have a resource-based policy on their event bus allowing the source account to send events, and (2) The source account (Organization A) must create an EventBridge rule with the target set to Organization B's event bus ARN. Simply calling PutEvents with Organization B's bus ARN won't work - events go to your default bus unless a rule routes them. The correct flow is: Events → Organization A's default bus → Rule matches events → Rule targets Organization B's event bus (cross-account) → Events appear in Organization B's bus. Option A is incorrect - only the target bus needs a resource policy. Option C is false - Organizations relationship is not required for cross-account EventBridge. Option D is partially correct (IAM permissions are needed) but the primary missing piece is the rule in the source account. This tests understanding of EventBridge cross-account architecture requiring rules, not just PutEvents."
+    },
+    {
+      "question": "A mobile application uses AWS AppSync with DynamoDB as the data source. To improve performance, they enable caching at the API level with a 1-hour TTL. Users report seeing stale data even after making mutations that should update the data. What is the MOST appropriate solution?",
+      "options": [
+        "Reduce the cache TTL to 5 minutes to ensure fresher data",
+        "Implement cache invalidation logic in mutation resolvers to clear affected cached queries",
+        "Disable caching for mutations while keeping it enabled for queries",
+        "Use per-resolver caching instead of API-level caching for better control"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AppSync caching stores resolver results to reduce backend calls. When you enable API-level caching, query results are cached based on field arguments and identity. However, mutations don't automatically invalidate related cached queries. If a user queries for data, the result is cached. If they then mutate that data, the mutation succeeds but the cached query result remains until TTL expires, showing stale data. The solution is to implement cache invalidation in mutation resolvers using the $util.cachingInvalidate() function to specify which cache keys to invalidate. You can invalidate specific cache entries based on arguments or clear entire resolver caches. Option A reduces staleness duration but doesn't solve the fundamental problem. Option C is the default behavior - mutations aren't cached, but that doesn't prevent query caches from becoming stale. Option D (per-resolver caching) provides granular control but doesn't solve invalidation; you still need explicit invalidation logic. This tests understanding of AppSync caching behavior and the need for explicit cache invalidation strategies."
+    },
+    {
+      "question": "A serverless application with thousands of Lambda functions connects to an RDS PostgreSQL database through RDS Proxy for connection pooling. During load testing, they still encounter 'too many connections' errors from PostgreSQL despite Proxy being configured for 1000 max connections. What is the issue?",
+      "options": [
+        "RDS Proxy doesn't support PostgreSQL, only MySQL and Aurora",
+        "The RDS instance's max_connections parameter is set lower than the Proxy's max connections setting",
+        "Lambda functions are not reusing the RDS Proxy connections properly due to incorrect initialization",
+        "RDS Proxy requires all Lambda functions to be in the same VPC subnet for connection sharing"
+      ],
+      "correctAnswer": 1,
+      "explanation": "RDS Proxy provides connection pooling between your applications and the database, but it cannot create more connections to the database than the database allows. The max_connections parameter in RDS determines how many connections the database will accept. If RDS Proxy is configured for 1000 max connections but the RDS instance's max_connections parameter is set to 100, only 100 connections can be established to the database. RDS Proxy will queue additional connection requests. The 'too many connections' error suggests the database's max_connections limit is being hit. The solution is to increase the RDS instance's max_connections parameter (in a custom parameter group) to match or exceed the Proxy configuration. Option A is false - RDS Proxy supports PostgreSQL, MySQL, and Aurora. Option C is about connection reuse which affects efficiency but wouldn't cause 'too many connections' errors from the database. Option D is incorrect - VPC subnet placement doesn't affect connection sharing logic. This tests understanding that RDS Proxy pools connections but is still bound by database-side connection limits."
+    },
+    {
+      "question": "A video streaming platform needs to provide authenticated access to premium content stored in S3. Users should access multiple video files per session without requesting new authorization. The platform has a mix of web and mobile applications. Which approach is MOST appropriate?",
+      "options": [
+        "CloudFront signed URLs because they provide better security with individual file authorization",
+        "CloudFront signed cookies because they allow access to multiple files with a single authentication",
+        "CloudFront signed URLs because signed cookies don't work with mobile applications",
+        "CloudFront signed cookies because they don't expose the signature in the URL, improving security"
+      ],
+      "correctAnswer": 1,
+      "explanation": "CloudFront signed URLs and signed cookies both provide authenticated access to restricted content, but have different use cases. Signed URLs are best for individual files or when you can't modify the client application (e.g., direct downloads, embedded media with specific URLs). Signed cookies are better for providing access to multiple restricted files without generating URLs for each, which is perfect for scenarios like video streaming where a user session needs access to multiple video segments, playlists, subtitles, etc. The cookies are set once upon authentication and grant access to all matching content. Option A is incorrect - signed cookies provide equivalent security and are actually better for multiple files. Option C is false - signed cookies work fine with mobile apps that support cookie storage. Option D is partially true (not exposing signatures in URLs has marginal security benefit) but the primary advantage is the multiple-file access. The key distinction is: signed URLs = individual resources, signed cookies = multiple resources per session. This tests understanding of when to use each CloudFront security feature."
+    },
+    {
+      "question": "A data processing application consumes from a Kinesis Data Stream with 50 shards. They have 8 Lambda functions processing the stream, each needing dedicated throughput. They enable enhanced fan-out for all consumers. After deployment, some consumers experience throttling. What is the MOST likely cause?",
+      "options": [
+        "Enhanced fan-out has a limit of 5 registered consumers per stream",
+        "Lambda functions cannot use enhanced fan-out; only Kinesis Client Library (KCL) applications can",
+        "The account has reached the enhanced fan-out data transfer quota (2 MB/s per shard per consumer)",
+        "Enhanced fan-out requires one shard per consumer, and 50 shards can only support 5 consumers with proper distribution"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Kinesis Data Streams enhanced fan-out allows consumers to get dedicated 2 MB/s throughput per shard without sharing with other consumers. However, there's a hard limit of 5 registered enhanced fan-out consumers per stream. In this scenario, 8 Lambda functions are trying to use enhanced fan-out, exceeding the 5-consumer limit. Some consumers will fail registration or experience throttling. The solution is to either: (1) Use standard (shared) consumers for some functions, (2) Combine multiple Lambda functions under a single enhanced fan-out consumer using KCL with multiple workers, or (3) Split data across multiple streams. Option B is false - Lambda supports enhanced fan-out via event source mapping. Option C states the throughput spec incorrectly - 2 MB/s per shard per consumer is the provided throughput, not a quota limit. Option D is incorrect - the number of shards doesn't dictate consumer limits; the 5-consumer limit is independent of shard count. This tests awareness of Kinesis enhanced fan-out consumer limits."
+    },
+    {
+      "question": "An ECS application uses AWS Cloud Map for service discovery with a private DNS namespace. Services in VPC-A can resolve and connect to each other. The company adds services in VPC-B (peered with VPC-A) but those services cannot resolve the Cloud Map DNS names. What is missing?",
+      "options": [
+        "Cloud Map private DNS namespaces only work within a single VPC and cannot span VPC peering connections",
+        "The VPC-B DNS resolver needs to be configured with conditional forwarding rules to VPC-A",
+        "Cloud Map requires Route 53 Resolver inbound endpoints in VPC-A for cross-VPC resolution",
+        "VPC-B must be associated with the Cloud Map private DNS namespace for DNS resolution to work"
+      ],
+      "correctAnswer": 3,
+      "explanation": "AWS Cloud Map private DNS namespaces create Route 53 private hosted zones under the hood. Private hosted zones must be explicitly associated with VPCs for DNS resolution to work in those VPCs. Even though VPC-A and VPC-B are peered, the private hosted zone created by Cloud Map is initially only associated with VPC-A. Services in VPC-B cannot resolve those DNS names because their VPC isn't associated with the hosted zone. The solution is to associate VPC-B with the Cloud Map namespace (which associates it with the underlying private hosted zone). This can be done through the Cloud Map API or Route 53 console. Option A is incorrect - private hosted zones DO work across peered VPCs when properly associated. Option B is overly complex and unnecessary for peered VPCs with associated hosted zones. Option C is incorrect - Resolver endpoints are for hybrid DNS scenarios, not cross-VPC within AWS. This tests understanding that Cloud Map private namespaces use Route 53 private hosted zones requiring explicit VPC associations."
+    },
+    {
+      "question": "A financial system uses an SQS FIFO queue with content-based deduplication enabled. They send transaction records to the queue. During an incident, the same transaction is sent twice within a 1-minute window, but both messages are delivered to consumers, causing duplicate processing. What is the MOST likely cause?",
+      "options": [
+        "Content-based deduplication only works for messages sent more than 5 minutes apart",
+        "The two transaction messages have different MessageAttributes, which are included in deduplication hash",
+        "Content-based deduplication uses the entire message body, and some timestamp or UUID field differs between messages",
+        "FIFO queues require explicit MessageDeduplicationId; content-based deduplication is only a fallback"
+      ],
+      "correctAnswer": 2,
+      "explanation": "SQS FIFO queues provide exactly-once processing using deduplication. You can either provide an explicit MessageDeduplicationId or enable content-based deduplication, which generates the ID by hashing the message body. Content-based deduplication uses SHA-256 of the message body - any difference in the body, even a single character, results in a different hash and treats messages as unique. If the application includes timestamps, request IDs, or other variable fields in the message body, identical transactions will have different message bodies and won't be deduplicated. The solution is to either: (1) Exclude variable fields from the message body and put them in MessageAttributes instead, (2) Use explicit MessageDeduplicationId based on business logic (transaction ID), or (3) Normalize the message body before sending. Option A is false - the deduplication window is 5 minutes, not a minimum interval. Option B is incorrect - MessageAttributes are NOT included in content-based deduplication hash. Option D is misleading - both methods are valid primary options. This tests understanding of content-based deduplication behavior and common pitfalls."
+    },
+    {
+      "question": "An ALB routes traffic to Lambda functions. The Lambda function receives HTTP requests with multiple Cookie headers (from different sources like browser, proxy). When the function accesses the headers, it only sees one Cookie value. What is the issue and solution?",
+      "options": [
+        "ALB limits HTTP headers to single values; use NLB for multi-value header support",
+        "ALB combines duplicate headers into a comma-separated list; the Lambda must parse it",
+        "Lambda functions receive headers in a different format when invoked by ALB; check the multiValueHeaders field in the event",
+        "This is a limitation of Lambda function URLs; use API Gateway instead for full HTTP header support"
+      ],
+      "correctAnswer": 2,
+      "explanation": "When an Application Load Balancer invokes a Lambda function, it sends an event with a specific structure. Multi-value headers (like multiple Cookie headers) are provided in the multiValueHeaders field as an object where each header name maps to an array of values. If your Lambda function only reads the headers field, it only sees a single value (usually the last one). The solution is to check event.multiValueHeaders instead of event.headers. Similarly, multiValueQueryStringParameters exists for query strings with duplicate parameter names. Option A is incorrect - NLB doesn't support Lambda targets. Option B is partially true for some headers in some contexts, but ALB with Lambda specifically uses multiValueHeaders. Option D is incorrect - this is about ALB to Lambda integration, not Lambda function URLs. This tests understanding of the ALB-to-Lambda event structure and the distinction between headers and multiValueHeaders fields, which is a common source of bugs."
+    }
+  ]
+}
