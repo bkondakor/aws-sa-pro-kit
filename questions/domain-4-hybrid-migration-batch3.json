@@ -1,0 +1,184 @@
+{
+  "domain": "Domain 4: Accelerate Workload Migration and Modernization",
+  "task": "Task 4.1-4.4: Advanced Migration and Hybrid Cloud Scenarios",
+  "question_count": 15,
+  "questions": [
+    {
+      "question": "A media company needs to migrate 500 TB of video files from their on-premises NFS storage to Amazon S3. They have a 1 Gbps Direct Connect connection and need to complete the migration within 2 weeks while maintaining ongoing access to the files during migration. After evaluating AWS DataSync, they're concerned about bandwidth consumption impacting production workloads. What is the MOST appropriate solution?",
+      "options": [
+        "Use AWS DataSync with bandwidth throttling configured to limit data transfer to 500 Mbps during business hours and 1 Gbps during off-hours, scheduling automated task executions",
+        "Deploy AWS Storage Gateway File Gateway on-premises to cache frequently accessed files while migrating data to S3 in the background, providing transparent access during migration",
+        "Use AWS Snowball Edge devices to physically ship the data to AWS, then use Storage Gateway to provide ongoing access to files while the data is in transit",
+        "Configure AWS DataSync with VPC endpoint and use AWS Transit Gateway to route migration traffic over a separate VIF on Direct Connect dedicated to data migration"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS DataSync is the optimal solution for this scenario, and it includes built-in bandwidth throttling capabilities. You can configure DataSync to limit bandwidth usage during business hours (e.g., 500 Mbps) to prevent impact on production workloads, then increase to full bandwidth (1 Gbps) during off-hours. DataSync tasks can be scheduled to run automatically, and the service handles retries, data verification, and integrity checks. With 1 Gbps over 2 weeks (336 hours), theoretical maximum transfer is ~378 TB at 100% utilization, so with throttling and off-peak acceleration, 500 TB is achievable. Option B (File Gateway) isn't designed for initial migration; it's for hybrid access to existing S3 data. Option C (Snowball Edge) would work but takes longer (shipping time) and doesn't address the bandwidth concern. Option D is overengineered and requires multiple VIFs which may not be available or cost-effective."
+    },
+    {
+      "type": "multiple",
+      "question": "A financial institution is migrating an Oracle database from on-premises to Amazon RDS. The database is 10 TB in size with 200 GB of daily transactions. They need minimal downtime (under 1 hour) and must validate data integrity before cutover. Which AWS Database Migration Service (DMS) configurations should they implement? (Select THREE)",
+      "options": [
+        "Use DMS with full load followed by ongoing replication (CDC - Change Data Capture) to keep target synchronized during migration",
+        "Configure a DMS replication instance in the same VPC as the target RDS instance, using Multi-AZ for high availability during migration",
+        "Enable DMS task validation to compare source and target data, and use CloudWatch metrics to monitor ValidationSuspendedRecords and ValidationFailedRecords",
+        "Use DMS Schema Conversion Tool (SCT) to convert Oracle schemas to PostgreSQL-compatible schemas before starting DMS replication",
+        "Configure DMS LOB (Large Object) handling mode to 'Full LOB mode' for complete data fidelity of BLOB and CLOB columns",
+        "Create multiple DMS tasks, each handling a subset of tables, to parallelize the migration and reduce total migration time"
+      ],
+      "correctAnswer": [0, 2, 4],
+      "explanation": "For a large Oracle migration with minimal downtime: (1) Full load + CDC (Change Data Capture) is essential. This approach loads the initial 10 TB while allowing ongoing transactions, then continuously replicates changes. This keeps source and target synchronized until cutover, minimizing downtime to just the final switchover period. (2) DMS validation automatically compares source and target data for consistency. It runs during CDC replication and generates metrics (ValidationSuspendedRecords, ValidationFailedRecords) that help identify any discrepancies before cutover. This is critical for data integrity validation. (3) LOB handling is important for Oracle databases that often contain BLOB/CLOB data. 'Full LOB mode' ensures complete replication of large objects, though it's slower than limited LOB mode. For complete data fidelity, this is necessary. Option B is good practice but not essential for the requirements stated. Option D mentions SCT and PostgreSQL, but the question states migration to RDS (implied same engine, Oracle RDS). Option F (parallel tasks) can help but adds complexity and isn't essential for meeting the requirements."
+    },
+    {
+      "question": "A healthcare organization uses AWS Storage Gateway Volume Gateway in cached mode to provide low-latency access to medical imaging data. They have 200 TB of total data with 20 TB accessed frequently. After deployment, radiologists report slow access times for recently uploaded images. CloudWatch metrics show high cache hit rates (85%) but persistent latency. What is the MOST likely cause?",
+      "options": [
+        "The cache disk allocated to the Volume Gateway is too small (less than 20% of total data size); increasing cache size will improve performance for recently accessed data",
+        "The upload buffer disk is undersized, causing a bottleneck when new data is written and waiting to be uploaded to S3, delaying availability in the cache",
+        "Network latency between the on-premises environment and AWS is high; deploying Direct Connect instead of VPN would improve access times",
+        "The Volume Gateway is configured with insufficient IOPS provisioned on the underlying EBS volumes; increasing IOPS allocation will improve read performance"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Storage Gateway Volume Gateway uses two types of local storage: cache storage and upload buffer. The cache stores frequently accessed data, while the upload buffer temporarily stores data being written before it's uploaded to AWS. If the upload buffer is too small, newly written data (like recently uploaded medical images) can queue in the buffer waiting to be uploaded, delaying when it becomes available for cached reads. AWS recommends upload buffer sizing of at least 150 GB, but for high-write workloads, it should be much larger. The symptom of 'recently uploaded images being slow' despite high cache hit rates suggests the bottleneck is in the upload buffer, not the cache. Option A is incorrect because the cache size recommendation is met (20 TB cache for 20 TB hot data). Option C could contribute to latency but wouldn't specifically affect 'recently uploaded' data more than existing data. Option D is incorrect because Volume Gateway uses local storage, not EBS volumes."
+    },
+    {
+      "question": "A company is using AWS Application Migration Service (MGN) to migrate Windows servers from their datacenter to AWS. The replication servers have been deployed and agents installed on source servers. Initial data replication begins successfully, but after 24 hours, the replication status shows 'Stalled' for several servers. CloudWatch logs show intermittent network connectivity. What should the solutions architect investigate FIRST?",
+      "options": [
+        "Check if the source servers' firewalls allow outbound TCP connections on port 1500 for continuous data replication to the replication servers",
+        "Verify that the replication servers have sufficient EBS storage allocated, as the initial full sync may have filled available storage",
+        "Check if the AWS Direct Connect connection has BGP routing issues causing intermittent connectivity between on-premises and AWS",
+        "Confirm that the replication servers have adequate CPU and memory resources, as replication stalls often indicate resource exhaustion"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS Application Migration Service (formerly CloudEndure) uses agents on source servers that connect to replication servers in AWS. These agents use TCP port 1500 for continuous data replication and port 443 for control traffic. If the 'Stalled' status appears after initial successful replication, it suggests that the continuous replication phase is failing. The most common cause is firewall rules that allow initial connection but block sustained data transfer on port 1500, or security policies that terminate long-lived connections. Verifying firewall rules and ensuring port 1500 is consistently open should be the first investigation step. Option B is less likely because AWS MGN automatically provisions EBS volumes on replication servers sized appropriately, and storage issues would typically show different errors. Option C could cause issues but BGP problems would affect all traffic, not just MGN replication. Option D is unlikely because replication servers are automatically sized by MGN based on source server count."
+    },
+    {
+      "question": "An e-commerce company wants to implement a hybrid cloud architecture where their on-premises VMware environment can seamlessly extend to AWS. They need to be able to migrate VMs to AWS without re-platforming, maintain the same IP addresses, and enable live migration with minimal downtime. Which AWS service should they use?",
+      "options": [
+        "AWS Application Migration Service (MGN) to replicate VMs from VMware to EC2, using Elastic Network Interfaces to preserve IP addresses",
+        "AWS Server Migration Service (SMS) to orchestrate VMware VM migration to AMIs, then launch EC2 instances with specified private IP addresses",
+        "VMware Cloud on AWS to extend their on-premises VMware environment to AWS, providing Layer 2 extension and vMotion capabilities for live migration",
+        "AWS Import/Export to export VMware VM disk images as OVA files and import them as AMIs, then deploy EC2 instances from the AMIs"
+      ],
+      "correctAnswer": 2,
+      "explanation": "VMware Cloud on AWS is the service specifically designed for this scenario. It provides a native VMware environment (vSphere, vSAN, NSX) running on dedicated AWS infrastructure. Key capabilities include: (1) Layer 2 network extension between on-premises and AWS, allowing VMs to maintain the same IP addresses when migrated. (2) VMware vMotion support for live migration of running VMs with minimal downtime (seconds). (3) No re-platforming required; VMs run on the same VMware hypervisor. (4) Hybrid connectivity using AWS Direct Connect or VPN. This is ideal for organizations with significant VMware investments who want to extend to cloud. Option A (MGN) requires re-platforming to EC2 and doesn't support live migration. Option B (SMS, now deprecated) created AMIs from VMs but required reboots and didn't preserve all VMware features. Option D (Import/Export) is manual and doesn't support live migration."
+    },
+    {
+      "type": "multiple",
+      "question": "A global retailer is planning a large-scale migration of 500 applications from on-premises datacenters to AWS. They need to discover application dependencies, group applications into migration waves, and track migration progress. Which AWS services should they use? (Select THREE)",
+      "options": [
+        "AWS Application Discovery Service to discover on-premises servers, collect system metrics, and map network dependencies between applications",
+        "AWS Migration Hub to centrally track migration progress across multiple AWS migration services and organize applications into migration waves",
+        "AWS Migration Evaluator (formerly TSO Logic) to create business case by analyzing current on-premises utilization and projecting AWS costs",
+        "AWS Database Migration Service (DMS) to discover database schemas and automatically generate migration plans for all 500 applications",
+        "AWS Service Catalog to create standardized landing zones for migrated applications and enforce governance policies",
+        "AWS Migration Hub Refactor Spaces to create multi-account application environments and manage incremental refactoring post-migration"
+      ],
+      "correctAnswer": [0, 1, 2],
+      "explanation": "For large-scale migration discovery and planning: (1) AWS Application Discovery Service provides two discovery modes: agentless (using VMware vCenter connector to discover VMs) and agent-based (installing agents on servers to collect detailed configuration, performance, and network connection data). This data is crucial for understanding application dependencies. (2) AWS Migration Hub provides a central location to track migrations across Application Migration Service, Database Migration Service, and other tools. It supports creating application groups and organizing them into migration waves based on dependencies and priority. (3) AWS Migration Evaluator analyzes on-premises utilization data (CPU, memory, storage) to project AWS costs and create ROI business cases. This helps with cost planning and instance right-sizing. Option D is incorrect because DMS is for database migration, not application discovery. Option E is incorrect because Service Catalog is for governance, not migration tracking. Option F is incorrect because Refactor Spaces is for incremental refactoring during strangler fig pattern modernization, not initial discovery."
+    },
+    {
+      "question": "A company is using AWS Storage Gateway File Gateway to provide SMB access to S3 buckets for their on-premises Windows applications. After configuring the gateway, users report that file modifications made through the SMB share are not immediately visible when accessing S3 directly via the AWS console or CLI. What is the explanation?",
+      "options": [
+        "File Gateway caches metadata locally and only uploads to S3 every 5 minutes by default; users must manually trigger RefreshCache operation to sync immediately",
+        "File Gateway writes files to S3 asynchronously in the background after acknowledging the write to the client; there is a delay between SMB write and S3 object availability",
+        "File Gateway creates local snapshots of modified files and uploads them to S3 in batches during scheduled sync windows configured in the gateway settings",
+        "File Gateway uses S3 eventual consistency model; objects are immediately written to S3 but may not be visible in console/CLI for up to 60 seconds due to S3 propagation delays"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS Storage Gateway File Gateway uses asynchronous writes to optimize performance and reduce latency for SMB/NFS clients. When a client writes or modifies a file through the SMB share, File Gateway acknowledges the write immediately to the client (improving client-perceived performance) but uploads the data to S3 asynchronously in the background. The upload typically happens within seconds to minutes depending on file size and network conditions. This means there's an inherent delay between when a file appears written from the SMB client's perspective and when the object is fully uploaded and visible in S3. To force immediate visibility, you can use the RefreshCache API to trigger immediate upload or configure gateway settings for more aggressive upload behavior. Option A is incorrect because RefreshCache is for refreshing the gateway's cache from S3, not for forcing uploads. Option C is incorrect because File Gateway doesn't use scheduled sync windows; uploads are continuous. Option D is incorrect because S3 now provides strong read-after-write consistency, eliminating propagation delays."
+    },
+    {
+      "question": "A manufacturing company is migrating a legacy IBM DB2 database running on AIX to AWS. The application requires specific DB2 features not available in other database engines, and rewriting the application is not feasible. The database workload is I/O intensive with high transaction rates. What is the MOST appropriate AWS migration strategy?",
+      "options": [
+        "Migrate DB2 to Amazon RDS for Db2, which provides managed DB2 instances with automated backups, patching, and high availability",
+        "Use AWS Database Migration Service (DMS) to convert DB2 schemas to Amazon Aurora PostgreSQL using AWS Schema Conversion Tool (SCT), maintaining compatibility layers for DB2-specific features",
+        "Deploy IBM DB2 on EC2 instances running Red Hat Enterprise Linux (RHEL), using EBS Provisioned IOPS (io2) volumes for high I/O performance",
+        "Migrate to Amazon Aurora with Babelfish for compatibility with DB2 SQL syntax and stored procedures without application modification"
+      ],
+      "correctAnswer": 2,
+      "explanation": "When specific database engine features are required and replatforming isn't feasible, deploying the database on EC2 is the appropriate strategy. IBM DB2 can be installed on EC2 instances running Linux (RHEL, SUSE) with proper licensing. For I/O intensive workloads, EBS Provisioned IOPS (io2 or io2 Block Express) volumes provide high performance with guaranteed IOPS and low latency. This is a lift-and-shift migration that maintains full DB2 functionality. Considerations include: managing the OS and DB2 yourself (updates, patches, backups), using EC2 instance types optimized for database workloads (like r6i or X2i for memory-intensive), and implementing high availability with Multi-AZ deployments using DB2 HADR (High Availability Disaster Recovery). Option A is incorrect because AWS does not offer RDS for Db2. Option B wouldn't maintain DB2-specific features as required. Option D is incorrect because Aurora Babelfish provides SQL Server compatibility, not DB2 compatibility."
+    },
+    {
+      "question": "A company has deployed AWS DataSync to migrate file data from their on-premises NFS server to Amazon EFS. After creating and running the DataSync task, they notice that the data transfer rate is much slower than expected given their available bandwidth. CloudWatch metrics show low network utilization. What should they check to improve performance?",
+      "options": [
+        "Increase the number of DataSync agents deployed on-premises to parallelize the data transfer across multiple agents",
+        "Verify the DataSync task is configured to use multiple network interface cards (NICs) on the DataSync agent for increased throughput",
+        "Check if the source NFS server has I/O limitations or if the DataSync task is configured with bandwidth throttling that limits transfer speed",
+        "Configure the DataSync task to use VPC endpoint for EFS instead of public endpoint to reduce latency and increase throughput"
+      ],
+      "correctAnswer": 2,
+      "explanation": "If CloudWatch shows low network utilization despite having available bandwidth, the bottleneck is likely not the network but either the source storage system's I/O capacity or DataSync task configuration. DataSync can only transfer data as fast as the source NFS server can read it. If the NFS server has slow disks, high I/O latency, or is serving other workloads, it may be the limiting factor. Additionally, DataSync tasks can be configured with bandwidth throttling (either total bandwidth limit or scheduled bandwidth limits). Check the task settings to ensure bandwidth limits are not restricting transfer speeds. Option A is incorrect because a single DataSync agent can typically saturate most network connections; multiple agents are only needed for very high bandwidth scenarios (10+ Gbps). Option B is incorrect because while DataSync agents can use multiple NICs, this is configured during agent deployment, and the symptom suggests the network isn't the bottleneck. Option D is incorrect because while VPC endpoints can reduce latency, the issue is low utilization, not high latency."
+    },
+    {
+      "type": "multiple",
+      "question": "A software company is migrating a multi-tier web application from on-premises to AWS. The application consists of web servers, application servers, and a Microsoft SQL Server database with Always On Availability Groups. They want to minimize changes to the application while leveraging AWS managed services where possible. Which migration strategies should they implement? (Select THREE)",
+      "options": [
+        "Migrate web servers to Amazon EC2 Auto Scaling groups behind an Application Load Balancer, using AWS Application Migration Service (MGN) for initial migration",
+        "Migrate the SQL Server database to Amazon RDS for SQL Server with Multi-AZ deployment to maintain high availability without managing Always On configuration",
+        "Use AWS Database Migration Service (DMS) with homogeneous migration to migrate SQL Server to EC2-based SQL Server Always On cluster to maintain existing configuration",
+        "Containerize the application servers and deploy to Amazon ECS on Fargate for reduced operational overhead",
+        "Deploy application servers to EC2 instances in Auto Scaling groups using the same application binaries migrated via MGN",
+        "Migrate the database to Amazon Aurora with Babelfish to maintain SQL Server compatibility while benefiting from Aurora's performance and scalability"
+      ],
+      "correctAnswer": [0, 1, 4],
+      "explanation": "For minimizing changes while leveraging managed services: (1) Web servers can be migrated to EC2 using MGN (lift-and-shift), then organized into Auto Scaling groups behind an ALB for high availability and scalability. This requires minimal application changes. (2) RDS for SQL Server with Multi-AZ provides managed high availability equivalent to Always On Availability Groups without requiring manual cluster management. RDS Multi-AZ uses synchronous replication, automatic failover, and automated backups. This is the 'minimal changes' path for databases. (3) Application servers can be migrated to EC2 using MGN, preserving the existing binaries and configuration. Auto Scaling groups provide horizontal scaling. This is straightforward lift-and-shift. Option C maintains Always On but doesn't leverage managed services as requested. Option D (containerization) requires significant application refactoring, not minimal changes. Option F (Aurora Babelfish) is interesting but involves more risk and testing than RDS SQL Server which is a drop-in replacement."
+    },
+    {
+      "question": "An organization is using AWS Storage Gateway Tape Gateway to replace their physical tape backup infrastructure. They have configured the gateway and integrated it with their existing Veeam backup software. Backups complete successfully, but when they attempt to retrieve an archived tape from Glacier for restore, the retrieval fails with 'Tape not found' errors. What is the MOST likely cause?",
+      "options": [
+        "Tapes archived to Glacier must be retrieved through the Storage Gateway console or API, not through the backup software (Veeam); the backup software can only access tapes in the Virtual Tape Library (VTL)",
+        "The tape retrieval request was made too soon after archival; Glacier requires 3-5 hours for tape indexing before retrieval requests can be processed",
+        "The Virtual Tape Library is configured with S3 Standard storage, not Glacier; tapes must be explicitly moved to Virtual Tape Shelf (VTS) to be archived in Glacier",
+        "Tape Gateway doesn't support retrieval of tapes archived to Glacier Deep Archive; only Glacier Flexible Retrieval tapes can be retrieved"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS Storage Gateway Tape Gateway has two components: Virtual Tape Library (VTL) for active tapes and Virtual Tape Shelf (VTS) for archived tapes. Active tapes in VTL are stored in S3 and are directly accessible by the backup software. When tapes are ejected (marked for archival) from the VTL, they are moved to VTS and stored in Glacier. To retrieve an archived tape from VTS back to VTL, you must use the Storage Gateway console or API to initiate the retrieval. The backup software (Veeam, Backup Exec, etc.) can only see and access tapes that are currently in the VTL. The retrieval process takes several hours (depending on Glacier retrieval option) after which the tape appears in VTL and becomes accessible to the backup software. Option B is incorrect because there's no 3-5 hour indexing period. Option C is incorrect because the description states tapes were archived, implying they're in VTS/Glacier. Option D is incorrect because Tape Gateway supports both Glacier Flexible Retrieval and Glacier Deep Archive, with different retrieval times."
+    },
+    {
+      "question": "A financial services company is planning to migrate their on-premises Oracle Data Warehouse (30 TB, high query complexity) to AWS. They need to minimize migration time, support complex analytical queries, and reduce licensing costs. They are open to changing database platforms. What migration strategy should they use?",
+      "options": [
+        "Migrate to Amazon RDS for Oracle to maintain compatibility, then gradually optimize queries for RDS and consider converting to Aurora PostgreSQL in a later phase",
+        "Use AWS Schema Conversion Tool (SCT) to convert Oracle schemas to Amazon Redshift, then use AWS DMS to migrate data from Oracle to Redshift for analytics-optimized performance",
+        "Migrate to Amazon Aurora PostgreSQL using AWS DMS with SCT for schema conversion, maintaining OLTP performance while reducing Oracle licensing costs",
+        "Export Oracle data to S3 using Data Pump, then use Amazon Athena to query the data directly from S3 without provisioning a database"
+      ],
+      "correctAnswer": 1,
+      "explanation": "For an Oracle Data Warehouse migration, Amazon Redshift is the ideal target. Redshift is AWS's purpose-built data warehousing service optimized for OLAP workloads and complex analytical queries. The migration process: (1) Use AWS Schema Conversion Tool (SCT) to analyze the Oracle data warehouse schema and convert it to Redshift-compatible schema. SCT provides recommendations for optimizing distribution keys, sort keys, and compression. (2) Use AWS DMS to perform the data migration from Oracle to Redshift. DMS supports full load and can handle 30 TB efficiently. (3) Redshift eliminates Oracle licensing costs and provides better price-performance for analytics. Option A maintains Oracle costs and Aurora PostgreSQL isn't optimized for data warehousing. Option C suggests Aurora PostgreSQL which is optimized for OLTP (transactional workloads), not OLAP (analytical workloads). Option D with Athena is possible for ad-hoc queries but doesn't provide the performance or features of a dedicated data warehouse for complex, frequent analytical queries."
+    },
+    {
+      "question": "A media company uses AWS Storage Gateway Volume Gateway in stored mode to back up 100 TB of on-premises data to S3. They need to recover a specific 50 GB folder from a snapshot taken 1 week ago. What is the MOST efficient recovery method?",
+      "options": [
+        "Create a new Volume Gateway volume from the snapshot in AWS, attach it to an EC2 instance, mount the volume, and copy the specific folder to S3, then download it to on-premises",
+        "Restore the entire 100 TB volume from the snapshot to the on-premises Volume Gateway, then copy the specific 50 GB folder locally",
+        "Use S3 CLI to directly download the folder objects from the S3 bucket where the Volume Gateway stores data, since stored mode keeps data in S3",
+        "Convert the volume snapshot to an EBS volume, attach to an EC2 instance running in the same region, mount and retrieve the folder, then transfer to on-premises"
+      ],
+      "correctAnswer": 3,
+      "explanation": "The most efficient method is to create an EBS volume from the Volume Gateway snapshot in AWS and attach it to an EC2 instance. Volume Gateway snapshots are stored as EBS snapshots and can be converted to EBS volumes. Once created and attached to an EC2 instance, you can mount the volume (Linux or Windows), navigate to the specific folder, and copy just the needed 50 GB of data. This avoids restoring the entire 100 TB volume. You can then transfer this data to on-premises via S3, Direct Connect, or VPN. Option A is less efficient because it requires creating a new Volume Gateway volume, which involves more setup overhead. Option B is very inefficient because it requires restoring 100 TB to retrieve 50 GB. Option C is incorrect because stored mode keeps the primary data on-premises; only snapshots (in proprietary format) are in S3. The snapshot data isn't directly accessible as S3 objects."
+    },
+    {
+      "type": "multiple",
+      "question": "A healthcare organization is migrating HIPAA-compliant workloads to AWS. They must maintain audit trails, encrypt data in transit and at rest, and implement access controls. Which migration considerations should they implement? (Select THREE)",
+      "options": [
+        "Enable AWS CloudTrail in all accounts with log file validation enabled, and store logs in a centralized S3 bucket with MFA Delete and Object Lock for immutability",
+        "Use AWS Application Migration Service (MGN) with encryption enabled for replication, ensuring data is encrypted in transit using TLS and at rest using EBS encryption",
+        "Sign AWS Business Associate Agreement (BAA) before migrating any PHI (Protected Health Information) to AWS, covering all AWS services that will process PHI",
+        "Implement VPC Flow Logs in all VPCs to capture network traffic metadata for security analysis and compliance audit requirements",
+        "Use AWS Migration Hub to track HIPAA compliance status of each migrated application and generate compliance reports",
+        "Deploy AWS Config to monitor resource configurations and ensure compliance with HIPAA security controls like encryption enforcement and access logging"
+      ],
+      "correctAnswer": [0, 2, 5],
+      "explanation": "For HIPAA-compliant migration: (1) CloudTrail provides audit trails of all API calls, which is required for HIPAA compliance. Log file validation ensures integrity, and storing logs in a centralized S3 bucket with MFA Delete and Object Lock ensures logs cannot be tampered with. This meets audit trail requirements. (2) AWS Business Associate Agreement (BAA) is legally required before storing, processing, or transmitting PHI (Protected Health Information) using AWS services. Not all AWS services are HIPAA-eligible; only services covered under the BAA can be used for PHI. This must be in place before migration begins. (3) AWS Config continuously monitors resource configurations and can detect non-compliant configurations (like unencrypted EBS volumes, disabled logging, etc.). Config rules can enforce HIPAA security requirements like encryption at rest, access logging, and MFA. Option B is good practice but encryption during migration is standard in MGN; it's not specific to HIPAA compliance considerations. Option D (VPC Flow Logs) is useful but not a core HIPAA requirement. Option E is incorrect because Migration Hub tracks migration progress, not compliance status."
+    },
+    {
+      "question": "A company is using AWS Server Migration Service (SMS) to migrate VMware VMs to AWS. After creating a replication job, the job fails with an error indicating insufficient permissions. The IAM role used by SMS has the AWSServerMigrationServiceRole managed policy attached. What is the likely cause?",
+      "options": [
+        "The IAM role is missing permissions to access the S3 bucket where SMS stores temporary VM data during replication; the bucket policy must also allow the SMS service principal",
+        "AWS Server Migration Service (SMS) is deprecated and no longer supported; the company should use AWS Application Migration Service (MGN) instead",
+        "The SMS Connector deployed in VMware vCenter has expired credentials; the connector must be re-registered with fresh IAM credentials",
+        "The IAM role's trust policy doesn't include the SMS service principal (sms.amazonaws.com), preventing SMS from assuming the role"
+      ],
+      "correctAnswer": 1,
+      "explanation": "AWS Server Migration Service (SMS) was deprecated in March 2022 and is no longer available for new customers. AWS Application Migration Service (MGN) is the recommended replacement for lift-and-shift migrations. MGN provides more features, better performance, and is actively supported. If this is a new implementation, the user cannot use SMS and must use MGN instead. If this is an existing SMS implementation that was set up before deprecation, the issue could be related to options A, C, or D, but given the context of the question, the most likely and important answer is that SMS is no longer supported. Option A could be valid for legacy SMS implementations. Option C could also be valid as SMS Connectors do require periodic credential refresh. Option D is possible but the AWSServerMigrationServiceRole managed policy typically includes the correct trust policy."
+    }
+  ]
+}
