@@ -38,6 +38,8 @@ Security controls are critical for protecting data, applications, and infrastruc
 - Data residency and sovereignty
 - Threat detection (GuardDuty)
 
+> **Note:** This document includes recent AWS feature updates and enhancements. For exam preparation, verify current feature availability and specifications against official AWS documentation at https://docs.aws.amazon.com/
+
 ---
 
 ## Encryption Strategies
@@ -55,8 +57,8 @@ Security controls are critical for protecting data, applications, and infrastruc
 
 ### AWS Key Management Service (KMS)
 
-**2025 Updates:**
-- **FIPS 140-3 Level 3 Validation**: Upgraded from FIPS 140-2
+**KMS Compliance:**
+- **FIPS 140-2 Level 2 Validation**: Level 3 for certain cryptographic operations
 - **Configurable Automatic Rotation**: 90 days to 2560 days (7 years)
 - **RotateKeyOnDemand API**: Immediate rotation (10 lifetime limit)
 
@@ -250,7 +252,7 @@ aws kms create-grant \
 **vs KMS:**
 | Factor | KMS | CloudHSM |
 |--------|-----|----------|
-| **Compliance** | FIPS 140-3 Level 3 | FIPS 140-2 Level 3 |
+| **Compliance** | FIPS 140-2 Level 2 | FIPS 140-2 Level 3 |
 | **Tenancy** | Multi-tenant | Single-tenant |
 | **Control** | AWS manages hardware | Customer manages keys |
 | **Price** | $1/key/month | $1.45/hour (~$1,044/month) |

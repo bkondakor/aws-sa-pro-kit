@@ -3,7 +3,7 @@ title: "AWS Solutions Architect Professional - Study Guide Index"
 exam: "SAP-C02"
 total_questions: 75
 passing_score: "750/1000"
-duration: "190 minutes"
+duration: "180 minutes"
 file_type: "master-index"
 last_updated: "2025-11-18"
 ---
@@ -16,7 +16,7 @@ Welcome to your comprehensive study guide for the AWS Solutions Architect Profes
 
 - **Exam Code**: SAP-C02
 - **Total Questions**: 75 (multiple choice and multiple response)
-- **Duration**: 190 minutes (3 hours 10 minutes)
+- **Duration**: 180 minutes (3 hours)
 - **Passing Score**: 750/1000
 - **Format**: Scenario-based questions testing deep AWS knowledge
 - **Validity**: 3 years from passing date

@@ -627,9 +627,10 @@ Physical devices for offline data transfer when network transfer is impractical.
 - **Use Case:** Large data migrations, local storage
 
 **2. Snowball Edge Compute Optimized**
-- **Storage:** 28 TB usable (42 TB SSD)
+- **Storage:** 28 TB NVMe SSD (fully SSD storage)
 - **Compute:** 104 vCPUs, 416 GB RAM, GPU (optional)
 - **Use Case:** Edge computing, ML inference, video processing
+- **Note:** As of Nov 2025, only available to existing customers
 
 **Common Features:**
 - **Dimensions:** Suitcase-sized (65 lbs / 29 kg)
@@ -691,7 +692,7 @@ Physical devices for offline data transfer when network transfer is impractical.
 
 | Feature | Snowcone | Snowball Edge Storage | Snowball Edge Compute | Snowmobile |
 |---------|----------|----------------------|----------------------|------------|
-| **Capacity** | 8-14 TB | 80 TB | 28 TB | 100 PB |
+| **Capacity** | 8-14 TB | 80 TB | 28 TB NVMe SSD | 100 PB |
 | **Size** | Tiny (4.5 lbs) | Suitcase | Suitcase | Truck |
 | **Network** | Wi-Fi, wired | 10-100 Gbps | 10-100 Gbps | Multi-100 Gbps |
 | **Use Case** | Edge, small data | Medium migration | Edge compute | Exabyte migration |
