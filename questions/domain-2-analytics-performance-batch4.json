@@ -1,0 +1,184 @@
+{
+  "domain": "Domain 2: Design for New Solutions",
+  "task": "Task 2.2: Advanced Analytics and Performance Optimization",
+  "question_count": 15,
+  "questions": [
+    {
+      "question": "A real-time analytics platform ingests clickstream data from web applications at 50,000 records per second. The data needs to be processed by multiple consumers: one Lambda function for real-time alerting, one Kinesis Data Analytics application for aggregations, and one process that stores raw data in S3 for batch analysis. After implementing Amazon Kinesis Data Streams with 50 shards, the Lambda function occasionally throttles and processes duplicate records. What is the MOST likely cause?",
+      "options": [
+        "Lambda concurrent execution limit is reached; increase the reserved concurrency for the Lambda function and implement proper de-duplication logic using sequence numbers",
+        "Kinesis Data Streams is configured with 50 shards but Lambda is using batch size of 1,000 records, causing processing time to exceed the Lambda timeout",
+        "The Lambda function is not processing records fast enough, causing IteratorAge to increase; Kinesis retries records, resulting in duplicates. Implement checkpointing using DynamoDB",
+        "Kinesis shard iterator is not properly managed; the Lambda function should use TRIM_HORIZON instead of LATEST to avoid processing duplicates"
+      ],
+      "correctAnswer": 0,
+      "explanation": "When Lambda functions consume from Kinesis and experience throttling, it's typically due to hitting Lambda's concurrent execution limits. Each Kinesis shard maps to one concurrent Lambda execution. With 50 shards, potentially 50 Lambda instances run concurrently. If the account-level concurrent execution limit (default 1,000) is reached by other functions, or if reserved concurrency is set too low for this function, Lambda will throttle. When Lambda throttles, Kinesis retries the records, leading to duplicates. The solution: (1) Increase reserved concurrency for the Lambda function. (2) Implement idempotent processing with de-duplication using Kinesis sequence numbers to handle duplicates gracefully. Option B is unlikely because even with batch size 1,000, Lambda should process before timeout unless the processing logic is very slow. Option C is incorrect because Lambda manages checkpointing automatically for Kinesis; you don't manually implement checkpointing with DynamoDB when using the Kinesis trigger. Option D is incorrect because shard iterator type (TRIM_HORIZON vs LATEST) determines where reading starts, not whether duplicates occur."
+    },
+    {
+      "type": "multiple",
+      "question": "A financial analytics company uses Amazon Athena to query 10 TB of Parquet files stored in S3. Queries are running slowly and incurring high costs. The data is partitioned by date, but most queries filter by both date and customer_id. Which optimizations should they implement to improve performance and reduce costs? (Select THREE)",
+      "options": [
+        "Implement partition projection for the date partition to eliminate the overhead of listing partitions from the Glue Data Catalog",
+        "Reorganize data using a composite partitioning scheme with both date and customer_id to reduce the amount of data scanned per query",
+        "Enable Athena result caching and query result reuse to avoid re-running identical queries within the 24-hour cache period",
+        "Convert Parquet files to ORC format, which provides better compression and faster query performance for Athena",
+        "Increase the Athena query timeout setting to allow complex queries more time to complete",
+        "Use columnar projection to select only required columns in queries, and ensure Parquet files use dictionary encoding and compression (Snappy/GZIP)"
+      ],
+      "correctAnswer": [0, 1, 5],
+      "explanation": "To optimize Athena performance: (1) Partition projection allows Athena to calculate partition locations on-the-fly instead of retrieving partition metadata from Glue Data Catalog. For date-based partitions, this can significantly reduce query planning time. Partition projection is ideal for known partition schemes (like dates) and can reduce costs by avoiding Glue API calls. (2) Composite partitioning by both date and customer_id allows queries filtering by both fields to scan much less data. Athena only reads partitions matching the filter criteria, reducing data scanned and costs (Athena charges per byte scanned). (3) Columnar projection (selecting specific columns) reduces data scanned because Parquet stores data columnar format. Dictionary encoding and compression (Snappy for balance, GZIP for maximum compression) further reduce data size. Option C is useful but has limited impact since it only helps repeated identical queries. Option D is incorrect because both Parquet and ORC are columnar formats with similar performance; converting between them doesn't provide significant benefit. Option E is incorrect because timeout doesn't address performance or cost issues."
+    },
+    {
+      "question": "A streaming data pipeline uses Amazon Kinesis Data Firehose to deliver records from Kinesis Data Streams to S3. The pipeline includes a Lambda function for data transformation. Users report that some records are missing from S3, but the Kinesis Data Streams consumer shows all records were successfully processed. CloudWatch metrics show Firehose DeliveryToS3.DataFreshness increasing. What is the issue?",
+      "options": [
+        "The Lambda transformation function is exceeding the 6 MB payload size limit for Firehose, causing large records to be dropped silently",
+        "The Lambda transformation function is returning 'Dropped' status for some records or timing out, causing Firehose to skip those records. Enable Firehose error logging to S3 for failed records",
+        "Kinesis Data Firehose buffer size settings (buffer size and buffer interval) are too large, causing records to be aggregated beyond S3 object size limits and dropped",
+        "The S3 bucket has Object Lock enabled in Compliance mode, preventing Firehose from writing objects, causing delivery failures"
+      ],
+      "correctAnswer": 1,
+      "explanation": "When records are missing from S3 despite successful Kinesis Data Streams processing, the issue is in the Firehose transformation or delivery stage. If the Lambda transformation function returns 'Dropped' status for a record (instead of 'Ok'), Firehose will not deliver that record to S3. Similarly, if the Lambda function times out or fails, Firehose may drop records after retries are exhausted. The DataFreshness metric increasing suggests Firehose is having trouble delivering records (backlog is growing). To diagnose: (1) Enable error logging in Firehose configuration to capture failed records and errors to an S3 bucket. (2) Check Lambda CloudWatch logs for errors, timeouts, or 'Dropped' return values. (3) Ensure Lambda has sufficient timeout and memory. Option A is incorrect because Firehose doesn't silently drop oversized records; it would log errors. Option C is incorrect because buffer settings affect batching, not whether records are dropped. Option D is unlikely because Object Lock doesn't prevent writes, it prevents deletion/overwrite."
+    },
+    {
+      "question": "A data science team uses Amazon EMR for big data processing with Apache Spark jobs that run nightly for 4 hours. The jobs process 5 TB of data from S3, perform transformations, and write results back to S3. To reduce costs, they want to use Spot Instances, but they're concerned about job failures due to Spot interruptions. What is the MOST cost-effective and resilient architecture?",
+      "options": [
+        "Use a cluster with all Spot Instances and enable EMR checkpoint for Spark, configuring HDFS replication factor of 3 to ensure data durability if nodes are terminated",
+        "Use a hybrid cluster with On-Demand instances for master and core nodes, and Spot instances for task nodes; enable EMRFS for S3 data access instead of HDFS",
+        "Use all Spot Instances with EMR Instance Fleets to diversify across multiple instance types, and configure EMR graceful shrink to minimize job failures",
+        "Use Spot Instances with capacity blocks reserved for the 4-hour job window, ensuring uninterrupted capacity at Spot prices"
+      ],
+      "correctAnswer": 1,
+      "explanation": "For EMR with Spot Instances, the best practice is to use a hybrid approach: (1) On-Demand instances for master node (orchestration) and core nodes (if using HDFS for critical data), ensuring cluster stability. (2) Spot instances for task nodes, which perform computation but don't store HDFS data. Task nodes can be interrupted without data loss. (3) Use EMRFS (EMR File System for S3) instead of HDFS for data storage. Read input data from S3 and write output to S3 directly. This eliminates dependency on HDFS for data persistence. If a Spot task node is interrupted, Spark automatically reschedules the task on another node. This provides maximum cost savings (task nodes on Spot) while maintaining resilience. Option A is risky because if core nodes with HDFS data are terminated, data could be lost despite replication. Option C with Instance Fleets is good but still has risk if core nodes are Spot. Option D is incorrect because Spot capacity blocks reserve capacity for ML training, not general EMR workloads, and they're not significantly cheaper than On-Demand."
+    },
+    {
+      "question": "A company uses Amazon Redshift for their data warehouse. Queries that previously ran in minutes are now taking hours after the data volume grew from 10 TB to 100 TB. EXPLAIN plans show high disk I/O and sorting operations. The tables use EVEN distribution style. What optimization should the architect implement FIRST?",
+      "options": [
+        "Upgrade the Redshift cluster to larger node types (e.g., from dc2.large to dc2.8xlarge) to increase CPU and memory available for query processing",
+        "Analyze query patterns and change table distribution style from EVEN to KEY distribution on the most frequently joined columns, and implement appropriate sort keys",
+        "Enable Redshift Concurrency Scaling to automatically add cluster capacity during high query load periods",
+        "Implement Redshift Spectrum to offload historical data to S3 and keep only recent data in Redshift for faster query performance"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The root cause of poor performance with EVEN distribution on large tables is that queries involving joins require significant data movement (redistribution) across nodes, causing high disk I/O and slow performance. The first optimization should be to implement proper distribution and sort keys: (1) KEY distribution: Distribute tables based on columns used in joins. When tables are distributed on the same key, Redshift can perform co-located joins without redistributing data across nodes, drastically improving performance. (2) Sort keys: Define sort keys on columns used in WHERE clauses, ORDER BY, and GROUP BY. Sorted data enables zone maps to skip blocks of data during scans, reducing I/O. For large datasets (100 TB), proper distribution and sort keys are critical. Option A (larger nodes) helps but doesn't address the inefficient distribution causing data movement. Option C (Concurrency Scaling) addresses concurrent query load, not single query performance. Option D (Spectrum) is useful for archival data but doesn't solve the fundamental performance issue with active data querying."
+    },
+    {
+      "type": "multiple",
+      "question": "A media streaming company needs to implement a real-time recommendation engine that processes user viewing behavior. Events arrive at 100,000 per second, and the system must calculate aggregations (views per show, trending content) over sliding 5-minute windows and update a DynamoDB table for serving recommendations via API. Which architecture components should they use? (Select THREE)",
+      "options": [
+        "Amazon Kinesis Data Streams to ingest viewing events with sufficient shards to handle 100,000 records/second throughput",
+        "Amazon Kinesis Data Analytics for Apache Flink to process streaming data with tumbling window aggregations and write results to DynamoDB",
+        "AWS Lambda functions triggered by Kinesis Data Streams to perform windowed aggregations using in-memory state management",
+        "Amazon Kinesis Data Firehose to deliver events to S3, then use Athena with scheduled queries to compute aggregations",
+        "Amazon DynamoDB with on-demand capacity mode for write-heavy workload from streaming aggregations",
+        "Amazon ElastiCache for Redis to store intermediate aggregation results before writing final results to DynamoDB"
+      ],
+      "correctAnswer": [0, 1, 4],
+      "explanation": "For real-time stream processing with windowed aggregations: (1) Kinesis Data Streams is the ingestion layer. At 100,000 records/second with average record size (1 KB), you need approximately 100 shards (each shard supports 1,000 records/sec or 1 MB/sec write). (2) Kinesis Data Analytics for Apache Flink is purpose-built for complex stream processing including sliding/tumbling window aggregations. Flink can maintain state for windows, perform aggregations, and directly write to DynamoDB. It's more robust and scalable than Lambda for complex stateful stream processing. (3) DynamoDB with on-demand capacity mode automatically scales to handle variable write loads from the streaming aggregations without manual capacity planning. Alternatively, provisioned capacity with auto-scaling works if the pattern is predictable. Option C is possible but less suitable because Lambda has state management limitations and at 100,000 events/sec, you'd need complex orchestration. Option D is batch processing, not real-time. Option F is unnecessary because Flink manages intermediate state, and adding Redis adds complexity without clear benefit."
+    },
+    {
+      "question": "A data analytics team runs AWS Glue ETL jobs to transform raw data from S3 to a processed format daily. Jobs process 1 TB of data and take 6 hours to complete using 10 DPUs (Data Processing Units). To reduce costs and runtime, what optimization should they implement?",
+      "options": [
+        "Increase DPUs to 20 to process data faster, reducing total runtime and overall cost since Glue charges per DPU-hour",
+        "Enable Glue job bookmarking to track processed data and avoid reprocessing the same data in subsequent runs, reducing data processed and runtime",
+        "Convert the Glue job from Python Shell to Spark to leverage distributed processing across multiple nodes for faster execution",
+        "Use Glue Auto Scaling to dynamically adjust DPUs during job execution based on workload, optimizing resource usage"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Glue job bookmarking is a feature that allows Glue to track which data has already been processed in previous runs. This is especially useful for incremental data processing scenarios where new data is added regularly to S3. Instead of processing the entire 1 TB dataset every day, job bookmarking enables the Glue job to process only new or changed data since the last run. This can dramatically reduce the amount of data processed, reducing both runtime and cost. For example, if only 100 GB of new data is added daily, the job would process 100 GB instead of 1 TB. Option A is incorrect because doubling DPUs would halve runtime (to 3 hours) but cost would remain similar (20 DPUs × 3 hours = 60 DPU-hours vs. 10 DPUs × 6 hours = 60 DPU-hours). Option C is incorrect because Glue ETL jobs already use Spark by default; Python Shell jobs are for simple scripts. Option D is incorrect because as of current AWS documentation, Glue doesn't have native auto-scaling of DPUs during job execution (you set DPUs at job start)."
+    },
+    {
+      "question": "A company uses Amazon ElastiCache for Redis to cache database query results for their e-commerce application. During flash sales, cache hit rate drops significantly and database load spikes. They have a Redis cluster with cluster mode enabled, 3 shards, and 1 replica per shard. Redis eviction policy is set to 'volatile-lru'. What is the MOST likely cause of the cache hit rate drop?",
+      "options": [
+        "The cache is undersized for the flash sale traffic; popular items are being evicted due to memory pressure before they can be reused, causing cache misses",
+        "The application is not setting TTL on cache keys, so volatile-lru eviction policy cannot evict any keys, causing memory to fill up and new keys failing to be cached",
+        "The Redis cluster needs more shards to distribute the key space and reduce hot keys that concentrate on single shards during flash sales",
+        "Replication lag is occurring between primary and replica nodes during high write load, causing reads from replicas to return stale or missing data"
+      ],
+      "correctAnswer": 0,
+      "explanation": "During flash sales, traffic patterns change dramatically. Popular items generate many cache requests. If the cache is undersized, the most likely issue is that memory fills up and the eviction policy starts removing keys prematurely. With volatile-lru (least recently used keys with TTL set), Redis evicts the least recently used keys among those with expiration set. During flash sales, the cache fills with many keys, and even popular items might be evicted before they can be reused, causing cache misses and database load. The solution is to scale up (larger node types for more memory) or scale out (more shards). Option B is the opposite problem: if volatile-lru can't evict anything (no keys with TTL), Redis would return errors when memory is full, not drop hit rate. Option C could cause hot key issues on specific shards but wouldn't generally drop overall hit rate. Option D is unlikely because Redis replication is very fast, and reads typically go to primary nodes unless read replicas are explicitly configured."
+    },
+    {
+      "question": "A financial services company uses AWS Glue Data Catalog as a centralized metadata repository for data stored in S3 across multiple AWS accounts. Analyst teams in different accounts need to query this data using Amazon Athena. After setting up cross-account access to the S3 buckets, Athena queries fail with 'Insufficient permissions' errors. What is missing?",
+      "options": [
+        "The Glue Data Catalog must be shared with the analyst accounts using AWS Resource Access Manager (RAM), granting permissions to the specific databases and tables",
+        "The S3 bucket policies in the data account must allow not only s3:GetObject but also glue:GetTable and glue:GetDatabase for the analyst accounts",
+        "Athena queries require the analyst accounts to have a local copy of the Glue Data Catalog; use Glue Catalog replication to copy metadata to each account",
+        "The analyst accounts must create external tables in their own Glue Data Catalogs that reference the S3 data, pointing to the physical S3 locations"
+      ],
+      "correctAnswer": 0,
+      "explanation": "AWS Glue Data Catalog can be shared across accounts using AWS Resource Access Manager (RAM). To enable cross-account Athena queries: (1) The account owning the Glue Data Catalog shares the catalog (or specific databases) with analyst accounts using RAM. (2) RAM creates resource shares that grant permissions to access the catalog metadata. (3) The analyst accounts can then query the shared tables using Athena in their own accounts, as long as they also have S3 permissions to the underlying data. Without RAM sharing of the Glue Data Catalog, analyst accounts cannot access the table definitions (schema, location, format), causing Athena queries to fail even if S3 permissions are correct. Option B is incorrect because S3 bucket policies grant S3 permissions, not Glue permissions; Glue permissions are separate. Option C is incorrect because Glue Catalog replication is not a standard feature; you use RAM sharing instead. Option D would work as a manual alternative but is not the standard or recommended approach; RAM sharing is the proper solution."
+    },
+    {
+      "type": "multiple",
+      "question": "A SaaS company provides analytics dashboards powered by Amazon QuickSight embedded in their application. They have 10,000 external customers, and each customer should only see their own data. The data is stored in a Redshift data warehouse with a multi-tenant table design (all customer data in one table with a customer_id column). How should they implement row-level security in QuickSight? (Select THREE)",
+      "options": [
+        "Create a QuickSight dataset with row-level security (RLS) rules based on a mapping table that associates QuickSight user ARNs with customer_id values",
+        "Use QuickSight embedded analytics with RegisterUser API to create anonymous or federated users, passing customer_id as a custom attribute",
+        "Implement dynamic row-level security in Redshift using session context variables (SET app.customer_id), which QuickSight can pass when executing queries",
+        "Create separate QuickSight datasets for each customer, with SQL filters in the dataset definition filtering by customer_id",
+        "Use QuickSight's GenerateEmbedUrlForAnonymousUser API with SessionTags to pass customer_id, then configure RLS rules to filter based on session tags",
+        "Configure Redshift workload management (WLM) queues with query filters based on database user, creating separate database users for each customer"
+      ],
+      "correctAnswer": [0, 1, 4],
+      "explanation": "For implementing RLS in QuickSight for multi-tenant scenarios: (1) QuickSight RLS allows you to define rules that filter dataset rows based on user identity. You create a permissions dataset (mapping table) that associates QuickSight users/groups with customer_id values. When a user queries, QuickSight applies the filter automatically. (2) For embedded analytics with external customers, use RegisterUser API to create federated users or GenerateEmbedUrlForAnonymousUser for anonymous access. You can pass customer_id as a custom attribute or session tag. (3) QuickSight's GenerateEmbedUrlForAnonymousUser API with SessionTags is specifically designed for this use case. Session tags (like customer_id) can be passed in the embed URL, and RLS rules can reference these tags to filter data dynamically. Option C is possible but more complex and requires Redshift-level configuration; QuickSight RLS is simpler. Option D creates management overhead (10,000 datasets). Option F is impractical and doesn't address QuickSight filtering."
+    },
+    {
+      "question": "A data engineering team processes large CSV files (50 GB each) stored in S3 using AWS Glue ETL jobs. The jobs read CSV files, apply transformations, and write Parquet files to another S3 bucket. Jobs are failing with 'OutOfMemoryError' exceptions. The Glue job uses 10 DPUs with default settings. What should they do to resolve the issue?",
+      "options": [
+        "Increase the number of DPUs to 20 or more to allocate more memory for processing large files",
+        "Enable Glue job parameter '--enable-s3-parquet-optimized-committer' to optimize memory usage when writing Parquet files",
+        "Implement file splitting to process large CSV files in chunks, or use Glue's pushdown predicate feature to filter data early and reduce memory usage",
+        "Change the Glue worker type from Standard to G.2X which provides more memory per worker (32 GB vs 16 GB)"
+      ],
+      "correctAnswer": 3,
+      "explanation": "Glue job OutOfMemoryError issues are often resolved by changing the worker type to provide more memory per worker. AWS Glue offers different worker types: Standard (4 vCPU, 16 GB memory), G.1X (1 DPU = 4 vCPU, 16 GB), G.2X (1 DPU = 8 vCPU, 32 GB), and G.025X (0.25 DPU = 2 vCPU, 4 GB). For large files or memory-intensive transformations, switching from Standard to G.2X doubles the memory available to each worker, often resolving OOM errors. This is simpler than re-architecting the job. Option A (increasing DPUs) adds more workers but doesn't increase memory per worker; if individual files are too large for a single worker, more workers won't help. Option B is a real parameter but optimizes Parquet committer behavior, not CSV reading. Option C (file splitting) is a valid approach but requires upstream changes to how data is generated; pushdown predicates help but only if you're filtering data."
+    },
+    {
+      "question": "A streaming analytics application uses Amazon Kinesis Data Streams with 10 shards. A consumer application built with the Kinesis Client Library (KCL) runs on 5 EC2 instances to process records. The team notices that only 5 shards are being processed at any time, leaving the other 5 shards idle. What is the issue?",
+      "options": [
+        "The KCL lease table in DynamoDB has a maximum of 5 concurrent leases configured; increase the DynamoDB table throughput to allow more concurrent leases",
+        "KCL assigns shards to instances in a round-robin fashion, and with 5 instances for 10 shards, each instance processes 2 shards, but only one shard at a time per instance",
+        "The KCL consumer application needs to increase the 'MaxRecords' parameter to allow each instance to consume from multiple shards concurrently",
+        "The issue is likely in the KCL application's lease management; with 5 instances and 10 shards, each instance should process 2 shards. Check if instances are failing health checks or failing to renew leases"
+      ],
+      "correctAnswer": 3,
+      "explanation": "With Kinesis Client Library (KCL), shard-to-instance assignment is managed through a lease table in DynamoDB. Each shard has a lease, and instances compete for leases. With 10 shards and 5 instances, ideally each instance should process 2 shards concurrently (KCL processes multiple shards per instance in parallel using threads). If only 5 shards are active, it suggests a problem with lease assignment or renewal. Possible causes: (1) KCL instances are failing to renew leases (due to processing delays, GC pauses, or network issues), causing leases to expire and be reassigned. (2) DynamoDB table throttling on the lease table prevents instances from acquiring or renewing additional leases. (3) Application errors preventing instances from processing multiple shards. Check CloudWatch metrics for DynamoDB throttling on the KCL lease table, review application logs for errors, and ensure instances have adequate resources. Option A is partially correct about DynamoDB throughput but incorrect about lease limits. Option B is incorrect because KCL does process multiple shards per instance. Option C is incorrect because MaxRecords affects batch size, not shard assignment."
+    },
+    {
+      "question": "A company runs real-time analytics on IoT sensor data using Amazon Kinesis Data Analytics for Apache Flink. The Flink application performs windowed aggregations and writes results to Amazon Elasticsearch Service (now OpenSearch Service). During peak load, the application experiences backpressure and high checkpoint duration. What optimization should they implement?",
+      "options": [
+        "Increase the parallelism of the Flink application by scaling up the number of task managers and task slots to process more data in parallel",
+        "Optimize the OpenSearch cluster by adding more data nodes and increasing shard count to handle higher write throughput from Flink",
+        "Enable Flink asynchronous checkpointing and increase checkpoint interval to reduce checkpointing overhead during high load",
+        "Implement Flink backpressure handling by adding a Kinesis Data Firehose buffer between Flink and OpenSearch to handle bursts"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Backpressure in Flink typically occurs when a downstream sink cannot keep up with the data processing rate. In this case, the Flink application is experiencing backpressure when writing to OpenSearch, suggesting that OpenSearch is the bottleneck. The solution is to optimize the OpenSearch cluster to handle higher write throughput: (1) Add more data nodes to distribute write load. (2) Increase the number of primary shards for the indices receiving data (note: shard count is set at index creation and cannot be changed later for existing indices, so this applies to new indices or re-indexing). (3) Ensure proper instance types for write-heavy workloads. (4) Consider using bulk API for writes from Flink. Option A helps if Flink processing is the bottleneck, but the symptom (backpressure) suggests downstream (OpenSearch) is the issue. Option C (increasing checkpoint interval) reduces checkpoint frequency but doesn't address the root cause of backpressure. Option D is incorrect because Firehose doesn't fit between Flink and OpenSearch architecturally, and adding a buffer doesn't solve the OpenSearch throughput issue."
+    },
+    {
+      "type": "multiple",
+      "question": "A data lake architecture stores raw data in S3 with different access patterns: hot data (last 30 days) queried frequently, warm data (30-365 days) queried occasionally, and cold data (>1 year) rarely accessed. They use AWS Glue for ETL and Amazon Athena for queries. Which S3 and data management strategies should they implement for cost optimization? (Select THREE)",
+      "options": [
+        "Use S3 Intelligent-Tiering storage class to automatically move objects between access tiers based on changing access patterns",
+        "Implement S3 Lifecycle policies to transition hot data to S3 Standard-IA after 30 days, and to S3 Glacier Flexible Retrieval after 365 days",
+        "Partition S3 data by date (year/month/day) and configure Athena partition projection to avoid Glue Data Catalog overhead for time-based partitions",
+        "Enable S3 Object Lock in Governance mode to prevent accidental deletion of historical data in cold storage",
+        "Use S3 Select in Athena queries to filter data at the S3 level, reducing data transferred and query costs",
+        "Compress data using columnar formats (Parquet/ORC) with efficient compression codecs (Snappy/GZIP) to reduce storage costs and Athena scanning costs"
+      ],
+      "correctAnswer": [1, 2, 5],
+      "explanation": "For cost-optimized data lake storage: (1) S3 Lifecycle policies can automatically transition objects based on age. Transition to S3 Standard-IA (Infrequent Access) after 30 days reduces storage costs for warm data while keeping retrieval reasonably fast. Transition to Glacier Flexible Retrieval (formerly Glacier) after 1 year minimizes costs for cold data. This aligns with the access patterns described. (2) Date-based partitioning (year=2024/month=11/day=18/) combined with Athena partition projection enables Athena to calculate partition locations without querying Glue Data Catalog, reducing query planning time and Glue API costs. This is especially beneficial for time-series data. (3) Using columnar formats (Parquet/ORC) with compression significantly reduces storage size (50-90% compression typical) and reduces data scanned by Athena (columnar format allows reading only needed columns), lowering both storage and query costs. Option A (Intelligent-Tiering) works but is less cost-effective than explicit lifecycle policies when access patterns are known and predictable. Option D (Object Lock) is for compliance, not cost optimization. Option E (S3 Select) provides some optimization but is less impactful than columnar formats and partitioning."
+    },
+    {
+      "question": "A data analytics team uses Amazon Redshift Spectrum to query data in S3 without loading it into Redshift. Queries against external tables in Spectrum are much slower than queries against native Redshift tables, even for similar data volumes. The S3 data is stored as CSV files with GZIP compression. What optimization would provide the MOST significant performance improvement?",
+      "options": [
+        "Increase the maximum number of Redshift Spectrum nodes allocated to queries in the Redshift cluster configuration",
+        "Convert CSV files to columnar format (Parquet or ORC) and use more efficient compression (Snappy instead of GZIP) for better parallelization",
+        "Enable Redshift Spectrum predicate pushdown to filter data at the S3 level before transferring to Redshift",
+        "Partition the S3 data by commonly filtered columns (like date) to reduce the amount of data scanned by Spectrum queries"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The most significant performance improvement for Redshift Spectrum comes from converting data to columnar format (Parquet or ORC). Here's why: (1) Columnar formats store data by column rather than by row, allowing Spectrum to read only the columns referenced in the query, drastically reducing I/O. (2) CSV files must be read entirely, even if only a few columns are needed. (3) Compression: GZIP compression is more efficient for size but is not splittable, forcing single-threaded decompression. Snappy compression is splittable, allowing parallel decompression across multiple Spectrum nodes. (4) Combined, columnar format + Snappy compression can provide 10-100x performance improvement for Spectrum queries. Option A is incorrect because Spectrum node allocation is automatic and scales with query needs. Option C (predicate pushdown) is already automatic in Spectrum for supported predicates. Option D (partitioning) is very valuable and should be implemented but typically provides less dramatic improvement than columnar format conversion."
+    }
+  ]
+}
