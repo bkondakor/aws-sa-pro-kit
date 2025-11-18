@@ -24,6 +24,14 @@
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+    /* Aliases for consistency */
+    --text-color: var(--text-primary);
+    --bg-color: var(--bg-primary);
+    --code-bg: var(--bg-tertiary);
+    --success-bg: #f0fdf4;
+    --danger-bg: #fef2f2;
+    --warning-bg: #fffbeb;
 }
 
 /* Dark Mode Variables */
@@ -45,6 +53,14 @@ body.dark-mode {
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+
+    /* Aliases for consistency */
+    --text-color: var(--text-primary);
+    --bg-color: var(--bg-primary);
+    --code-bg: var(--bg-tertiary);
+    --success-bg: #1a3a2a;
+    --danger-bg: #3a1a1a;
+    --warning-bg: #3a2a1a;
 }
 
 body {
