@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain 4: Accelerate Workload Migration and Modernization - AWS SA Pro Kit</title>
+    <link rel="stylesheet" href="../styles/study.css">
+</head>
+<body>
+    <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+        <span class="icon">🌙</span>
+    </button>
+
+    <nav class="top-nav">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-brand">AWS SA Pro Kit</a>
+            <div class="nav-links">
+                <a href="../index.html">Home</a>
+                <a href="index.html" class="active">Study Materials</a>
+                <a href="../exam/index.html">Practice Exam</a>
+                <a href="https://github.com/bkondakor/aws-sa-pro-kit" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="index.html">Study Materials</a> › Domain 4
+        </div>
+
+        <main class="content">
+            <article>
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <div style="font-size: 5rem; margin-bottom: 1rem;">☁️</div>
+                    <h1>Domain 4: Accelerate Workload Migration and Modernization</h1>
+                    <div class="page-metadata">
+                        <span class="meta-item"><strong>Weight:</strong> 20%</span>
+                        <span class="meta-item"><strong>Expected Questions:</strong> ~15 out of 75</span>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px; margin: 2rem 0;">
+                    <p style="font-size: 1.1rem; margin: 0;">Migration strategies, architecture redesign, modernization opportunities, and cloud-native adoption.</p>
+                </div>
+
+                <h2>Core Tasks</h2>
+                <div class="card-grid" style="margin-bottom: 3rem;">
+                    
+                </div>
+
+                <h2>Supplementary Materials</h2>
+                <div class="card-grid">
+                    <div class="material-item">No supplementary materials</div>
+                </div>
+
+                <div style="margin-top: 3rem; padding: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; text-align: center;">
+                    <h3 style="color: white; margin-bottom: 1rem;">Ready to test your knowledge?</h3>
+                    <p style="margin-bottom: 1.5rem;">Try the practice exam to see how well you understand this domain.</p>
+                    <a href="../exam/index.html" style="display: inline-block; background: white; color: #667eea; padding: 12px 32px; border-radius: 8px; font-weight: 600; text-decoration: none;">Take Practice Exam</a>
+                </div>
+            </article>
+        </main>
+
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3>All Domains</h3>
+                <ul>
+                    <li><a href="domain-1.html" >Domain 1 (26%)</a></li>
+                    <li><a href="domain-2.html" >Domain 2 (29%)</a></li>
+                    <li><a href="domain-3.html" >Domain 3 (25%)</a></li>
+                    <li><a href="domain-4.html" class="active">Domain 4 (20%)</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="cheatsheet.html" style="background: linear-gradient(135deg, #FFB84D 0%, #FF8C42 100%); padding: 8px 12px; border-radius: 6px; color: #0f0f1e; font-weight: 700; display: block; text-align: center; margin-bottom: 8px;">📋 Cheatsheet</a></li>
+                    <li><a href="study-plan.html">Study Plan</a></li>
+                    <li><a href="../exam/index.html">Practice Exam</a></li>
+                </ul>
+            </div>
+        </aside>
+    </div>
+
+    <footer class="footer">
+        <p>AWS Solutions Architect Professional Exam Preparation Kit</p>
+        <p>Last updated: 2025</p>
+    </footer>
+
+    <script>
+        // Dark Mode Functionality
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const icon = darkModeToggle.querySelector('.icon');
+
+        // Check for saved theme preference or default to light mode
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            icon.textContent = '☀️';
+        }
+
+        // Toggle dark mode
+        darkModeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+
+            // Update icon and save preference
+            if (document.body.classList.contains('dark-mode')) {
+                icon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    </script>
+</body>
+</html>
