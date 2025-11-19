@@ -285,20 +285,85 @@ Verify features exist and update dates, or use "As of 2025" if uncertain
 
 **Result:** Zero issues found - excellent quality!
 
-## Batch 6: Study Materials
-**Status:** Pending
+## Batch 6: Study Materials (COMPLETED ✅)
+
+### Files Reviewed (23 files across 4 domains)
+
+**Domain 1 (7 files):**
+⚠️ task-1.3-reliable-resilient-architectures.md - **FIXED**: Route 53 health check quota
+✅ task-1.1-network-connectivity.md - No issues
+✅ task-1.2-security-controls.md - No issues
+✅ task-1.4-multi-account-environment.md - No issues
+✅ task-1.5-cost-optimization.md - No issues
+✅ tricky-scenarios.md - No issues
+✅ practice-questions.md - No issues
+
+**Domain 2 (4 files):**
+✅ All files clean - No issues
+
+**Domain 3 (7 files):**
+✅ All files clean - No issues
+
+**Domain 4 (5 files):**
+⚠️ task-4.4-modernization-opportunities.md - **FIXED**: Aurora Serverless v2 cost model
+✅ Other 4 files - No issues
+
+### Critical Issues Fixed
+
+**Issue #11: Incorrect Route 53 Health Check Quota**
+**File:** `domain-1-organizational-complexity/task-1.3-reliable-resilient-architectures.md`
+**Location:** Line 337
+
+**Problem:**
+- Listed Route 53 health checks as "50 per account"
+- Actual default quota is 200 per account
+
+**Correction Made:**
+- Updated quota from 50 to 200 health checks per account
+
+**Status:** ✅ Fixed
+
+---
+
+**Issue #12: Aurora Serverless v2 Cost Model Misstatement [CRITICAL]**
+**File:** `domain-4-migration-modernization/task-4.4-modernization-opportunities.md`
+**Location:** Line 160
+
+**Problem:**
+- Stated "No charge when idle (at minimum 0.5 ACU)"
+- This is incorrect and contradicts Aurora Serverless v2 behavior
+- Aurora Serverless v2 does NOT scale to zero or pause
+- You ARE charged for minimum capacity (0.5 ACU) even when completely idle
+- This is a critical cost model misunderstanding that could lead to wrong exam answers
+
+**Correction Made:**
+- Clarified that minimum 0.5 ACU is always charged
+- Added note that v2 does not pause (unlike v1)
+- Updated cost model to accurately reflect billing behavior
+
+**Impact:** Critical for exam preparation - candidates might incorrectly recommend Aurora Serverless v2 for workloads requiring zero-cost idle time
+
+**Status:** ✅ Fixed
+
+### Summary
+- All 23 study material files reviewed
+- 2 critical issues found and fixed
+- 21/23 files (91%) had zero issues
+- Content is comprehensive, accurate, and current
 
 ---
 
 ## Summary Statistics
 
 ### Overall Progress
-- **Files Reviewed:** 34 / 63 (54%) - All question files complete!
+- **Files Reviewed:** 57 / 63 (90%) - All question files + study materials complete!
 - **Questions Reviewed:** 487 (B1: 82, B2: 75, B3: 50, B4: 55, B5: 225)
-- **Issues Found:** 16 total (only in domain-specific files)
-  - Critical: 5 (all fixed ✅)
+- **Study Materials Reviewed:** 23 markdown files
+- **Issues Found:** 18 total
+  - Critical: 7 (all fixed ✅)
   - Minor: 11
 - **Advanced/Tricky Questions:** 225 questions - Zero issues!
+- **Study Materials:** 21/23 files (91%) - Zero issues!
 
 ### Issue Categories
 - Incorrect technical facts: 2

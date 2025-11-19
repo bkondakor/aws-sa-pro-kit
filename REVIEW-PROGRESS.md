@@ -66,16 +66,17 @@
 - [ ] tricky-batch-7-performance-scaling.json
 - [ ] tricky-batch-8-cost-migration.json
 
-### Batch 6: Study Materials (MD files) ⏳
-**Status:** Pending
-**Domain 1:** 7 files
-**Domain 2:** 4 files
-**Domain 3:** 7 files
-**Domain 4:** 5 files
+### Batch 6: Study Materials (MD files) ✅
+**Status:** Completed - 2 critical issues fixed
+**Domain 1:** 7 files (1 issue fixed)
+**Domain 2:** 4 files (all clean)
+**Domain 3:** 7 files (all clean)
+**Domain 4:** 5 files (1 issue fixed)
 
 ## Issues Found & Fixed
 
 ### Critical Issues Fixed ✅
+**Questions (6 issues):**
 1. **domain-1-task-1.2-security-controls.json, Q5**: Corrected incorrect claim that SCPs can inspect IAM policy contents. Updated answer from [0,2] to [2].
 2. **domain-1-task-1.3-reliable-resilient.json, Q4**: Removed "deletions" from question to match answer options (versioning + batch replication).
 3. **domain-1-task-1.2-security-controls.json, Q9**: Removed speculative "September 2025" SCP enhancement reference.
@@ -83,14 +84,19 @@
 5. **domain-3-task-3.3-to-3.5, Q7**: Fixed Aurora replication type (changed from read replicas to logical replication scenario) + date correction.
 6. **domain-4-hybrid-migration-batch3.json, Q1**: Fixed bandwidth calculation (378 TB → 147 TB), added compression explanation.
 
+**Study Materials (2 issues):**
+7. **domain-1/task-1.3-reliable-resilient-architectures.md**: Fixed Route 53 health check quota (50 → 200).
+8. **domain-4/task-4.4-modernization-opportunities.md**: Fixed Aurora Serverless v2 cost model (clarified minimum charges always apply).
+
 ### Minor Issues Noted (To Address)
 - Speculative feature dates in domain-1 files (DynamoDB MRSC, Control Tower, Cost Anomaly Detection)
 - Incorrect SCP tag enforcement claim in domain-1-task-1.4-multi-account.json
 
 ## Review Summary
-- **Total Files:** 34 question files + 29 study files = 63 files
+- **Total Files:** 34 question files + 23 study files = 57 files
 - **Question Files Reviewed:** 34/34 (100%) ✅
+- **Study Files Reviewed:** 23/23 (100%) ✅
 - **Questions Reviewed:** 487
-- **Issues Found:** 16 (5 critical, 11 minor) - only in domain files
-- **Corrections Made:** 6 (all 5 critical issues fixed)
-- **Study Files Remaining:** 29 markdown files
+- **Issues Found:** 18 total (7 critical, 11 minor)
+- **Corrections Made:** 8 (all 7 critical issues fixed) ✅
+- **Files Remaining:** 6 README/supporting files (not critical for review)
