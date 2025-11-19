@@ -30,14 +30,18 @@
 **Question Types:** 10 single-choice, 5 multiple-choice
 
 ### Batch 3: Performance & Auto-Scaling Optimization (15 questions)
-**Status:** Not Started
+**Status:** ✅ COMPLETED
 **File:** `questions/tricky-batch-7-performance-scaling.json`
 **Topics:**
-- RDS performance insights and tuning
-- ElastiCache failover scenarios
-- Auto Scaling with mixed instance types
-- Application Load Balancer advanced routing
-- CloudFront optimization patterns
+- RDS Performance Insights wait events (IO:DataFileRead, Client:ClientRead)
+- ElastiCache Redis cluster mode and scaling strategies
+- Auto Scaling metrics selection and Spot Instance handling
+- ALB-to-Lambda integration and health checks
+- CloudFront cache optimization and cache policies
+- Athena query optimization (Parquet, partitioning, file sizing)
+- Kinesis + Lambda concurrency and parallelization
+- OpenSearch JVM tuning and index lifecycle management
+**Question Types:** 10 single-choice, 5 multiple-choice
 
 ### Batch 4: Cost Optimization & Migration Strategies (15 questions)
 **Status:** Not Started
@@ -64,10 +68,10 @@
 ## Commits Log
 - [x] Batch 1 committed (2025-11-19)
 - [x] Batch 2 committed (2025-11-19)
-- [ ] Batch 3 committed
+- [x] Batch 3 committed (2025-11-19)
 - [ ] Batch 4 committed
 - [ ] Final aggregation completed
 
 ---
 
-**Total Questions Generated:** 30 / 60 (50% complete)
+**Total Questions Generated:** 45 / 60 (75% complete)
