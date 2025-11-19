@@ -44,14 +44,19 @@
 **Question Types:** 10 single-choice, 5 multiple-choice
 
 ### Batch 4: Cost Optimization & Migration Strategies (15 questions)
-**Status:** Not Started
+**Status:** ✅ COMPLETED
 **File:** `questions/tricky-batch-8-cost-migration.json`
 **Topics:**
-- Reserved Instance optimization
-- Savings Plans strategies
-- Database migration patterns (DMS)
-- Application migration strategies
-- Cost allocation and chargeback
+- Reserved Instance marketplace and Savings Plans comparison
+- EC2 cost optimization (Spot, Graviton2, Instance Scheduler)
+- Database migration (Oracle to Aurora, DMS with CDC)
+- S3 storage class lifecycle policies (Glacier Instant Retrieval, Intelligent-Tiering)
+- Application migration strategies (VMware to AWS, MGN)
+- Cost allocation tags and AWS Organizations
+- Glue Flex execution class and Redshift Serverless
+- Data transfer cost optimization (CloudFront, cross-region)
+- Rightsizing with Compute Optimizer
+**Question Types:** 10 single-choice, 5 multiple-choice
 
 ---
 
@@ -69,9 +74,9 @@
 - [x] Batch 1 committed (2025-11-19)
 - [x] Batch 2 committed (2025-11-19)
 - [x] Batch 3 committed (2025-11-19)
-- [ ] Batch 4 committed
+- [x] Batch 4 committed (2025-11-19)
 - [ ] Final aggregation completed
 
 ---
 
-**Total Questions Generated:** 45 / 60 (75% complete)
+**Total Questions Generated:** 60 / 60 (100% complete) ✅
