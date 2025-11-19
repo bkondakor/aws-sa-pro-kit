@@ -334,7 +334,7 @@ Formerly CloudEndure Disaster Recovery, provides low-cost DR for physical, virtu
 | **RDS** | 40 DB instances | Database scaling |
 | **Lambda** | 1,000 concurrent executions | Serverless capacity |
 | **VPC** | 200 subnets per VPC | Network design |
-| **Route 53** | 50 health checks per account | Monitoring limits |
+| **Route 53** | 200 health checks per account | Monitoring limits |
 | **API Gateway** | 10,000 requests/sec | API performance |
 | **KMS** | API request quotas vary by operation | Encryption bottlenecks |
 

@@ -155,9 +155,10 @@ Babelfish on Aurora PostgreSQL
 - **Serverless applications:** Pair with Lambda for fully serverless stack
 
 **Cost Model:**
-- Pay for ACU-hours consumed
+- Pay for ACU-hours consumed (billed per second, 1-minute minimum)
+- Minimum capacity: 0.5 ACU (you pay for minimum even when idle)
 - Plus storage (pay per GB-month)
-- No charge when idle (at minimum 0.5 ACU)
+- Unlike Aurora Serverless v1, v2 does not pause (always incurs minimum capacity charges)
 
 **Exam Scenario:**
 **Q:** "Database for Lambda-based application. Traffic unpredictable. Minimize cost and operational overhead."
