@@ -18,14 +18,16 @@
 **Question Types:** 10 single-choice, 5 multiple-choice
 
 ### Batch 2: Security & Compliance Deep Dives (15 questions)
-**Status:** Not Started
+**Status:** ✅ COMPLETED
 **File:** `questions/tricky-batch-6-security-compliance.json`
 **Topics:**
-- KMS key policies and grants
-- Cross-account encryption scenarios
-- SCPs with permission boundaries
-- Secrets rotation patterns
-- Compliance audit requirements
+- KMS key rotation and cross-account encryption
+- IAM permission boundaries and SCPs
+- Secrets Manager rotation strategies
+- HIPAA/PCI-DSS compliance logging (CloudTrail, Object Lock)
+- CloudHSM vs KMS key management
+- Multi-tenant access control with SAML session tags
+**Question Types:** 10 single-choice, 5 multiple-choice
 
 ### Batch 3: Performance & Auto-Scaling Optimization (15 questions)
 **Status:** Not Started
@@ -61,11 +63,11 @@
 
 ## Commits Log
 - [x] Batch 1 committed (2025-11-19)
-- [ ] Batch 2 committed
+- [x] Batch 2 committed (2025-11-19)
 - [ ] Batch 3 committed
 - [ ] Batch 4 committed
 - [ ] Final aggregation completed
 
 ---
 
-**Total Questions Generated:** 15 / 60 (25% complete)
+**Total Questions Generated:** 30 / 60 (50% complete)
