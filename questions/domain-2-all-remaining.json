@@ -118,7 +118,7 @@
       },
       {
         "id": "D2-T2.2-Q10",
-        "question": "A media company stores video files in S3 (100TB) in us-east-1 and needs them replicated to eu-west-1 within 15 minutes for compliance. Existing videos (uploaded before replication was enabled) must also be replicated. What configuration is required? (Select TWO)",
+        "question": "A media company stores video files in S3 (100TB) in us-east-1 and needs them replicated to eu-west-1 within 15 minutes for compliance. Existing videos (uploaded before replication was enabled) must also be replicated. What configuration is required? (Select THREE)",
         "options": [
           "Enable S3 Cross-Region Replication (CRR) with S3 Replication Time Control (RTC)",
           "Enable S3 Versioning on both source and destination buckets",

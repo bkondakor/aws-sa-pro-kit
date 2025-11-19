@@ -162,8 +162,41 @@ Verify features exist and update dates, or use "As of 2025" if uncertain
 
 ---
 
-## Batch 2: Domain 2 Questions
-**Status:** Pending
+## Batch 2: Domain 2 Questions (COMPLETED ✅)
+
+### Files Reviewed (5 files, 75 questions)
+✅ domain-2-task-2.1-deployment-strategy.json (12 questions) - No issues
+✅ domain-2-task-2.3-security-controls.json (16 questions) - 1 minor issue
+✅ domain-2-task-2.4-reliability.json (16 questions) - 1 minor issue
+⚠️ domain-2-all-remaining.json (16 questions) - **FIXED**: Q10 (Select TWO vs 3 answers)
+✅ domain-2-analytics-performance-batch4.json (15 questions) - No issues
+
+### Critical Issue Fixed
+**Issue #8: Multi-select Question Mismatch [CRITICAL]**
+**File:** `questions/domain-2-all-remaining.json`
+**Question:** D2-T2.2-Q10 - S3 Cross-Region Replication setup
+
+**Problem:**
+- Question stated "Select TWO" but correctAnswer array contained 3 items [0, 1, 2]
+- All 3 options are technically required for the complete solution
+
+**Correction Made:**
+- Changed question text from "Select TWO" to "Select THREE"
+- Maintains consistency with answer array
+
+**Status:** ✅ Fixed
+
+### Minor Issues Noted
+1. **domain-2-task-2.3-security-controls.json, Q1**: WAF Bot Control Token Reuse Detection dated as "2025 enhancement" when it was released September 2024
+2. **domain-2-task-2.4-reliability.json, Q3**: SQS visibility timeout explanation could be clearer about the 6x multiplier rationale
+
+### Positive Findings
+✅ Multiple 2025 AWS feature references verified as accurate:
+- ECS built-in blue/green deployments (July 2025)
+- DMS Serverless automatic storage scaling (April 2025)
+- AWS Backup multi-region copy in single action (October 2025)
+- DynamoDB Multi-Region Strong Consistency (June 2025)
+- SCP full IAM policy language support (September 2025)
 
 ## Batch 3: Domain 3 Questions
 **Status:** Pending
@@ -182,16 +215,18 @@ Verify features exist and update dates, or use "As of 2025" if uncertain
 ## Summary Statistics
 
 ### Overall Progress
-- **Files Reviewed:** 7 / 63 (11%)
-- **Questions Reviewed:** 82
-- **Issues Found:** 7 total
-  - Critical: 2
-  - Minor: 5
+- **Files Reviewed:** 12 / 63 (19%)
+- **Questions Reviewed:** 157 (Batch 1: 82, Batch 2: 75)
+- **Issues Found:** 11 total
+  - Critical: 3 (all fixed ✅)
+  - Minor: 8
 
 ### Issue Categories
 - Incorrect technical facts: 2
+- Structural inconsistencies: 1
 - Speculative/future features: 4
 - Incorrect reasoning: 1
+- Minor clarifications: 3
 
 ---
 
