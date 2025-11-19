@@ -198,11 +198,69 @@ Verify features exist and update dates, or use "As of 2025" if uncertain
 - DynamoDB Multi-Region Strong Consistency (June 2025)
 - SCP full IAM policy language support (September 2025)
 
-## Batch 3: Domain 3 Questions
-**Status:** Pending
+## Batch 3: Domain 3 Questions (COMPLETED ✅)
 
-## Batch 4: Domain 4 Questions
-**Status:** Pending
+### Files Reviewed (3 files, 50 questions)
+✅ domain-3-task-3.1-operational-excellence.json (12 questions) - No issues
+✅ domain-3-task-3.2-security-improvements.json (10 questions) - No issues
+⚠️ domain-3-task-3.3-to-3.5-performance-reliability-cost.json (28 questions) - **FIXED**: Q7 (Aurora replication type)
+
+### Critical Issue Fixed
+**Issue #9: Aurora Replication Type Mismatch [CRITICAL]**
+**File:** `questions/domain-3-task-3.3-to-3.5-performance-reliability-cost.json`
+**Question:** D3-T3.3-Q7 - Aurora PostgreSQL write-through cache
+
+**Problem:**
+- Question described Aurora read replicas within same cluster (5-10 second lag)
+- Answer referenced write-through cache, which is for PostgreSQL logical replication, not Aurora native read replicas
+- Aurora read replicas use storage-level replication with typically <100ms lag
+- Mismatch between scenario and solution
+
+**Correction Made:**
+- Changed question to describe logical replication to external PostgreSQL database
+- Updated explanation to clarify distinction between logical replication and Aurora read replicas
+- Corrected feature introduction date from "2024" to "early 2023"
+
+**Status:** ✅ Fixed
+
+### Minor Issues Noted
+1. Date inaccuracy (2024 → 2023) - fixed
+2. Unverified regional detail for predictive scaling
+3. Opinionated phrasing about Compute Savings Plans
+
+---
+
+## Batch 4: Domain 4 Questions (COMPLETED ✅)
+
+### Files Reviewed (2 files, 55 questions)
+⚠️ domain-4-hybrid-migration-batch3.json (15 questions) - **FIXED**: Q1 (bandwidth calculation)
+✅ domain-4-migration-modernization-all.json (40 questions) - No issues
+
+### Critical Issue Fixed
+**Issue #10: Mathematical Error in Bandwidth Calculation [CRITICAL]**
+**File:** `questions/domain-4-hybrid-migration-batch3.json`
+**Question:** Question 1 - DataSync bandwidth calculation
+
+**Problem:**
+- Explanation stated "1 Gbps over 2 weeks (336 hours), theoretical maximum transfer is ~378 TB"
+- Actual calculation: 1 Gbps = 125 MB/s × 336 hours ≈ 147 TB (175% error in original)
+- Overstated capacity by 240+ TB
+
+**Correction Made:**
+- Fixed calculation to accurate 147 TB
+- Added explanation of DataSync compression (2-4x for video files)
+- Noted that 500 TB transfer relies on compression reducing actual transfer by 50-75%
+- Added note that Snowball Edge is also a viable alternative
+
+**Status:** ✅ Fixed
+
+### Minor Issues Noted
+1. Ambiguity about RDS engine type (Oracle to Oracle vs heterogeneous)
+2. DB2 platform shift (AIX to RHEL) could be more explicit
+
+### Positive Findings
+✅ Verified MGN agentless replication for VMware (2024 feature)
+✅ Verified DMS Serverless features (February/April 2025)
 
 ## Batch 5: Advanced & Tricky Questions
 **Status:** Pending
@@ -215,11 +273,11 @@ Verify features exist and update dates, or use "As of 2025" if uncertain
 ## Summary Statistics
 
 ### Overall Progress
-- **Files Reviewed:** 12 / 63 (19%)
-- **Questions Reviewed:** 157 (Batch 1: 82, Batch 2: 75)
-- **Issues Found:** 11 total
-  - Critical: 3 (all fixed ✅)
-  - Minor: 8
+- **Files Reviewed:** 19 / 63 (30%)
+- **Questions Reviewed:** 262 (B1: 82, B2: 75, B3: 50, B4: 55)
+- **Issues Found:** 16 total
+  - Critical: 5 (all fixed ✅)
+  - Minor: 11
 
 ### Issue Categories
 - Incorrect technical facts: 2

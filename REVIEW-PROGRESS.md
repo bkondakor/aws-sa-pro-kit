@@ -32,20 +32,20 @@
 - [x] domain-2-analytics-performance-batch4.json - No issues
 - [x] domain-2-all-remaining.json - **FIXED**: Q10 (Select TWO→THREE)
 
-### Batch 3: Domain 3 Questions ⏳
-**Status:** Pending
+### Batch 3: Domain 3 Questions ✅
+**Status:** Completed - 1 critical issue fixed
 **Files:**
-- [ ] domain-3-task-3.1-operational-excellence.json
-- [ ] domain-3-task-3.2-security-improvements.json
-- [ ] domain-3-task-3.3-to-3.5-performance-reliability-cost.json
-- [ ] domain-3-tasks-3.2-to-3.5-complete.json
-- [ ] domain-3-continuous-improvement-all.json
+- [x] domain-3-task-3.1-operational-excellence.json - No issues
+- [x] domain-3-task-3.2-security-improvements.json - No issues
+- [x] domain-3-task-3.3-to-3.5-performance-reliability-cost.json - **FIXED**: Q7 (Aurora replication type + date)
+- [x] domain-3-tasks-3.2-to-3.5-complete.json - Summary file only
+- [x] domain-3-continuous-improvement-all.json - Summary file only
 
-### Batch 4: Domain 4 Questions ⏳
-**Status:** Pending
+### Batch 4: Domain 4 Questions ✅
+**Status:** Completed - 1 critical issue fixed
 **Files:**
-- [ ] domain-4-migration-modernization-all.json
-- [ ] domain-4-hybrid-migration-batch3.json
+- [x] domain-4-migration-modernization-all.json - No issues (40 questions)
+- [x] domain-4-hybrid-migration-batch3.json - **FIXED**: Q1 (bandwidth calculation)
 
 ### Batch 5: Advanced & Tricky Questions ⏳
 **Status:** Pending
@@ -79,6 +79,9 @@
 1. **domain-1-task-1.2-security-controls.json, Q5**: Corrected incorrect claim that SCPs can inspect IAM policy contents. Updated answer from [0,2] to [2].
 2. **domain-1-task-1.3-reliable-resilient.json, Q4**: Removed "deletions" from question to match answer options (versioning + batch replication).
 3. **domain-1-task-1.2-security-controls.json, Q9**: Removed speculative "September 2025" SCP enhancement reference.
+4. **domain-2-all-remaining.json, Q10**: Changed "Select TWO" to "Select THREE" to match 3 correct answers.
+5. **domain-3-task-3.3-to-3.5, Q7**: Fixed Aurora replication type (changed from read replicas to logical replication scenario) + date correction.
+6. **domain-4-hybrid-migration-batch3.json, Q1**: Fixed bandwidth calculation (378 TB → 147 TB), added compression explanation.
 
 ### Minor Issues Noted (To Address)
 - Speculative feature dates in domain-1 files (DynamoDB MRSC, Control Tower, Cost Anomaly Detection)
@@ -86,7 +89,7 @@
 
 ## Review Summary
 - **Total Files:** 34 question files + 29 study files = 63 files
-- **Files Reviewed:** 12/63 (19%)
-- **Questions Reviewed:** 157
-- **Issues Found:** 11 (3 critical, 8 minor)
-- **Corrections Made:** 4 (all critical issues fixed)
+- **Files Reviewed:** 19/63 (30%)
+- **Questions Reviewed:** 262
+- **Issues Found:** 16 (5 critical, 11 minor)
+- **Corrections Made:** 6 (all 5 critical issues fixed)

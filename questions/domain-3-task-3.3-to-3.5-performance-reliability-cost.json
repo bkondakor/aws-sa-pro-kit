@@ -77,15 +77,15 @@
     },
     {
       "id": "D3-T3.3-Q7",
-      "question": "Aurora PostgreSQL reader instances lag 5-10 seconds behind writer during high write throughput. This affects reporting queries needing near-real-time data. What Aurora feature (available since 2024) reduces replica lag by up to 17x?",
+      "question": "A company uses Aurora PostgreSQL with logical replication to replicate data to an external PostgreSQL database for analytics. The logical replication lag is consistently 5-10 seconds during high write throughput, affecting near-real-time analytics. What Aurora feature (introduced in early 2023) reduces logical replication lag by up to 17x?",
       "options": [
         "Enable Aurora Auto Scaling for read replicas",
-        "Use larger instance class for reader instances",
-        "Enable write-through cache for Aurora PostgreSQL",
+        "Use larger instance class for the Aurora writer",
+        "Enable write-through cache for Aurora PostgreSQL logical replication",
         "Configure Aurora Global Database for faster replication"
       ],
       "correctAnswer": 2,
-      "explanation": "Write-through cache for Aurora PostgreSQL significantly reduces replication lag: Introduced in 2024 (Aurora PostgreSQL 11.17, 12.12, 13.8, 14.5+), this feature achieves up to 17x reduction in replication lag without reducing TPS. How it works: Reduces storage I/O required for replication, caches recently written data for faster reader access, automatically enabled with compatible versions. Typical Aurora replica lag: <100ms under normal load, but can increase to seconds during: heavy write workload, long-running transactions, smaller reader instances. Additional lag reduction techniques: (1) Match reader instance size to writer (don't use smaller readers), (2) Break long transactions into smaller batches with frequent commits, (3) Monitor AuroraReplicaLag CloudWatch metric. Option A (Auto Scaling) adds more readers but doesn't reduce per-reader lag. Option B helps but write-through cache more effective. Option D (Global Database) is for cross-region, not intra-cluster lag. Aurora architecture: Writers and readers share same storage volume, replication happens at storage layer (not log shipping like RDS), typically <100ms lag. For critical read-after-write: query writer or use session consistency features."
+      "explanation": "Write-through cache for Aurora PostgreSQL significantly reduces logical replication lag: Introduced in early 2023 (Aurora PostgreSQL 11.17, 12.12, 13.8, 14.5+), this feature achieves up to 17x reduction in logical replication lag without reducing TPS. How it works: Reduces storage I/O required for logical decoding, caches recently written WAL data for faster external replication, automatically enabled with compatible versions and logical replication. Important distinction: This feature specifically improves logical replication (replicating to external PostgreSQL databases), not Aurora native read replicas which use storage-level replication and typically have <100ms lag. Logical replication scenarios: Replicating to RDS PostgreSQL, self-managed PostgreSQL, or cross-region to non-Aurora targets. Additional lag reduction: (1) Use larger writer instance for better logical decoding performance, (2) Tune logical replication slots and output plugins, (3) Monitor pg_stat_replication for lag metrics. Option A (Auto Scaling) is for Aurora read replicas, not logical replication. Option B helps but write-through cache is more effective. Option D (Global Database) is for Aurora-to-Aurora cross-region replication, not logical replication to external databases."
     },
     {
       "id": "D3-T3.3-Q8",
