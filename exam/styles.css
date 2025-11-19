@@ -800,6 +800,19 @@ body.dark-mode .option.study-incorrect {
     background: #ffebee;
 }
 
+/* Dark mode overrides for review options */
+body.dark-mode .review-option.user-answer {
+    background: rgba(33, 150, 243, 0.2);
+}
+
+body.dark-mode .review-option.correct-answer {
+    background: rgba(76, 175, 80, 0.2);
+}
+
+body.dark-mode .review-option.wrong-answer {
+    background: rgba(239, 83, 80, 0.2);
+}
+
 .answer-label {
     display: inline-block;
     padding: 3px 10px;
