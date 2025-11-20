@@ -193,9 +193,108 @@ def create_domain_overview_page(domain_num, domain_info):
     return html
 
 def create_comparisons_index_page():
-    """Create the comparisons landing page."""
+    """Create the comparisons landing page dynamically."""
 
-    html = '''<!DOCTYPE html>
+    # Define metadata for each comparison
+    comparison_metadata = {
+        'big-data-services-comparison.html': {
+            'icon': '📊',
+            'title': 'Big Data Services',
+            'description': 'Compare EMR, Athena, Glue, Kinesis, Redshift, and more. Learn when to use each service for data processing, analytics, and streaming workloads.',
+            'features': [
+                'Amazon EMR vs Glue vs Athena',
+                'Kinesis Data Streams vs Firehose',
+                'Redshift vs Athena vs EMR',
+                'MSK vs Kinesis',
+                'Real-world use case examples'
+            ]
+        },
+        'migration-services-comparison.html': {
+            'icon': '🚀',
+            'title': 'Migration Services',
+            'description': 'Comprehensive comparison of AWS migration services including MGN, DMS, DataSync, Snow Family, and Storage Gateway.',
+            'features': [
+                'Application Migration Service (MGN)',
+                'Database Migration Service (DMS)',
+                'DataSync vs Transfer Family',
+                'Snow Family devices',
+                'Migration decision trees'
+            ]
+        },
+        'storage-services-comparison.html': {
+            'icon': '💾',
+            'title': 'Storage Services',
+            'description': 'Deep dive into AWS storage options including S3, EBS, EFS, FSx, and Storage Gateway. Understand performance, durability, and cost trade-offs.',
+            'features': [
+                'S3 storage classes comparison',
+                'EBS vs EFS vs FSx',
+                'Storage Gateway types',
+                'Performance characteristics',
+                'Cost optimization strategies'
+            ]
+        },
+        'database-comparison.html': {
+            'icon': '🗄️',
+            'title': 'Database Services',
+            'description': 'Compare RDS engines, DynamoDB, Aurora, DocumentDB, Neptune, and specialized databases. Choose the right database for your workload.',
+            'features': [
+                'RDS vs Aurora vs DynamoDB',
+                'SQL vs NoSQL decision criteria',
+                'Read replica strategies',
+                'Global database options',
+                'Performance and scaling patterns'
+            ]
+        },
+        'load-balancer-comparison.html': {
+            'icon': '⚖️',
+            'title': 'Load Balancers',
+            'description': 'Understand the differences between ALB, NLB, GLB, and CLB. Learn routing algorithms, health checks, and advanced features.',
+            'features': [
+                'ALB vs NLB vs GLB comparison',
+                'Layer 4 vs Layer 7 routing',
+                'Target group configurations',
+                'SSL/TLS termination options',
+                'Use case recommendations'
+            ]
+        }
+    }
+
+    # Scan the comparisons directory for actual files
+    project_root = Path(__file__).parent
+    comparisons_dir = project_root / 'study' / 'comparisons'
+
+    # Get all HTML files except index.html
+    comparison_files = sorted([f.name for f in comparisons_dir.glob('*.html') if f.name != 'index.html'])
+
+    # Generate cards HTML dynamically
+    cards_html = ''
+    for filename in comparison_files:
+        metadata = comparison_metadata.get(filename, {
+            'icon': '📋',
+            'title': filename.replace('-comparison.html', '').replace('-', ' ').title(),
+            'description': f'Comprehensive comparison guide for {filename.replace("-comparison.html", "").replace("-", " ")}.',
+            'features': ['Detailed service comparison', 'Use case examples', 'Decision criteria']
+        })
+
+        features_html = '\n'.join([f'<li>{feature}</li>' for feature in metadata['features']])
+
+        cards_html += f'''
+                    <div class="comparison-card">
+                        <div class="card-header">
+                            <span class="card-icon">{metadata['icon']}</span>
+                            <h2>{metadata['title']}</h2>
+                        </div>
+                        <div class="card-content">
+                            <p>{metadata['description']}</p>
+                            <ul class="feature-list">
+                                {features_html}
+                            </ul>
+                            <a href="{filename}" class="btn-card">View Guide →</a>
+                        </div>
+                    </div>
+'''
+
+    html = f'''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -236,41 +335,7 @@ def create_comparisons_index_page():
                 </p>
 
                 <div class="comparison-cards">
-                    <div class="comparison-card">
-                        <div class="card-header">
-                            <span class="card-icon">📊</span>
-                            <h2>Big Data Services</h2>
-                        </div>
-                        <div class="card-content">
-                            <p>Compare EMR, Athena, Glue, Kinesis, Redshift, and more. Learn when to use each service for data processing, analytics, and streaming workloads.</p>
-                            <ul class="feature-list">
-                                <li>Amazon EMR vs Glue vs Athena</li>
-                                <li>Kinesis Data Streams vs Firehose</li>
-                                <li>Redshift vs Athena vs EMR</li>
-                                <li>MSK vs Kinesis</li>
-                                <li>Real-world use case examples</li>
-                            </ul>
-                            <a href="big-data-services-comparison.html" class="btn-card">View Guide →</a>
-                        </div>
-                    </div>
-
-                    <div class="comparison-card">
-                        <div class="card-header">
-                            <span class="card-icon">🚀</span>
-                            <h2>Migration Services</h2>
-                        </div>
-                        <div class="card-content">
-                            <p>Comprehensive comparison of AWS migration services including MGN, DMS, DataSync, Snow Family, and Storage Gateway.</p>
-                            <ul class="feature-list">
-                                <li>Application Migration Service (MGN)</li>
-                                <li>Database Migration Service (DMS)</li>
-                                <li>DataSync vs Transfer Family</li>
-                                <li>Snow Family devices</li>
-                                <li>Migration decision trees</li>
-                            </ul>
-                            <a href="migration-services-comparison.html" class="btn-card">View Guide →</a>
-                        </div>
-                    </div>
+{cards_html}
                 </div>
 
                 <div class="tips-section">
@@ -319,102 +384,102 @@ def create_comparisons_index_page():
 
         // Check for saved theme preference or default to light mode
         const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
+        if (savedTheme === 'dark') {{
             document.body.classList.add('dark-mode');
             icon.textContent = '☀️';
-        }
+        }}
 
         // Toggle dark mode
-        darkModeToggle.addEventListener('click', () => {
+        darkModeToggle.addEventListener('click', () => {{
             document.body.classList.toggle('dark-mode');
 
             // Update icon and save preference
-            if (document.body.classList.contains('dark-mode')) {
+            if (document.body.classList.contains('dark-mode')) {{
                 icon.textContent = '☀️';
                 localStorage.setItem('theme', 'dark');
-            } else {
+            }} else {{
                 icon.textContent = '🌙';
                 localStorage.setItem('theme', 'light');
-            }
-        });
+            }}
+        }});
     </script>
 
     <style>
-        .intro-text {
+        .intro-text {{
             font-size: 1.1rem;
             line-height: 1.6;
             margin-bottom: 2rem;
             color: var(--text-secondary);
-        }
+        }}
 
-        .comparison-cards {
+        .comparison-cards {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 2rem;
             margin: 2rem 0;
-        }
+        }}
 
-        .comparison-card {
+        .comparison-card {{
             background: var(--card-bg);
             border-radius: 12px;
             overflow: hidden;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             border: 1px solid var(--border-color);
-        }
+        }}
 
-        .comparison-card:hover {
+        .comparison-card:hover {{
             transform: translateY(-5px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
+        }}
 
-        .card-header {
+        .card-header {{
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             padding: 1.5rem;
             display: flex;
             align-items: center;
             gap: 1rem;
-        }
+        }}
 
-        .card-icon {
+        .card-icon {{
             font-size: 2.5rem;
-        }
+        }}
 
-        .card-header h2 {
+        .card-header h2 {{
             margin: 0;
             color: white;
             font-size: 1.5rem;
-        }
+        }}
 
-        .card-content {
+        .card-content {{
             padding: 1.5rem;
-        }
+        }}
 
-        .card-content p {
+        .card-content p {{
             margin-bottom: 1rem;
             line-height: 1.6;
-        }
+        }}
 
-        .feature-list {
+        .feature-list {{
             list-style: none;
             padding: 0;
             margin: 1.5rem 0;
-        }
+        }}
 
-        .feature-list li {
+        .feature-list li {{
             padding: 0.5rem 0;
             padding-left: 1.5rem;
             position: relative;
-        }
+        }}
 
-        .feature-list li:before {
+        .feature-list li:before {{
             content: "✓";
             position: absolute;
             left: 0;
             color: var(--success-color);
             font-weight: bold;
-        }
+        }}
 
-        .btn-card {
+        .btn-card {{
             display: inline-block;
             background: linear-gradient(135deg, #FFB84D 0%, #FF8C42 100%);
             color: #0f0f1e;
@@ -424,40 +489,40 @@ def create_comparisons_index_page():
             font-weight: 600;
             transition: all 0.3s ease;
             margin-top: 1rem;
-        }
+        }}
 
-        .btn-card:hover {
+        .btn-card:hover {{
             transform: translateX(5px);
             box-shadow: 0 4px 12px rgba(255, 184, 77, 0.3);
-        }
+        }}
 
-        .tips-section {
+        .tips-section {{
             background: var(--card-bg);
             padding: 2rem;
             border-radius: 12px;
             margin-top: 2rem;
             border-left: 4px solid var(--primary-color);
-        }
+        }}
 
-        .tips-section h3 {
+        .tips-section h3 {{
             margin-top: 0;
             margin-bottom: 1rem;
-        }
+        }}
 
-        .tips-section ul {
+        .tips-section ul {{
             margin-left: 1.5rem;
-        }
+        }}
 
-        .tips-section li {
+        .tips-section li {{
             margin-bottom: 0.75rem;
             line-height: 1.6;
-        }
+        }}
 
-        @media (max-width: 768px) {
-            .comparison-cards {
+        @media (max-width: 768px) {{
+            .comparison-cards {{
                 grid-template-columns: 1fr;
-            }
-        }
+            }}
+        }}
     </style>
 </body>
 </html>'''
