@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Planner - Interactive Map</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🗺️ Trip Planner</h1>
+                <div class="header-actions">
+                    <button id="darkModeToggle" class="btn-icon" title="Toggle Dark Mode">
+                        <span class="icon">🌙</span>
+                    </button>
+                    <button id="newTripBtn" class="btn-primary">
+                        <span class="icon">+</span> New Trip
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Side Panel -->
+            <aside class="side-panel" id="sidePanel">
+                <div class="panel-header">
+                    <button id="togglePanelBtn" class="btn-icon panel-toggle">
+                        <span class="icon">◀</span>
+                    </button>
+                </div>
+
+                <!-- Trip List View -->
+                <div class="panel-section" id="tripListView">
+                    <h2>My Trips</h2>
+                    <div id="tripList" class="trip-list"></div>
+                    <button id="loadMoreTrips" class="btn-secondary" style="display: none;">Load More</button>
+                </div>
+
+                <!-- Active Trip View -->
+                <div class="panel-section" id="activeTripView" style="display: none;">
+                    <!-- Trip Header -->
+                    <div class="trip-header">
+                        <button id="backToListBtn" class="btn-text">
+                            <span class="icon">←</span> Back to Trips
+                        </button>
+                        <input type="text" id="tripName" class="trip-name-input" placeholder="Trip Name" />
+                        <textarea id="tripDescription" class="trip-description-input" placeholder="Description (optional)" rows="2"></textarea>
+                    </div>
+
+                    <!-- Search Location -->
+                    <div class="search-section">
+                        <h3>Add Destination</h3>
+                        <div class="search-container">
+                            <input type="text" id="locationSearch" placeholder="Search for a place..." />
+                            <button id="searchBtn" class="btn-primary">Search</button>
+                        </div>
+                        <div id="searchResults" class="search-results"></div>
+                        <p class="search-hint">Or click on the map to add a destination</p>
+                    </div>
+
+                    <!-- Destinations List -->
+                    <div class="destinations-section">
+                        <h3>Destinations <span id="destinationCount" class="count-badge">0</span></h3>
+                        <div id="destinationsList" class="destinations-list"></div>
+                    </div>
+
+                    <!-- Trip Summary -->
+                    <div class="trip-summary">
+                        <h3>Trip Summary</h3>
+                        <div class="summary-stats">
+                            <div class="stat">
+                                <span class="stat-label">Total Distance:</span>
+                                <span id="totalDistance" class="stat-value">0 km</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Total Duration:</span>
+                                <span id="totalDuration" class="stat-value">0 hours</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Destinations:</span>
+                                <span id="destinationCountSummary" class="stat-value">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button id="saveTripBtn" class="btn-primary">
+                            <span class="icon">💾</span> Save Trip
+                        </button>
+                        <button id="exportTripBtn" class="btn-secondary">
+                            <span class="icon">📥</span> Export
+                        </button>
+                        <button id="shareTripBtn" class="btn-secondary">
+                            <span class="icon">🔗</span> Share
+                        </button>
+                        <button id="deleteTripBtn" class="btn-danger">
+                            <span class="icon">🗑️</span> Delete
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Map Container -->
+            <main class="map-container">
+                <div id="map"></div>
+
+                <!-- Map Controls -->
+                <div class="map-controls">
+                    <button id="centerMapBtn" class="btn-icon map-control-btn" title="Center Map">
+                        <span class="icon">🎯</span>
+                    </button>
+                    <button id="clearRouteBtn" class="btn-icon map-control-btn" title="Clear Route">
+                        <span class="icon">🧹</span>
+                    </button>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Loading...</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal for Export Options -->
+    <div id="exportModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Export Trip</h2>
+                <button id="closeExportModal" class="btn-icon">✕</button>
+            </div>
+            <div class="modal-body">
+                <button id="exportJsonBtn" class="btn-primary">Export as JSON</button>
+                <button id="exportTextBtn" class="btn-secondary">Export as Text</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Share Link -->
+    <div id="shareModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Share Trip</h2>
+                <button id="closeShareModal" class="btn-icon">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>Share this link to let others view your trip:</p>
+                <div class="share-link-container">
+                    <input type="text" id="shareLink" readonly />
+                    <button id="copyLinkBtn" class="btn-primary">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast" style="display: none;"></div>
+
+    <!-- Main Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>
